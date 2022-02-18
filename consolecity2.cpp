@@ -85,8 +85,8 @@ struct tilePartial {
 };
 
 tilePartial *tileMap = nullptr;
-int tileMapHeight = 10;
-int tileMapWidth = 10;
+int tileMapHeight = 100;
+int tileMapWidth = 100;
 int textureSize = 16;
 int scale = 4;
 int selectorTileId = 0;
@@ -99,6 +99,14 @@ int selectorY;
 
 int waterSupply;
 int waterDemand;
+
+struct ch_co_t {
+	wchar_t ch;
+	color_t co;
+	color_t a;
+};
+
+ch_co_t *texturechco;
 
 unsigned char *texture;
 int textureHeight;
@@ -137,6 +145,13 @@ pixel sampleImage(float x, float y) {
 		pix.a = texture[imY * (textureWidth * bpp) + (imX * bpp) + 3];
 	
 	return pix;
+}
+
+ch_co_t sampleImageCHCO(float x, float y) {
+	int imX = x * textureWidth;
+	int imY = y * textureHeight;
+	ch_co_t chco = texturechco[imY * textureWidth + imX];
+	return chco;
 }
 
 tilePartial *getPartial(int, int);
@@ -180,23 +195,18 @@ struct tile {
 	//offsetx,offsety top left
 	//sizex,sizey width height
 	virtual void draw(tilePartial *tp, float offsetx, float offsety, float sizex, float sizey) {
-		//return;
-		//Default is drawing texture from the atlas. ignoring transparent and retaining scale
+		if (offsetx >= adv::width || offsety >= adv::height || offsetx + sizex < 0 || offsety + sizey < 0)
+			return;
 		for (int x = 0; x < sizex; x++) {
 			for (int y = 0; y < sizey; y++) {
 				if (offsetx + x >= adv::width || offsety + y >= adv::height || offsetx + x < 0 || offsety + y < 0)
 					continue;
-				//float xf = float(x) / sizex;
-				//float yf = float(y) / sizey;
 				float xf = ((textureAtlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
 				float yf = ((textureAtlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
-				pixel pix = sampleImage(xf, yf);
-				if (pix.a < 255)
+				ch_co_t chco = sampleImageCHCO(xf, yf);
+				if (chco.a < 255)
 					continue;
-				wchar_t ch;
-				color_t co;
-				getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
-				adv::write(offsetx + x, offsety + y, ch, co);
+				adv::write(offsetx + x, offsety + y, chco.ch, chco.co);
 			}
 		}
 	}
@@ -261,6 +271,7 @@ struct tileable : public tile {
 				float xf = ((textureAtlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
 				float yf = ((textureAtlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
 				pixel pix = sampleImage(xf, yf);
+				ch_co_t chco = sampleImageCHCO(xf, yf);
 				for (int i = 0; i < 4; i++) {
 					if (connectingCondition(tp, 1 << i)) {
 						float xfto = (float(x) / sizex) * textureSize;
@@ -276,17 +287,20 @@ struct tileable : public tile {
 						xfto /= textureWidth;
 						yfto /= textureHeight;
 						pixel pix2 = sampleImage(xfto, yfto);
-						if (pix2.a == 255)
-							pix = pix2;						
+						ch_co_t chco2 = sampleImageCHCO(xfto, yfto);
+						if (pix2.a == 255) {
+							pix = pix2;			
+							chco = chco2;
+						}							
 					}
 				}
 				
 				if (pix.a < 255)
 					continue;
-				wchar_t ch;
-				color_t co;
-				getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
-				adv::write(offsetx + x, offsety + y, ch, co);
+				//wchar_t ch;
+				//color_t co;
+				//getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
+				adv::write(offsetx + x, offsety + y, chco.ch, chco.co);
 			}
 		}
 	}
@@ -355,9 +369,15 @@ struct road : public tileable {
 		textureAtlas[2] = 1;
 		textureAtlas[3] = 1;
 		
+		connectingTextureAtlas[0] = 1;
+		connectingTextureAtlas[1] = 0;
+		connectingTextureAtlas[2] = 2;
+		connectingTextureAtlas[3] = 1;
+		
 		defaultState = getDefaultState();
 	}
 		
+		/*
 	void draw(tilePartial *tp, float offsetx, float offsety, float sizex, float sizey) override {
 		for (int x = 0; x < sizex; x++) {
 			for (int y = 0; y < sizey; y++) {
@@ -395,6 +415,7 @@ struct road : public tileable {
 			}
 		}
 	}
+	*/
 };
 
 struct commercial_zone : public tileable {
@@ -446,6 +467,7 @@ struct commercial_zone : public tileable {
 				float xf = ((ta0 * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
 				float yf = ((ta1 * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
 				pixel pix = sampleImage(xf, yf);
+				ch_co_t chco = sampleImageCHCO(xf, yf);
 				
 				if (!tp->hasBoolean(0)) {
 					for (int i = 0; i < 4; i++) {
@@ -463,8 +485,11 @@ struct commercial_zone : public tileable {
 							xfto /= textureWidth;
 							yfto /= textureHeight;
 							pixel pix2 = sampleImage(xfto, yfto);
-							if (pix2.a == 255)
-								pix = pix2;						
+							ch_co_t chco2 = sampleImageCHCO(xfto, yfto);
+							if (pix2.a == 255) {
+								pix = pix2;			
+								chco = chco2;
+							}								
 						}
 					}
 					
@@ -484,17 +509,20 @@ struct commercial_zone : public tileable {
 						xfto /= textureWidth;
 						yfto /= textureHeight;
 						pixel pix2 = sampleImage(xfto, yfto);
-						if (pix2.a == 255)
-							pix = pix2;
+						ch_co_t chco2 = sampleImageCHCO(xfto, yfto);
+						if (pix2.a == 255) {
+							pix = pix2;			
+							chco = chco2;
+						}								
 					}
 				}
 				
 				if (pix.a < 255)
 					continue;
-				wchar_t ch;
-				color_t co;
-				getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
-				adv::write(offsetx + x, offsety + y, ch, co);
+				//wchar_t ch;
+				//color_t co;
+				//getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
+				adv::write(offsetx + x, offsety + y, chco.ch, chco.co);
 			}
 		}
 	}
@@ -542,7 +570,44 @@ struct dirt : public tile {
 	}
 };
 
-struct water_tower : public tile {
+struct multitilesprite : public tile {
+	multitilesprite() {}
+	multitilesprite(int t0, int t1, int t2, int t3) { tiles::add(this); setAtlas(t0,t1,t2,t3); defaultState = getDefaultState(); }
+	
+	void draw(tilePartial *tp, float offsetx, float offsety, float sizex, float sizey) override {
+		//Default is drawing texture from the atlas. ignoring transparent and retaining scale
+		int textureSizeW = textureAtlas[2] - textureAtlas[0];
+		int textureSizeH = textureAtlas[3] - textureAtlas[1];
+		for (int x = 0; x < sizex * textureSizeW; x++) {
+			for (int y = 0; y < sizey * textureSizeH; y++) {
+				if (offsetx + x >= adv::width || offsety + y - (textureSizeH - 1) * sizey >= adv::height || offsetx + x < 0 || offsety + y - ((textureSizeH - 1) * sizey) < 0)
+					continue;
+				float xf = ((textureAtlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
+				float yf = ((textureAtlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
+				pixel pix = sampleImage(xf, yf);
+				if (pix.a < 255)
+					continue;
+				//wchar_t ch;
+				//color_t co;
+				//getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
+				ch_co_t chco = sampleImageCHCO(xf, yf);
+				adv::write(offsetx + x /*+ (textureSizeW * sizex)*/, offsety + y - ((textureSizeH - 1) * sizey), chco.ch, chco.co);
+			}
+		}
+	}	
+};
+
+struct bigbuildingtesttile : public multitilesprite {
+	bigbuildingtesttile() {
+		tiles::add(this);
+		
+		setAtlas(4,0,5,2);
+		
+		defaultState = getDefaultState();
+	}
+};
+
+struct water_tower : public multitilesprite {
 	water_tower() {
 		tiles::add(this);
 		
@@ -559,27 +624,6 @@ struct water_tower : public tile {
 		partial.id = id;
 		partial.setUnderground(UNDERGROUND_WATER_PIPE);
 		return partial;
-	}
-	
-	void draw(tilePartial *tp, float offsetx, float offsety, float sizex, float sizey) override {
-		//Default is drawing texture from the atlas. ignoring transparent and retaining scale
-		int textureSizeW = textureAtlas[2] - textureAtlas[0];
-		int textureSizeH = textureAtlas[3] - textureAtlas[1];
-		for (int x = 0; x < sizex * textureSizeW; x++) {
-			for (int y = 0; y < sizey * textureSizeH; y++) {
-				if (offsetx + x >= adv::width || offsety + y - (textureSizeH - 1) * sizey >= adv::height || offsetx + x < 0 || offsety + y - ((textureSizeH - 1) * sizey) < 0)
-					continue;
-				float xf = ((textureAtlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
-				float yf = ((textureAtlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
-				pixel pix = sampleImage(xf, yf);
-				if (pix.a < 255)
-					continue;
-				wchar_t ch;
-				color_t co;
-				getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
-				adv::write(offsetx + x /*+ (textureSizeW * sizex)*/, offsety + y - ((textureSizeH - 1) * sizey), ch, co);
-			}
-		}
 	}
 };
 
@@ -640,6 +684,8 @@ tile *tiles::WATER_TOWER = new water_tower;
 tile *tiles::WATER_PIPE = new water_pipe;
 tile *tiles::DIRT = new dirt;
 tile *tiles::COMMERCIAL_ZONE = new commercial_zone;
+tile *tile0 = new bigbuildingtesttile;
+tile *tile1 = new multitilesprite(5,0,6,3);
 
 tile *tiles::tileRegistry[TILE_COUNT];
 
@@ -709,24 +755,17 @@ void displayTileMap() {
 	int width = 2 * scale;
 	int height = 1 * scale;
 	
-	for (int i = 0; i < 3; i++) {
-		break;
-		color_t a[] = { 255,0,0,0 };
-		color_t b[] = { 0,255,0,0 };
-		color_t c[] = { 0,0,255,0 };
-		pixel pix = pixel(a[i],b[i],c[i]);
-		wchar_t ch;
-		color_t co;
-		getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
-		adv::write(i,0,ch,co);
-	}
-	
 	for (int x = tileMapWidth - 1; x > - 1; x--) {
-		//for (int x = 0; x < tileMapWidth; x++) {
 		for (int y = 0; y < tileMapHeight; y++) {
 			float offsetx = (((y * 0.707106f) + (x * 0.707106f)) * 0.707106f) + viewX;
 			float offsety = (((y * 0.707106f) - (x * 0.707106f)) * 0.707106f) + viewY;
+			
+			//Check if in view (TO-DO)
+			if (offsetx * width + width < 0 || offsety * height + height < 0 || offsetx * width + width - width > adv::width || offsety * height + height - height > adv::height)
+				continue;
+			
 			tilePartial *partial = getPartial(x,y);
+			
 			if (waterView) {
 				tiles::DIRT->draw(&tiles::DIRT->defaultState, offsetx * width, offsety * height, width, height);
 				if (!partial->hasUnderground(UNDERGROUND_WATER_PIPE))
@@ -735,28 +774,9 @@ void displayTileMap() {
 				tiles::WATER_PIPE->draw(partial, offsetx * width, offsety * height, width, height);
 				
 				continue;
-			}	
-			
-			//Check if in view (TO-DO)
-			if (offsetx * width + width < 0 || offsety * height + height < 0 || offsetx * width + width - width > adv::width || offsety * height + height - height > adv::height)
-				continue;
+			}			
 				
 			getTile(partial)->draw(partial, offsetx * width, offsety * height, width, height);
-			continue;
-									
-			for (int xp = 0; xp < width; xp++) {
-				for (int yp = 0; yp < height; yp++) {
-					float xfp = float(xp) / width;
-					float yfp = float(yp) / height;
-					//pixel pix = getTile(getPartial(x,y))->getTexture(getPartial(x,y), xfp, yfp);
-					pixel pix = tiles::DEFAULT_TILE->getTexture(&tiles::DEFAULT_TILE->defaultState, xfp, yfp);
-					//pixel pix = pixel(128,128,128);
-					wchar_t ch;
-					color_t co;
-					getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
-					adv::write(x * width + (xfp * width), y * height + (yfp * height), ch, co);
-				}
-			}
 		}
 	}
 }
@@ -807,15 +827,32 @@ void display() {
 }
 
 int wmain() {	
+	colormapper_init_table();
+
 	texture = stbi_load("textures.png", (int*)&textureWidth, (int*)&textureHeight, &bpp, 0);
+	
+	//convert texture to wchar_t and color_t
+	texturechco = new ch_co_t[textureWidth * textureHeight];
+	
+	for (int x = 0; x < textureWidth; x++) {
+		for (int y = 0; y < textureHeight; y++) {
+			pixel pix = sampleImage(float(x) / textureWidth, float(y) / textureHeight);
+			ch_co_t chco;
+			chco.a = pix.a;
+			getDitherColored(pix.r, pix.g, pix.b, &chco.ch, &chco.co);
+			texturechco[int(y * textureWidth) + int(x)] = chco;
+		}
+	}
 	
 	while (!adv::ready) console::sleep(10);
 	
 	#ifdef __linux__
-	curs_set(0);
+	//curs_set(0);
 	//adv::setDrawingMode(DRAWINGMODE_COMPARE);
 	#endif
 	adv::setThreadState(false);
+	adv::setThreadSafety(false);
+	
 	init();
 	
 	int key = 0;
