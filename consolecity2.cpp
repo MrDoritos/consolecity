@@ -35,6 +35,25 @@ struct tiles {
 	static tile *COMMERCIAL_ZONE;
 };
 
+/*
+octet 0 : 00 - none
+			 00 - underground
+			 0000 - connection
+octet 1 : 00 - none
+			 00 - none
+			 00 - facing
+			 0 - water
+			 0 - power
+octet 2 : 00
+			 00
+			 00
+			 00 - water pipe connection
+octet 3 : boolean reserved
+		  7 0 - constructed (zone)
+
+
+*/
+
 struct tilePartial {
 	tilePartial() { id = 0; data.b = 0; }
 	unsigned char id;
@@ -57,16 +76,17 @@ struct tilePartial {
 		return (data.a[index] & (1 << bit));
 	}
 	void setConnection(int direction, int index = 0) {
+		//data.a[index] &= data.a[index] ^ direction;
 		data.a[index] |= direction;
 	}
 	bool hasConnection(int direction, int index = 0) {
 		return (data.a[index] & direction);
 	}
 	void setUnderground(int type) {
-		data.a[0] |= type << 4;
+		data.a[0] |= (type << 4);
 	}
 	bool hasUnderground(int type) {
-		return (data.a[0] & type);
+		return ((data.a[0] >> 4) & type);
 	}
 	bool hasPower() {
 		return (data.a[1] & 1);
@@ -115,6 +135,7 @@ int bpp;
 
 bool placementMode;
 bool waterView;
+bool infoMode;
 
 struct pixel {
 	pixel() {
@@ -215,6 +236,8 @@ struct tile {
 	
 	virtual void onUpdate(tilePartial *tp, int x, int y) {}
 	
+	virtual void onDestroy(tilePartial *tp, int x, int y) {}
+	
 	void updateNeighbors(tilePartial *tp, int x, int y) {
 		tilePartial *neighbors[4];
 		neighbors[0] = getPartial(x,y-1);//NORTH
@@ -225,15 +248,31 @@ struct tile {
 		getTile(neighbors[1])->onUpdate(neighbors[1], x+1,y);
 		getTile(neighbors[2])->onUpdate(neighbors[2], x,y+1);
 		getTile(neighbors[3])->onUpdate(neighbors[3], x-1,y);
+		tiles::WATER_PIPE->onUpdate(neighbors[0], x,y-1);
+		tiles::WATER_PIPE->onUpdate(neighbors[1], x+1,y);
+		tiles::WATER_PIPE->onUpdate(neighbors[2], x,y+1);
+		tiles::WATER_PIPE->onUpdate(neighbors[3], x-1,y);
 	}
 	
 	virtual void onRandomTick(tilePartial *tp, int x, int y) {}
 };
 
 struct tileable : public tile {	
+	tileable() {}
+	tileable(int t0, int t1, int t2, int t3, int t4, int t5, int t6, int t7) {
+		tiles::add(this);
+		setAtlas(t0,t1,t2,t3);
+		connectingTextureAtlas[0] = t4;
+		connectingTextureAtlas[1] = t5;
+		connectingTextureAtlas[2] = t6;
+		connectingTextureAtlas[3] = t7;
+		defaultState = getDefaultState();
+	}
+
 	virtual void connectToNeighbors(tilePartial *tp, int x, int y) {
 		unsigned char old = tp->data.a[0];
-		tp->data.a[0] = 0;
+		tp->setConnection(0);
+		tp->data.a[0] &= tp->data.a[0] ^ 0x0f;
 		tilePartial *neighbors[4];
 		neighbors[0] = getPartial(x,y-1);//NORTH
 		neighbors[1] = getPartial(x+1,y);//EAST
@@ -244,6 +283,7 @@ struct tileable : public tile {
 				if (!((old & (1 << i))>0));
 					//getTile(neighbors[i])->onUpdate(neighbors[i])
 				//tp->data.a[0] |= (1 << i);
+				//neighbors[i]->setConnection(1 << (i + 2 % 4));
 				tp->setConnection(1 << i);
 			}
 		}
@@ -625,6 +665,14 @@ struct water_tower : public multitilesprite {
 		partial.setUnderground(UNDERGROUND_WATER_PIPE);
 		return partial;
 	}
+	
+	void onCreate(tilePartial *tp, int x, int y) override {
+		waterSupply += 2400;
+	}
+	
+	void onDestroy(tilePartial *tp, int x, int y) override {
+		waterSupply -= 2400;
+	}
 };
 
 struct water_pipe : public tileable {
@@ -652,9 +700,13 @@ struct water_pipe : public tileable {
 	}
 	
 	void connectToNeighbors(tilePartial *tp, int x, int y) override {
-		if (tp->id == tiles::WATER_PIPE->id)
+		if (tp->id == tiles::WATER_PIPE->id) {
 			tileable::connectToNeighbors(tp,x,y);
-		tp->data.a[2] = 0;
+			return;
+		}
+		//tp->data.a[2] = 0;
+		//tp->setConnection(0, 2);
+		tp->data.a[2] &= tp->data.a[2] ^ 0x0f;
 		tilePartial *neighbors[4];
 		neighbors[0] = getPartial(x,y-1);//NORTH
 		neighbors[1] = getPartial(x+1,y);//EAST
@@ -662,13 +714,37 @@ struct water_pipe : public tileable {
 		neighbors[3] = getPartial(x-1,y);//WEST
 		for (int i = 0; i < 4; i++) {
 			if (neighbors[i]->hasUnderground(UNDERGROUND_WATER_PIPE)) {
+				//neighbors[i]->setConnection(1 << (i + 2 % 4), 2);
 				tp->setConnection(1 << i, 2);
 			}
 		}
 	}
 	
+	void updateWater(tilePartial *tp, int x, int y) {
+		//	tp->setWater(1);
+		if (waterSupply > waterDemand) {
+			for (int xx = x - 5; xx < x + 5; xx++) {
+				for (int yy = y - 5; yy < y + 5; yy++) {
+					int xxx = xx - x;
+					int yyy = yy - y;
+					if ((xxx * xxx) + (yyy * yyy) < 25) {
+						tilePartial *tp2 = getPartial(xx, yy);
+						tp2->setWater(1);
+					}
+				}
+			}
+		}
+	}
+	
+	void onUpdate(tilePartial *tp, int x, int y) override {
+		updateWater(tp, x, y);
+		tileable::onUpdate(tp,x,y);
+	}
+	
 	void onCreate(tilePartial *tp, int x, int y) override {
 		tp->setUnderground(UNDERGROUND_WATER_PIPE);
+			//tp->setWater(1);
+		updateWater(tp, x, y);
 		tileable::onCreate(tp,x,y);
 	}
 };
@@ -686,6 +762,24 @@ tile *tiles::DIRT = new dirt;
 tile *tiles::COMMERCIAL_ZONE = new commercial_zone;
 tile *tile0 = new bigbuildingtesttile;
 tile *tile1 = new multitilesprite(5,0,6,3);
+tile *drypool = new tileable(6,3,7,4,7,3,8,4);
+
+struct pool : public tileable {
+	pool()
+		:tileable(4,3,5,4,5,3,6,4) {
+		
+	}
+	
+	void draw(tilePartial *tp, float offsetx, float offsety, float sizex, float sizey) override {
+		//if (((int)offsetx) % 2 == 0)//
+		if (tp->hasWater())
+			tileable::draw(tp,offsetx,offsety,sizex,sizey);
+		else 
+			drypool->draw(tp,offsetx,offsety,sizex,sizey);
+	}
+};
+
+pool *pooltile = new pool();
 
 tile *tiles::tileRegistry[TILE_COUNT];
 
@@ -715,6 +809,7 @@ void init() {
 	scale = 4;
 	waterView = false;
 	placementMode = false;
+	infoMode = false;
 	
 	waterSupply = 0;
 	waterDemand = 0;
@@ -767,7 +862,7 @@ void displayTileMap() {
 			tilePartial *partial = getPartial(x,y);
 			
 			if (waterView) {
-				tiles::DIRT->draw(&tiles::DIRT->defaultState, offsetx * width, offsety * height, width, height);
+				tiles::DIRT->draw(partial, offsetx * width, offsety * height, width, height);
 				if (!partial->hasUnderground(UNDERGROUND_WATER_PIPE))
 					continue;
 				//getTile(partial)->draw(partial, offsetx * width, offsety * height, width, height);
@@ -823,6 +918,26 @@ void display() {
 		float offsetx = (((selectorY * 0.707106f) + (selectorX * 0.707106f)) * 0.707106f) + viewX;
 		float offsety = (((selectorY * 0.707106f) - (selectorX * 0.707106f)) * 0.707106f) + viewY;
 		tileSelector.draw(&tileSelector.defaultState, offsetx * width, offsety * height, width, height);
+	}
+	
+	if (infoMode) {
+		int y = 0;
+		auto printVar = [&](const char* varname, float value) {
+			char buf[100];
+			int i = snprintf(&buf[0], 99, "%s: %f", varname, value);
+			adv::write(0,y++,&buf[0]);
+		};
+		printVar("selectorTileId", selectorTileId);
+		printVar("viewX", viewX);
+		printVar("viewY", viewY);
+		printVar("scale", scale);
+		printVar("selectorX", selectorX);
+		printVar("selectorY", selectorY);
+		printVar("waterSupply", waterSupply);
+		printVar("waterDemand", waterDemand);
+		printVar("placementMode", placementMode ? 1.0f : 0.0f);
+		printVar("waterView", waterView ? 1.0f : 0.0f);
+		printVar("infoMode", infoMode ? 1.0f : 0.0f);
 	}
 }
 
@@ -932,13 +1047,30 @@ int wmain() {
 			case VK_DOWN:
 				viewY--;
 				break;
+			case 'w':
+				if (!placementMode)
+					viewY++;
+				break;
+			case 'a':
+				if (!placementMode)
+					viewX++;
+				break;
+			case 's':
+				if (!placementMode)
+					viewY--;
+				break;
+			case 'd':
+				if (!placementMode)
+					viewX--;	
+				break;
 			case ',':
 			//case 'z':
 				scale++;
 				break;
 			case '.':
 			//case 'x':
-				scale--;
+				if (scale > 1)
+					scale--;
 				break;
 			case '/':
 				scale = 4;
@@ -951,6 +1083,13 @@ int wmain() {
 				break;
 			case 'i':
 				placementMode = !placementMode;
+				if (placementMode) {
+					//selectorX = viewX;
+					//selectorY = viewY;
+				}
+				break;
+			case 'o':
+				infoMode = !infoMode;
 				break;
 		}
 		
@@ -970,6 +1109,9 @@ int wmain() {
 				int y = rand() % tileMapHeight;
 				tilePartial *partial = getPartial(x, y);
 				getTile(partial)->onRandomTick(partial, x, y);
+				
+				if (partial->hasUnderground(UNDERGROUND_WATER_PIPE))
+					((water_pipe*)(tiles::WATER_PIPE))->updateWater(partial, x, y);
 			}
 		}
 	}	
