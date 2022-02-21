@@ -11,7 +11,7 @@ struct water_tower;
 
 struct tile;
 
-#define TILE_COUNT 12
+#define TILE_COUNT 10
 #define NORTH 1
 #define EAST 2
 #define SOUTH 4
@@ -61,6 +61,12 @@ struct tilePartial {
 		unsigned char a[8];
 		unsigned long b;
 	} data;
+	tilePartial transferProperties(tilePartial in) {
+		in.data.a[0] |= data.a[0] & 0b00110000;
+		in.data.a[1] |= data.a[1] & 0b00000011;
+		in.data.a[2] |= data.a[2] & 0b00000011;
+		return in;
+	}
 	void setFacing(int direction) {
 		data.a[1] &= data.a[1] ^ 0b00001100;
 		data.a[1] |= (direction & 0b11) << 2;
@@ -194,6 +200,15 @@ struct tile {
 		defaultState = getDefaultState();
 	}
 	
+	tile(int t0, int t1, int t2, int t3, bool skip) {
+		if (!skip) 
+			tiles::add(this);
+				
+		setAtlas(t0,t1,t2,t3);
+		
+		defaultState = getDefaultState();
+	}
+	
 	void setAtlas(int a, int b, int c, int d) {
 		textureAtlas[0] = a;
 		textureAtlas[1] = b;
@@ -259,8 +274,9 @@ struct tile {
 
 struct tileable : public tile {	
 	tileable() {}
-	tileable(int t0, int t1, int t2, int t3, int t4, int t5, int t6, int t7) {
-		tiles::add(this);
+	tileable(int t0, int t1, int t2, int t3, int t4, int t5, int t6, int t7, bool skip = false) {
+		if (!skip)
+			tiles::add(this);
 		setAtlas(t0,t1,t2,t3);
 		connectingTextureAtlas[0] = t4;
 		connectingTextureAtlas[1] = t5;
@@ -721,7 +737,7 @@ struct water_pipe : public tileable {
 	}
 	
 	void updateWater(tilePartial *tp, int x, int y) {
-		//	tp->setWater(1);
+		if (tp->hasUnderground(UNDERGROUND_WATER_PIPE))
 		if (waterSupply > waterDemand) {
 			for (int xx = x - 5; xx < x + 5; xx++) {
 				for (int yy = y - 5; yy < y + 5; yy++) {
@@ -762,7 +778,8 @@ tile *tiles::DIRT = new dirt;
 tile *tiles::COMMERCIAL_ZONE = new commercial_zone;
 tile *tile0 = new bigbuildingtesttile;
 tile *tile1 = new multitilesprite(5,0,6,3);
-tile *drypool = new tileable(6,3,7,4,7,3,8,4);
+tile *drypool = new tileable(6,3,7,4,7,3,8,4, true);
+tile *nowater = new tile(6,0,7,1, true);
 
 struct pool : public tileable {
 	pool()
@@ -774,8 +791,10 @@ struct pool : public tileable {
 		//if (((int)offsetx) % 2 == 0)//
 		if (tp->hasWater())
 			tileable::draw(tp,offsetx,offsety,sizex,sizey);
-		else 
+		else {
 			drypool->draw(tp,offsetx,offsety,sizex,sizey);
+			nowater->draw(tp,offsetx + (sizex * 0.1f),offsety - (sizey * 0.5f),sizex * 0.8f,sizey * 0.8f);
+		}
 	}
 };
 
@@ -998,6 +1017,7 @@ int wmain() {
 				viewY-=.707106f * .707106f;
 				break;			
 			case 'z':
+			{
 				//Place
 				if (waterView) {
 					tilePartial *partial = getPartial(selectorX, selectorY);
@@ -1006,18 +1026,23 @@ int wmain() {
 					tiles::WATER_PIPE->updateNeighbors(partial, selectorX, selectorY);
 					break;
 				}
-				*getPartial(selectorX, selectorY) = tileSelector.selectedTile->getDefaultState();
+				tilePartial *last = getPartial(selectorX, selectorY);
+				*getPartial(selectorX, selectorY) = last->transferProperties(tileSelector.selectedTile->getDefaultState());
 				getTile(getPartial(selectorX, selectorY))->onCreate(getPartial(selectorX, selectorY), selectorX, selectorY);
 				getTile(getPartial(selectorX, selectorY))->updateNeighbors(getPartial(selectorX, selectorY), selectorX, selectorY);
+			}
 				break;
 			case 'x':
+			{
 				if (waterView) {
 					
 					break;
 				}
-				*getPartial(selectorX, selectorY) = tiles::GRASS->getDefaultState();
+				tilePartial *last = getPartial(selectorX, selectorY);
+				*getPartial(selectorX, selectorY) = last->transferProperties(tiles::GRASS->getDefaultState());
 				getTile(getPartial(selectorX, selectorY))->updateNeighbors(getPartial(selectorX, selectorY), selectorX, selectorY);
-				//Destroy
+			}
+			//Destroy
 				break;
 			case '2':
 				selectorTileId++;
