@@ -16,6 +16,10 @@ struct tile;
 #define EAST 2
 #define SOUTH 4
 #define WEST 8
+#define NORTH_F x,y-1
+#define EAST_F x+1,y
+#define SOUTH_F x,y+1
+#define WEST_F x-1,y
 #define UNDERGROUND_WATER_PIPE 1
 #define UNDERGROUND_SUBWAY 2
 
@@ -50,6 +54,12 @@ octet 2 : 00
 			 00 - water pipe connection
 octet 3 : boolean reserved
 		  7 0 - constructed (zone)
+octet 4 : buildings
+		     0000 - building id
+			 000 - construction animation
+			 0 - master
+octet 5 : population
+			 0000 - inhabitants / jobs
 
 
 */
@@ -66,6 +76,20 @@ struct tilePartial {
 		in.data.a[1] |= data.a[1] & 0b00000011;
 		in.data.a[2] |= data.a[2] & 0b00000011;
 		return in;
+	}
+	int getBuildingId() {
+		return int(data.a[4] & 0b11110000) >> 4;
+	}
+	void setBuildingId(int id) {
+		data.a[4] &= data.a[4] ^ 0b11110000;
+		data.a[4] |= (id & 0b1111) << 4;
+	}
+	float getAnimationProgress() {
+		return float(data.a[4] & 0b00001110 >> 1) / 7.0f;
+	}
+	void setAnimationProgress(float norm) {
+		data.a[4] &= data.a[4] ^ 0b00001110;
+		data.a[4] |= (int(norm * 7.0f) & 0b111) << 1;
 	}
 	void setFacing(int direction) {
 		data.a[1] &= data.a[1] ^ 0b00001100;
@@ -157,6 +181,7 @@ int bpp;
 bool placementMode;
 bool waterView;
 bool infoMode;
+bool statsMode;
 
 struct pixel {
 	pixel() {
@@ -199,6 +224,36 @@ ch_co_t sampleImageCHCO(float x, float y) {
 tilePartial *getPartial(int, int);
 tileComplete getComplete(int, int);
 tile *getTile(tilePartial*);
+
+struct building {
+	building(float t0, float t1, float t2, float t3, int width, int height, int waterConsumption, int powerConsumption, int population, float polution, float waterPolution) {
+		atlas[0] = t0;
+		atlas[1] = t1;
+		atlas[2] = t2;
+		atlas[3] = t3;
+		this->width = width;
+		this->height = height;
+		this->waterConsumption = waterConsumption;
+		this->powerConsumption = powerConsumption;
+		this->population = population;
+		this->polution = polution;
+		this->waterPolution = waterPolution;
+	}
+	float atlas[4];
+	int width;
+	int height;
+	int waterConsumption;
+	int powerConsumption;
+	int population;
+	float polution;
+	float waterPolution;
+};
+
+building commercial_buildings[] = {
+	building(2,3,3,4,1,1,1,0,0,0,0),
+	building(0,5,2,7,2,1,1,0,0,0,0),
+	building(3,4,5,7,2,2,1,0,0,0,0)
+};
 
 struct tile {
 	int id;
@@ -459,6 +514,34 @@ struct road : public tileable {
 	}
 };
 
+void buildingRenderer(tileComplete *tc, building *bd, float offsetx, float offsety, float sizex, float sizey) {
+	float textureSizeW = bd->atlas[2] - bd->atlas[0];
+	float textureSizeH = bd->atlas[3] - bd->atlas[1];
+	for (int x = 0; x < sizex * textureSizeW; x++) {
+		for (int y = 0; y < sizey * textureSizeH; y++) {
+			if (offsetx + x >= adv::width || offsety + y - (textureSizeH - 1) * sizey >= adv::height || offsetx + x < 0 || offsety + y - ((textureSizeH - 1) * sizey) < 0)
+				;//continue;
+			float xf = ((bd->atlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
+			float yf = ((bd->atlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
+			ch_co_t chco = sampleImageCHCO(xf, yf);
+			if (chco.a < 255)
+				continue;
+			adv::write(offsetx + x, offsety + y - ((textureSizeH - 1) * sizey), chco.ch, chco.co);
+		}
+	}
+}
+
+struct buildingTest : public tile {
+	buildingTest() {
+		tiles::add(this);
+		defaultState= getDefaultState();
+	}
+	
+	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
+		buildingRenderer(tc, &commercial_buildings[1], offsetx, offsety, sizex, sizey);
+	}
+} *btt = new buildingTest;
+
 struct commercial_zone : public tileable {
 	commercial_zone() {
 		tiles::add(this);
@@ -473,16 +556,41 @@ struct commercial_zone : public tileable {
 	
 	void onRandomTick(tileComplete *tc, int x, int y) override {
 		tilePartial *tp = tc->partial;
-		tp->setBoolean(true, 0);
-		//Start to pay them taxes!
-		//setAtlas(2,3,3,4);
+		if (!tp->hasBoolean(0) && tp->hasBoolean(0,4)) {
+			if (tp->hasConnection(EAST)) {
+				getPartial(EAST_F)->setBoolean(true,0);
+				tp->setBuildingId(1);
+			}
+			else
+				tp->setBuildingId(0);			
+			
+			tp->setBoolean(true, 0);
+		}
 	}
 	
 	int waterConsumption(tileComplete *tc) override {
-		if (tc->partial->hasBoolean(0)) {
-			return 50;
-		}
+		if (tc->partial->hasBoolean(0))
+			return commercial_buildings[tc->partial->getBuildingId()].waterConsumption;
 		return 0;
+	}
+	
+	void connectToNeighbors(tileComplete *tc, int x, int y) override {
+		tilePartial *tp = tc->partial;
+		tp->setBoolean(true,0,4);
+		unsigned char old = tp->data.a[0];
+		tp->setConnection(0);
+		tp->data.a[0] &= tp->data.a[0] ^ 0x0f;
+		tilePartial *neighbors[4];
+		neighbors[0] = getPartial(NORTH_F);
+		neighbors[1] = getPartial(EAST_F);
+		neighbors[2] = getPartial(SOUTH_F);
+		neighbors[3] = getPartial(WEST_F);
+		for (int i = 0; i < 4; i++) {
+			if (neighbors[i]->id == tp->id /*&& neighbors[i]->hasBoolean(0,4)*/) {
+				tp->setConnection(1 << i);
+				//tp->setBoolean(false,0,4);
+			}
+		}
 	}
 	
 	void onCreate(tileComplete *tc, int x, int y) override {
@@ -494,6 +602,7 @@ struct commercial_zone : public tileable {
 		neighbors[1] = getPartial(x+1,y);//EAST
 		neighbors[2] = getPartial(x,y+1);//SOUTH
 		neighbors[3] = getPartial(x-1,y);//WEST
+		
 		for (int i = 0; i < 4; i++) {
 			if (neighbors[i]->id == tiles::ROAD->id) {
 					//getTile(neighbors[i])->onUpdate(neighbors[i])
@@ -503,8 +612,15 @@ struct commercial_zone : public tileable {
 		}
 	}
 	
-	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
+	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {		
 		tilePartial *tp = tc->partial;
+		if (tp->hasBoolean(0)) {
+			if (!tp->hasBoolean(0,4))
+				return;
+			buildingRenderer(tc, &commercial_buildings[tp->getBuildingId()], offsetx, offsety, sizex, sizey);
+			return;
+		}
+		
 		for (int x = 0; x < sizex; x++) {
 			for (int y = 0; y < sizey; y++) {
 				if (offsetx + x >= adv::width || offsety + y >= adv::height || offsetx + x < 0 || offsety + y < 0)
@@ -655,6 +771,7 @@ struct bigbuildingtesttile : public multitilesprite {
 		defaultState = getDefaultState();
 	}
 };
+
 
 struct water_tower : public multitilesprite {
 	water_tower() {
@@ -852,6 +969,7 @@ void init() {
 	waterView = false;
 	placementMode = false;
 	infoMode = false;
+	statsMode = false;
 	
 	waterSupply = 0;
 	waterDemand = 0;
@@ -968,6 +1086,42 @@ void display() {
 		float offsety = (((selectorY * 0.707106f) - (selectorX * 0.707106f)) * 0.707106f) + viewY;
 		tileComplete cmp;
 		tileSelector.draw(getComplete(&tileSelector.defaultState, &tileSelector, selectorX, selectorY, &cmp), offsetx * width, offsety * height, width, height);
+	}
+	
+	if (statsMode) {
+		const char *text[] = {
+			"Environment",
+			"Health",
+			"Safety",
+			"Traffic",
+			"Education",
+			"Land Value"
+		};
+		int width = adv::width / 3 - 5;
+		int height = 3;
+		int widthOffset = adv::width / 3;
+		for (int xi = 0; xi < 3; xi++) {
+			for (int yi = 0; yi < 2; yi++) {
+				float value = float(rand() % 255) / 255;
+				
+				pixel pix = pixel((1.0f - value)  * 255, value * 255, 0);
+				wchar_t ch;
+				color_t co;
+				
+				getDitherColored(pix.r, pix.g, pix.b, &ch, &co);
+				
+				int characters = width * value;
+				
+				adv::write(xi * widthOffset, yi * height, text[yi * 3 + xi]);
+				for (int i = 0; i < width; i++) {
+					if (i > characters) {
+						ch = '#';
+						co = FWHITE|BBLACK;
+					}
+					adv::write(xi * widthOffset + i, yi * height + 1, ch, co);
+				}
+			}
+		}
 	}
 	
 	if (infoMode) {
@@ -1149,6 +1303,9 @@ int wmain() {
 				break;
 			case 'o':
 				infoMode = !infoMode;
+				break;
+			case 'j':
+				statsMode = !statsMode;
 				break;
 		}
 		
