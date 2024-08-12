@@ -10,8 +10,16 @@ struct default_tile;
 struct grass;
 struct road;
 struct water_tower;
-
+struct plop_instance;
+struct plop;
 struct tile;
+struct tilePartial;
+struct tileComplete;
+
+tilePartial *getPartial(int, int);
+tileComplete getComplete(int, int);
+tile *getTile(tilePartial*);
+
 
 #define ZONING_NONE 0
 #define ZONING_RESIDENTIAL 1
@@ -136,18 +144,18 @@ struct tilePartial {
 		data.a[index] |= state ? (1 << bit) : 0;
 		return state;
 	}
+	bool hasBoolean(int bit, int index = 3) {
+		return (data.a[index] & (1 << bit));
+	}
 	bool isPlop() {
-		return hasBoolean(3, 6);
+		return hasBoolean(6, 3);
 	}
 	int getPlopId() {
 		return int(data.c[1]);
 	}
 	void setPlopId(int id) {
+		setBoolean(true, 6, 3);
 		data.c[1] = id;
-	}
-
-	bool hasBoolean(int bit, int index = 3) {
-		return (data.a[index] & (1 << bit));
 	}
 	void setConnection(int direction, int index = 0) {
 		//data.a[index] &= data.a[index] ^ direction;
@@ -195,6 +203,8 @@ struct tileComplete {
 	
 	tile *parent;
 	tilePartial *partial;
+	plop *parent_plop;
+	plop_instance *parent_plop_instance;
 	int tileX;
 	int tileY;
 };
@@ -236,6 +246,7 @@ int selectorY;
 
 int waterSupply;
 int waterDemand;
+int waterNetworks;
 
 int commercialJobs;
 int commercialPopulation;
@@ -313,9 +324,6 @@ ch_co_t sampleImageCHCO(float x, float y) {
 	return chco;
 }
 
-tilePartial *getPartial(int, int);
-tileComplete getComplete(int, int);
-tile *getTile(tilePartial*);
 
 struct building {
 	building(float t0, float t1, float t2, float t3, int width, int height, int waterConsumption, int powerConsumption, int population, float polution, float waterPolution) {
@@ -571,29 +579,6 @@ struct tileable : public tile {
 	}
 };
 
-tilePartial *getPartial(int x, int y) {
-	if (x >= tileMapWidth || x < 0 || y >= tileMapHeight || y < 0)
-		return &tiles::DEFAULT_TILE->defaultState;
-	return &tileMap[y * tileMapWidth + x];
-}
-
-tileComplete getComplete(int x, int y) {
-	tileComplete tc;
-	tc.partial = getPartial(x,y);
-	tc.parent = getTile(tc.partial);
-	tc.tileX = x;
-	tc.tileY = y;
-	return tc;
-}
-
-tileComplete *getComplete(tilePartial *tp, tile *parent, int x, int y, tileComplete *ptr) {
-	ptr->partial = tp;
-	ptr->parent = parent;
-	ptr->tileX = x;
-	ptr->tileY = y;
-	return ptr;
-}
-
 int tiles::id = 0;
 
 struct sprite {
@@ -661,9 +646,6 @@ struct overlay : sprite {
 
 };
 
-struct plop_instance;
-struct plop;
-
 struct plop_registry {
 	plop_registry() {
 		id = 0;
@@ -698,7 +680,21 @@ struct plop_instance {
 		originY = oy;
 	}
 
-	void render();
+	plop_instance() {
+
+	}
+
+	virtual float maxWater();
+
+	virtual float waterUsage() {
+		return maxWater();
+	}
+
+	virtual bool waterSupply() {
+		return waterUsage() > 0;
+	}
+
+	virtual void render();
 
 	plop *base_plop;
 	int sizeX, sizeY, originX, originY;
@@ -708,11 +704,18 @@ struct plop_instance {
 	float education;
 	float crime;
 	float fire;
+	float health;
+
 	bool watered;
 	bool powered;
 
-};
+	float water;	
+	float power;
+	float pollution;
 
+	int capacity;
+	int population;
+};
 
 struct plop {
 	plop(sprite* tex, bool placeable=true):plop() {
@@ -731,13 +734,24 @@ struct plop {
 	virtual void render(plop_instance * instance) {
 		if (tex == nullptr)
 			return;
+
+		float width = getWidth();
+		float height = getHeight();
 			
-		tex->draw(16,16,getWidth(),getHeight());
+		float x = getOffsetX(instance->originX, instance->originY) * width;
+		float y = getOffsetY(instance->originX, instance->originY) * height;
+
+		tex->draw(x,y,width,height);
 	}	
 
 	virtual plop_instance* createInstance(int ox, int oy, int sx, int sy) {
 		return new plop_instance(this, ox, oy, sx, sy);
 	}
+
+	virtual plop_instance* registerNewInstance(int ox, int oy, int sx, int sy) {
+		return plops.registerPlop(createInstance(ox, oy, sx, sy));
+	}
+
 
 	virtual void getDefaultInstance(plop_instance * to_fill) {
 		to_fill->base_plop = this;
@@ -761,6 +775,7 @@ struct plop {
 
 	}
 
+	float water;
 
 	sprite *tex;
 	plop_instance *default_instance;
@@ -795,11 +810,51 @@ void plop_instance::render() {
 	base_plop->render(this);
 }
 
+float plop_instance::maxWater() {
+	return base_plop->water;
+}
+
 plop water_tower_plop(new sprite(0,1,1,2));
 plop water_well_plop(new sprite(0,4,1,1));
 plop_connecting road_plop(new sprite(0,0,1,1));
 plop_connecting street_plop(new sprite(6,5,1,1));
 plop_connecting water_pipe_plop(new sprite(3,1,1,1));
+plop_connecting pool_plop(new sprite(4, 3, 1, 1));
+
+void init_plops() {
+	water_tower_plop.water = 1200.0f;
+	water_well_plop.water = 500.0f;
+	pool_plop.water = -200.0f;
+}
+
+tilePartial *getPartial(int x, int y) {
+	if (x >= tileMapWidth || x < 0 || y >= tileMapHeight || y < 0)
+		return &tiles::DEFAULT_TILE->defaultState;
+	return &tileMap[y * tileMapWidth + x];
+}
+
+tileComplete getComplete(int x, int y) {
+	tileComplete tc;
+	tc.partial = getPartial(x,y);
+	tc.parent = getTile(tc.partial);
+	tc.parent_plop = nullptr;
+	tc.parent_plop_instance = nullptr;
+	if (tc.partial->isPlop()) {
+		tc.parent_plop_instance = plops.getInstance(tc.partial->getPlopId());
+		tc.parent_plop = tc.parent_plop_instance->base_plop;
+	}
+	tc.tileX = x;
+	tc.tileY = y;
+	return tc;
+}
+
+tileComplete *getComplete(tilePartial *tp, tile *parent, int x, int y, tileComplete *ptr) {
+	ptr->partial = tp;
+	ptr->parent = parent;
+	ptr->tileX = x;
+	ptr->tileY = y;
+	return ptr;
+}
 
 struct selector : public tile {
 	selector() {
@@ -824,7 +879,12 @@ struct selector : public tile {
 				tiles::WATER_PIPE->draw(getComplete(&tiles::WATER_PIPE->defaultState, tiles::WATER_PIPE, tc->tileX, tc->tileY, &cmp), offsetx, offsety, sizex, sizey);
 			} else {
 				//selectedTile->draw(getComplete(&selectedTile->defaultState, selectedTile, tc->tileX, tc->tileY, &cmp), offsetx, offsety, sizex, sizey);
-				selectedPlop->render(selectedPlop->getDefaultInstance());
+				
+				plop_instance pi;
+				memcpy(selectedPlop->getDefaultInstance(), &pi, sizeof(plop_instance));
+				pi.originX = tc->tileX;
+				pi.originY = tc->tileY;
+				selectedPlop->render(&pi);
 			}
 		}
 	}
@@ -835,6 +895,23 @@ struct default_tile : public tile {
 		tiles::add(this);
 	}
 };
+
+struct plop_tile : public tile {
+	plop_tile() {
+
+	}
+
+	tilePartial getPlop(plop *p) {
+		return getPlop(p->getDefaultInstance());
+	}
+
+	tilePartial getPlop(plop_instance *p) {
+		tilePartial tp = this->getDefaultState();
+		tp.setPlopId(p->id);
+		return tp;
+	}
+
+} plop_tile;
 
 struct road : public tileable {
 	road() {
@@ -1131,7 +1208,6 @@ struct bigbuildingtesttile : public multitilesprite {
 	}
 };
 
-
 struct water_tower : public multitilesprite {
 	water_tower() {
 		tiles::add(this);
@@ -1316,6 +1392,34 @@ tile *tiles::get(int id) {
 		return DEFAULT_TILE;
 }
 
+std::vector<plop_instance*> walk_network(plop_instance *current, bool(*meetsCriteria)(int,int) = nullptr, std::vector<plop_instance*> network = std::vector<plop_instance*>()) {
+	for (auto p : network) 
+		if (current == p)
+			return network;
+
+	network.push_back(current);
+
+	int startX = current->originX;
+	int startY = current->originY;
+
+	tileComplete q[4] = {
+		getComplete(startX + 1, startY),
+		getComplete(startX - 1, startY),
+		getComplete(startX, startY + 1),
+		getComplete(startX, startY - 1)
+	};
+
+	for (int i = 0; i < 4; i++) {
+		if (q[i].parent_plop_instance && q[i].parent_plop == current->base_plop)		
+			walk_network(q[i].parent_plop_instance, meetsCriteria, network);
+
+		if (meetsCriteria != nullptr && meetsCriteria(q[i].tileX, q[i].tileY))
+			walk_network(q[i].parent_plop_instance, meetsCriteria, network);
+
+	}
+
+	return network;
+}
 
 void init() {
 	srand(time(NULL));
@@ -1337,6 +1441,7 @@ void init() {
 	
 	waterSupply = 0;
 	waterDemand = 0;
+	waterNetworks = 0;
 	
 	residentialDemand = 0.5f;
 	commercialDemand = 0.5f;
@@ -1352,6 +1457,8 @@ void init() {
 	education = 0.5f;
 	landvalue = 0.5f;
 	
+	init_plops();
+
 	if (tileMap)
 		delete [] tileMap;
 	
@@ -1375,6 +1482,9 @@ void init() {
 			*getPartial(2,4) = tiles::COMMERCIAL_ZONE->getDefaultState();
 			*getPartial(3,3) = tiles::COMMERCIAL_ZONE->getDefaultState();
 			*/
+
+	plop_instance* np = water_tower_plop.registerNewInstance(2,2,1,1);
+	*getPartial(2,2) = plop_tile.getPlop(np);
 	
 	for (int y = 0; y < tileMapHeight; y++) {
 		for (int x = 0; x < tileMapWidth; x++) {
@@ -1398,7 +1508,6 @@ void displayTileMap() {
 			float offsetx = getOffsetX(x,y);
 			float offsety = getOffsetY(x,y);
 			
-			
 			//Check if in view (TO-DO)
 			if (offsetx * width + width < 0 || offsety * height + height < 0 || offsetx * width + width - width > adv::width || offsety * height + height - height > adv::height)
 				continue;
@@ -1406,6 +1515,9 @@ void displayTileMap() {
 			tc = getComplete(x,y);
 			tilePartial *partial = tc.partial;
 			
+			if (partial->isPlop())
+				continue;
+
 			if (waterView) {
 				tiles::DIRT->draw(&tc, offsetx * width, offsety * height, width, height);
 				if (!partial->hasUnderground(UNDERGROUND_WATER_PIPE))
@@ -1415,7 +1527,8 @@ void displayTileMap() {
 				
 				continue;
 			}			
-				
+
+
 			tc.parent->draw(&tc, offsetx * width, offsety * height, width, height);
 			if (tc.parent->waterConsumption(&tc) > 0 && !tc.partial->hasWater()) {
 				nowater->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
@@ -1425,6 +1538,10 @@ void displayTileMap() {
 					noroad->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
 				}
 		}
+	}
+
+	for (auto _pi : plops.instances) {
+		_pi->render();
 	}
 }
 //0,0
@@ -1552,6 +1669,7 @@ void display() {
 		printVar("selectorY", selectorY);
 		printVar("waterSupply", waterSupply);
 		printVar("waterDemand", waterDemand);
+		printVar("waterNetworks", waterNetworks);
 		printVar("placementMode", placementMode ? 1.0f : 0.0f);
 		printVar("waterView", waterView ? 1.0f : 0.0f);
 		printVar("infoMode", infoMode ? 1.0f : 0.0f);
@@ -1578,6 +1696,10 @@ void cleanupexit() {
 	adv::_advancedConsoleDestruct();
 	fprintf(stderr, "Exit\n");
 	exit(0);
+}
+
+bool isUndergroundPipe(int x, int y) {
+	return getPartial(x,y)->hasUnderground(UNDERGROUND_WATER_PIPE);
 }
 
 int wmain() {	
@@ -1662,6 +1784,7 @@ int wmain() {
 				tilePartial *last = tc.partial;
 				tc.parent->onDestroy(&tc, selectorX, selectorY);
 				//*getPartial(selectorX, selectorY) = last->transferProperties(tileSelector.selectedTile->getDefaultState());
+				*getPartial(selectorX, selectorY) = plop_tile.getPlop(tileSelector.selectedPlop->registerNewInstance(selectorX, selectorY, 1, 1));
 				tileComplete cmp = getComplete(selectorX, selectorY);
 				cmp.parent->onCreate(&cmp, selectorX, selectorY);
 				cmp.parent->updateNeighbors(&cmp, selectorX, selectorY);
@@ -1861,6 +1984,29 @@ int wmain() {
 			}
 			
 			case 3: { //water calculations
+				waterNetworks = 0;
+
+				//form water supply networks and distribute available water
+				std::vector<std::vector<plop_instance*>> networks;
+				for (auto _ip : plops.instances) {
+					if (!_ip->waterSupply() || !getPartial(int(_ip->originX), int(_ip->originY))->hasUnderground(UNDERGROUND_WATER_PIPE))
+						continue; // No production, not a water supply, or not a water pipe
+
+					if (networks.empty()) {
+						networks.push_back(walk_network(_ip, isUndergroundPipe));
+						waterNetworks++;
+					}
+
+					for (auto network : networks) {
+						if (std::find(network.begin(), network.end(), _ip) == network.end()) {
+							networks.push_back(walk_network(_ip, isUndergroundPipe));
+							waterNetworks++;
+							break;
+						}
+					}
+				}
+				
+				
 				//first calculate the demand then resize water spread
 				waterDemand = 0;
 				
