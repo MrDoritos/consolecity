@@ -200,7 +200,14 @@ struct tileComplete {
 		this->tileX = tileX;
 		this->tileY = tileY;
 	}
-	
+	bool coordsEquals(tileComplete b) {
+		return (this->tileX == b.tileX && this->tileY == b.tileY);
+	}
+	bool operator==(tileComplete b) {
+		return coordsEquals(b);
+	}
+
+
 	tile *parent;
 	tilePartial *partial;
 	plop *parent_plop;
@@ -818,7 +825,7 @@ plop water_tower_plop(new sprite(0,1,1,2));
 plop water_well_plop(new sprite(0,4,1,1));
 plop_connecting road_plop(new sprite(0,0,1,1));
 plop_connecting street_plop(new sprite(6,5,1,1));
-plop_connecting water_pipe_plop(new sprite(3,1,1,1));
+//plop_connecting water_pipe_plop(new sprite(3,1,1,1));
 plop_connecting pool_plop(new sprite(4, 3, 1, 1));
 
 void init_plops() {
@@ -1392,15 +1399,14 @@ tile *tiles::get(int id) {
 		return DEFAULT_TILE;
 }
 
-std::vector<plop_instance*> walk_network(plop_instance *current, bool(*meetsCriteria)(int,int) = nullptr, std::vector<plop_instance*> network = std::vector<plop_instance*>()) {
-	for (auto p : network) 
-		if (current == p)
-			return network;
+std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria)(int,int), std::vector<tileComplete> &network) {
+	if (std::find(network.begin(), network.end(), current) != network.end())
+		return network;
 
 	network.push_back(current);
 
-	int startX = current->originX;
-	int startY = current->originY;
+	int startX = current.tileX;
+	int startY = current.tileY;
 
 	tileComplete q[4] = {
 		getComplete(startX + 1, startY),
@@ -1410,12 +1416,14 @@ std::vector<plop_instance*> walk_network(plop_instance *current, bool(*meetsCrit
 	};
 
 	for (int i = 0; i < 4; i++) {
-		if (q[i].parent_plop_instance && q[i].parent_plop == current->base_plop)		
-			walk_network(q[i].parent_plop_instance, meetsCriteria, network);
+		if (q[i].parent_plop_instance && q[i].parent_plop == current.parent_plop) {
+			walk_network(q[i], meetsCriteria, network);
+		}
 
-		if (meetsCriteria != nullptr && meetsCriteria(q[i].tileX, q[i].tileY))
-			walk_network(q[i].parent_plop_instance, meetsCriteria, network);
 
+		if (meetsCriteria(q[i].tileX, q[i].tileY)) {
+			walk_network(q[i], meetsCriteria, network);
+		}
 	}
 
 	return network;
@@ -1448,7 +1456,7 @@ void init() {
 	industrialDemand = 0.5f;
 	
 	day = 1;
-	month = 0;
+	month = 1;
 	
 	environment = 0.5f;
 	health = 0.5f;
@@ -1698,7 +1706,7 @@ void cleanupexit() {
 	exit(0);
 }
 
-bool isUndergroundPipe(int x, int y) {
+bool isWaterNetwork(int x, int y) {
 	return getPartial(x,y)->hasUnderground(UNDERGROUND_WATER_PIPE);
 }
 
@@ -1884,6 +1892,10 @@ int wmain() {
 			case 'j':
 				statsMode = !statsMode;
 				break;
+			case 'k':
+				month++;
+				day = 1;
+				break;
 		}
 		
 		display();
@@ -1987,25 +1999,57 @@ int wmain() {
 				waterNetworks = 0;
 
 				//form water supply networks and distribute available water
-				std::vector<std::vector<plop_instance*>> networks;
-				for (auto _ip : plops.instances) {
-					if (!_ip->waterSupply() || !getPartial(int(_ip->originX), int(_ip->originY))->hasUnderground(UNDERGROUND_WATER_PIPE))
+				std::vector<std::vector<tileComplete>> networks;
+				//for (auto _ip : plops.instances) {
+				for (int x = 0; x < tileMapWidth; x++) 
+				for (int y = 0; y < tileMapHeight; y++) {
+					tileComplete tile = getComplete(x, y);
+					plop_instance *_ip = tile.parent_plop_instance;
+
+					if (!tile.partial->hasUnderground(UNDERGROUND_WATER_PIPE))
 						continue; // No production, not a water supply, or not a water pipe
 
-					if (networks.empty()) {
-						networks.push_back(walk_network(_ip, isUndergroundPipe));
-						waterNetworks++;
-					}
+					if (_ip && _ip->waterUsage() <= 0)
+						continue;
+
+					bool newNetwork = true;
 
 					for (auto network : networks) {
-						if (std::find(network.begin(), network.end(), _ip) == network.end()) {
-							networks.push_back(walk_network(_ip, isUndergroundPipe));
-							waterNetworks++;
+						if (std::find(network.begin(), network.end(), tile) != network.end()) {
+							newNetwork = false;
 							break;
 						}
 					}
+
+					if (newNetwork) {
+						std::vector<tileComplete> network;
+						networks.push_back(walk_network(tile, isWaterNetwork, network));
+						waterNetworks++;
+					}
 				}
 				
+				//reset water flags for correct display
+				for (int i = 0; i < tileMapWidth * tileMapHeight; i++)
+					tileMap[i].setWater(false);
+
+				//eh to test we'll set good networks with water
+				for (auto network : networks) {
+					for (auto tile : network) {
+						tile.partial->setWater(true);
+						for (int x = tile.tileX - 5; x < tile.tileX + 5; x++) {
+							for (int y = tile.tileY - 5; y < tile.tileY + 5; y++) {
+								int xx = x - tile.tileX;
+								int yy = y - tile.tileY;
+								if ((xx * xx) + (yy * yy) < 25) {
+									tilePartial *tp = getPartial(x, y);
+									tp->setWater(true);
+								}
+							}
+						}
+					}
+				}
+
+				break;
 				
 				//first calculate the demand then resize water spread
 				waterDemand = 0;
