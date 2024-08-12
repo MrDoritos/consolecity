@@ -1,9 +1,10 @@
-#include "advancedConsole.h"
-#include "colorMappingFast.h"
+#include "../console/advancedConsole.h"
+#include "../imgcat/colorMappingFast.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "../imgcat/stb_image.h"
 #include <math.h>
 #include <chrono>
+#include <vector>
 
 struct default_tile;
 struct grass;
@@ -61,6 +62,7 @@ octet 2 : 00
 			 00 - water pipe connection
 octet 3 : boolean reserved
 		  7 0 - constructed (zone)
+		  6 0 - is plop
 octet 4 : buildings
 		     0000 - building id
 			 000 - construction animation
@@ -68,7 +70,30 @@ octet 4 : buildings
 octet 5 : population
 			 0000 - inhabitants / jobs
 
+*/
 
+/*
+Utilities
+Power - oil, coal, solar, wind, nuclear, power line
+Water - water tower, water pump, large water pump, water treatment plant, water pipe
+Garbage - landfill, recycling plant, garbage power plant
+
+Mass transit
+Bus stop, subway station, train station, freight station
+Subway pipe, rail
+
+Roads
+Road, Street, Avenue, Highway, One way street
+
+Zoning
+Commercial L/M/H
+Industrial A/M/H
+Residential L/M/H
+
+Civics
+Clinic, hospital
+Elementary school, high school, college
+Fire station, police station
 */
 
 struct tilePartial {
@@ -77,6 +102,7 @@ struct tilePartial {
 	union {
 		unsigned char a[8];
 		unsigned long b;
+		unsigned int c[2];
 	} data;
 	tilePartial transferProperties(tilePartial in) {
 		in.data.a[0] |= data.a[0] & 0b00110000;
@@ -108,7 +134,18 @@ struct tilePartial {
 	bool setBoolean(bool state, int bit, int index = 3) {
 		data.a[index] &= data.a[index] ^ (1 << bit);
 		data.a[index] |= state ? (1 << bit) : 0;
+		return state;
 	}
+	bool isPlop() {
+		return hasBoolean(3, 6);
+	}
+	int getPlopId() {
+		return int(data.c[1]);
+	}
+	void setPlopId(int id) {
+		data.c[1] = id;
+	}
+
 	bool hasBoolean(int bit, int index = 3) {
 		return (data.a[index] & (1 << bit));
 	}
@@ -162,13 +199,13 @@ struct tileComplete {
 	int tileY;
 };
 
-
 tilePartial *tileMap = nullptr;
 int tileMapHeight = 100;
 int tileMapWidth = 100;
 int textureSize = 16;
 float scale = 4;
 int selectorTileId = 0;
+float frametime = 33.333f;
 
 float viewX;
 float viewY;
@@ -410,10 +447,15 @@ struct tile {
 	
 	virtual bool needsRoadConnection(tileComplete *tc) { return false; }
 	
-	virtual int waterConsumption(tileComplete *tc) {
-		return 0;
-	}
-	
+	virtual int waterConsumption(tileComplete *tc) { return 0; }
+
+	virtual int waterProduction(tileComplete *tc) { return 0; }
+
+	virtual int powerConsumption(tileComplete *tc) { return 0; }
+
+	virtual int powerProduction(tileComplete *tc) { return 0; }
+
+
 	void updateNeighbors(tileComplete *tc, int x, int y) {
 		tilePartial *tp = tc->partial;
 		tileComplete neighbors[4];
@@ -554,6 +596,211 @@ tileComplete *getComplete(tilePartial *tp, tile *parent, int x, int y, tileCompl
 
 int tiles::id = 0;
 
+struct sprite {
+	sprite(int x, int y) 
+	:sprite(x,y,1,1) {
+	}
+	sprite(int x, int y, int w, int h) {
+		atlas[0] = x;
+		atlas[1] = y;
+		atlas[2] = x + w;
+		atlas[3] = y + h;
+	}
+
+	int atlas[4];
+
+	int spriteWidth() {
+		return atlas[2] - atlas[0];
+	}
+
+	int spriteHeight() {
+		return atlas[3] - atlas[1];
+	}
+
+	virtual void draw(int offsetx, int offsety, int sizex, int sizey) {
+		//tilePartial *tp = tc->partial;
+		//Default is drawing texture from the atlas. ignoring transparent and retaining scale
+		int *textureAtlas = &atlas[0];
+		int textureSizeW = textureAtlas[2] - textureAtlas[0];
+		int textureSizeH = textureAtlas[3] - textureAtlas[1];
+		for (int x = 0; x < sizex * textureSizeW; x++) {
+			for (int y = 0; y < sizey * textureSizeH; y++) {
+				if (offsetx + x >= adv::width || offsety + y - (textureSizeH - 1) * sizey >= adv::height || offsetx + x < 0 || offsety + y - ((textureSizeH - 1) * sizey) < 0)
+					continue;
+				float xf = ((textureAtlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
+				float yf = ((textureAtlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
+				pixel pix = sampleImage(xf, yf);
+				if (pix.a < 255)
+					continue;
+				//wchar_t ch;
+				//color_t co;
+				//getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
+				ch_co_t chco = sampleImageCHCO(xf, yf);
+				adv::write(offsetx + x /*+ (textureSizeW * sizex)*/, offsety + y - ((textureSizeH - 1) * sizey), chco.ch, chco.co);
+			}
+		}
+	}
+};
+
+struct overlay : sprite {
+	overlay(sprite base):sprite(base) {
+		canvas = new pixel[spriteHeight() * spriteWidth()];
+
+	}
+
+	pixel *canvas;
+
+	void add(sprite sp) {
+		
+	}
+
+	void draw(int offsetx, int offsety, int sizex, int sizey) override {
+
+	}
+
+
+};
+
+struct plop_instance;
+struct plop;
+
+struct plop_registry {
+	plop_registry() {
+		id = 0;
+	}
+
+	int nextId() {
+		return id++;
+	}
+
+	plop_instance* registerPlop(plop_instance * p);
+	plop_instance* getInstance(int id);
+	plop* getPlaceable(int index);
+	int getPlaceableCount() {
+		return placeable.size();
+
+	}
+
+
+	int id;
+	std::vector<plop_instance*> instances;
+	std::vector<plop*> placeable;
+};
+
+plop_registry plops;
+
+struct plop_instance {
+	plop_instance(plop *p, int ox, int oy, int sx, int sy) {
+		base_plop = p;
+		sizeX = sx;
+		sizeY = sy;
+		originX = ox;
+		originY = oy;
+	}
+
+	void render();
+
+	plop *base_plop;
+	int sizeX, sizeY, originX, originY;
+	int id;
+
+	//always part of the plop, not the tile
+	float education;
+	float crime;
+	float fire;
+	bool watered;
+	bool powered;
+
+};
+
+
+struct plop {
+	plop(sprite* tex, bool placeable=true):plop() {
+		this->tex = tex;
+		if (placeable) {
+			plops.placeable.push_back(this);
+		}
+	}
+
+	plop() {
+		default_instance = createInstance(0,0,1,1);
+
+		tex = nullptr;
+	}
+
+	virtual void render(plop_instance * instance) {
+		if (tex == nullptr)
+			return;
+			
+		tex->draw(16,16,getWidth(),getHeight());
+	}	
+
+	virtual plop_instance* createInstance(int ox, int oy, int sx, int sy) {
+		return new plop_instance(this, ox, oy, sx, sy);
+	}
+
+	virtual void getDefaultInstance(plop_instance * to_fill) {
+		to_fill->base_plop = this;
+		to_fill->sizeX = 1;
+		to_fill->sizeY = 1;
+	}
+
+	virtual plop_instance* getDefaultInstance() {
+		return default_instance;
+	}
+
+	virtual bool isPlaceable(tileComplete *tc) {
+		return !tc->partial->isPlop();	
+	}
+
+	virtual void place(tileComplete *tc) {
+		tc->partial->setPlopId(plops.nextId());
+	}
+
+	virtual void destroy() {
+
+	}
+
+
+	sprite *tex;
+	plop_instance *default_instance;
+};
+
+struct plop_connecting : public plop {
+	plop_connecting(sprite* tex, bool placeable=true):plop(tex,placeable) {
+
+	}
+
+};
+
+plop_instance *plop_registry::registerPlop(plop_instance * p) {
+	p->id = nextId();
+	instances.push_back(p);
+	return p;
+}
+
+plop_instance *plop_registry::getInstance(int id) {
+	for (auto _pi : instances) {
+		if (_pi->id == id)
+			return _pi;
+	}
+	return nullptr;
+}
+
+plop *plop_registry::getPlaceable(int index) {
+	return placeable[index];
+}
+
+void plop_instance::render() {
+	base_plop->render(this);
+}
+
+plop water_tower_plop(new sprite(0,1,1,2));
+plop water_well_plop(new sprite(0,4,1,1));
+plop_connecting road_plop(new sprite(0,0,1,1));
+plop_connecting street_plop(new sprite(6,5,1,1));
+plop_connecting water_pipe_plop(new sprite(3,1,1,1));
+
 struct selector : public tile {
 	selector() {
 		textureAtlas[0] = 1;
@@ -565,7 +812,8 @@ struct selector : public tile {
 	}
 	
 	unsigned int ticks;
-	tile *selectedTile;
+	//tile *selectedTile;
+	plop *selectedPlop;
 	
 	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
 		tilePartial *tp = tc->partial;
@@ -575,7 +823,8 @@ struct selector : public tile {
 			if (waterView) {
 				tiles::WATER_PIPE->draw(getComplete(&tiles::WATER_PIPE->defaultState, tiles::WATER_PIPE, tc->tileX, tc->tileY, &cmp), offsetx, offsety, sizex, sizey);
 			} else {
-				selectedTile->draw(getComplete(&selectedTile->defaultState, selectedTile, tc->tileX, tc->tileY, &cmp), offsetx, offsety, sizex, sizey);
+				//selectedTile->draw(getComplete(&selectedTile->defaultState, selectedTile, tc->tileX, tc->tileY, &cmp), offsetx, offsety, sizex, sizey);
+				selectedPlop->render(selectedPlop->getDefaultInstance());
 			}
 		}
 	}
@@ -979,15 +1228,16 @@ struct water_pipe : public tileable {
 	
 	void updateWater(tileComplete *tc, int x, int y) {
 		tilePartial *tp = tc->partial;
-		if (tp->hasUnderground(UNDERGROUND_WATER_PIPE))
-		if (waterSupply > waterDemand) {
-			for (int xx = x - 5; xx < x + 5; xx++) {
-				for (int yy = y - 5; yy < y + 5; yy++) {
-					int xxx = xx - x;
-					int yyy = yy - y;
-					if ((xxx * xxx) + (yyy * yyy) < 25) {
-						tilePartial *tp2 = getPartial(xx, yy);
-						tp2->setWater(1);
+		if (tp->hasUnderground(UNDERGROUND_WATER_PIPE)) {
+			if (waterSupply > waterDemand) {
+				for (int xx = x - 5; xx < x + 5; xx++) {
+					for (int yy = y - 5; yy < y + 5; yy++) {
+						int xxx = xx - x;
+						int yyy = yy - y;
+						if ((xxx * xxx) + (yyy * yyy) < 25) {
+							tilePartial *tp2 = getPartial(xx, yy);
+							tp2->setWater(1);
+						}
 					}
 				}
 			}
@@ -1066,6 +1316,7 @@ tile *tiles::get(int id) {
 		return DEFAULT_TILE;
 }
 
+
 void init() {
 	srand(time(NULL));
 	
@@ -1075,7 +1326,9 @@ void init() {
 	selectorY = 0;
 	selectorTileId = 0;
 	tileSelector = selector();
-	tileSelector.selectedTile = tiles::get(selectorTileId);
+	//tileSelector.selectedTile = tiles::get(selectorTileId);
+	tileSelector.selectedPlop = plops.getPlaceable(selectorTileId);
+
 	scale = 4;
 	waterView = false;
 	placementMode = false;
@@ -1115,13 +1368,13 @@ void init() {
 			
 		}
 	}
-	
+		/*
 			*getPartial(1,3) = tiles::COMMERCIAL_ZONE->getDefaultState();
 			*getPartial(2,2) = tiles::COMMERCIAL_ZONE->getDefaultState();
 			*getPartial(2,3) = tiles::ROAD->getDefaultState();
 			*getPartial(2,4) = tiles::COMMERCIAL_ZONE->getDefaultState();
 			*getPartial(3,3) = tiles::COMMERCIAL_ZONE->getDefaultState();
-			
+			*/
 	
 	for (int y = 0; y < tileMapHeight; y++) {
 		for (int x = 0; x < tileMapWidth; x++) {
@@ -1222,6 +1475,8 @@ void display() {
 		tileComplete cmp;
 		tileSelector.draw(getComplete(&tileSelector.defaultState, &tileSelector, selectorX, selectorY, &cmp), offsetx * width, offsety * height, width, height);
 	}
+
+	//water_well_plop.render(water_well_plop.createInstance(0,0,0,0));
 	
 	if (statsMode) {
 		const char *text[] = {
@@ -1318,6 +1573,13 @@ void display() {
 	}
 }
 
+void cleanupexit() {
+	fprintf(stderr, "Closing console\n");
+	adv::_advancedConsoleDestruct();
+	fprintf(stderr, "Exit\n");
+	exit(0);
+}
+
 int wmain() {	
 	colormapper_init_table();
 
@@ -1352,7 +1614,15 @@ int wmain() {
 	auto tp1 = std::chrono::system_clock::now();
 	auto tp2 = std::chrono::system_clock::now();
 	
-	while (!HASKEY(key = console::readKeyAsync(), VK_ESCAPE)) {
+	//fprintf(stderr, "Entering game loop\n");
+
+	while (true) {
+		key = console::readKeyAsync();
+		
+		if (HASKEY(key, VK_ESCAPE) || HASKEY(key, 'q')) {
+			cleanupexit();
+		}
+
 		adv::clear();
 		
 		if (placementMode) {
@@ -1391,7 +1661,7 @@ int wmain() {
 				tileComplete tc = getComplete(selectorX, selectorY);
 				tilePartial *last = tc.partial;
 				tc.parent->onDestroy(&tc, selectorX, selectorY);
-				*getPartial(selectorX, selectorY) = last->transferProperties(tileSelector.selectedTile->getDefaultState());
+				//*getPartial(selectorX, selectorY) = last->transferProperties(tileSelector.selectedTile->getDefaultState());
 				tileComplete cmp = getComplete(selectorX, selectorY);
 				cmp.parent->onCreate(&cmp, selectorX, selectorY);
 				cmp.parent->updateNeighbors(&cmp, selectorX, selectorY);
@@ -1412,15 +1682,21 @@ int wmain() {
 				break;
 			case '2':
 				selectorTileId++;
-				if (selectorTileId > TILE_COUNT - 1)
+				//if (selectorTileId > TILE_COUNT - 1)
+				if (selectorTileId > plops.getPlaceableCount() - 1)
 					selectorTileId = 0;
-				tileSelector.selectedTile = tiles::get(selectorTileId);
+				//tileSelector.selectedTile = tiles::get(selectorTileId);
+				tileSelector.selectedPlop = plops.getPlaceable(selectorTileId);
 				break;
 			case '1':
 				selectorTileId--;
 				if (selectorTileId < 0)
-					selectorTileId = TILE_COUNT - 1;
-				tileSelector.selectedTile = tiles::get(selectorTileId);
+					//selectorTileId = TILE_COUNT - 1;
+					selectorTileId = plops.getPlaceableCount() - 1;
+
+				//tileSelector.selectedTile = tiles::get(selectorTileId);
+				tileSelector.selectedPlop = plops.getPlaceable(selectorTileId);
+
 				break;
 			}			
 		}
@@ -1495,8 +1771,8 @@ int wmain() {
 		//std::chrono::duration<float, std::milli> elapsedTimef = t2 - t1;
 		tp1 = tp2;
 			
-		if (elapsedTimef < 33.333f)
-			console::sleep(33.333f - elapsedTimef);
+		if (elapsedTimef < frametime)
+			console::sleep(frametime - elapsedTimef);
 		//console::sleep(20);
 		{
 			char buf[50];
@@ -1605,8 +1881,7 @@ int wmain() {
 		}
 	}	
 	
-	//_advancedConsoleDestruct();
-	adv::construct.~_constructor();
-	
-	return 1;
+	cleanupexit();
+
+	return 0;
 }
