@@ -1,0 +1,349 @@
+Opened log 1723500274
+Closing console
+Exit
+Opened log 1723500308
+Closing console
+Exit
+Opened log 1723500466
+Closing console
+Exit
+Opened log 1723501253
+Placed plop: 2, [2 0] 
+Placed plop: 3, [3 0] 
+Placed plop: 4, [5 0] 
+Placed plop: 5, [5 1] 
+Closing console
+Exit
+Opened log 1723501553
+Placed plop: 2, [2 0] 
+Placed plop: 3, [2 1] 
+Destroyed plop: 1, [2 2] 
+Placed plop: 4, [3 2] 
+Destroyed plop: 3, [2 1] 
+Destroyed plop: 2, [2 0] 
+Closing console
+Exit
+Opened log 1723501857
+Placed plop: 2, [2 1] 
+Placed plop: 3, [3 1] 
+Placed plop: 4, [5 3] 
+Closing console
+Exit
+Opened log 1723502150
+Destroyed plop: 1, [2 2] 
+Placed plop: 2, [2 0] 
+Destroyed plop: 2, [2 0] 
+Placed plop: 3, [2 0] 
+Destroyed plop: 3, [2 0] 
+Placed plop: 4, [4 0] 
+Destroyed plop: 4, [4 0] 
+Placed plop: 5, [6 8] 
+Destroyed plop: 5, [6 8] 
+Closing console
+Exit
+Opened log 1723502288
+Destroyed plop: 1, [2 2] 
+Closing console
+Exit
+Opened log 1723502342
+Placed plop: 2, [7 4] 
+Closing console
+Exit
+Opened log 1723502481
+Closing console
+Exit
+Opened log 1723502576
+Closing console
+Exit
+Opened log 1723502728
+Destroyed plop: 1, [2 2] 
+Closing console
+Exit
+Opened log 1723502799
+Destroyed plop: 1, [2 2] 
+Placed plop: 2, [2 2] 
+Destroyed plop: 2, [2 2] 
+Placed plop: 3, [2 1] 
+Destroyed plop: 3, [2 1] 
+Placed plop: 4, [2 1] 
+Destroyed plop: 4, [2 1] 
+Placed plop: 5, [2 1] 
+Destroyed plop: 5, [2 1] 
+Placed plop: 6, [2 1] 
+Destroyed plop: 6, [2 1] 
+Placed plop: 7, [2 1] 
+Destroyed plop: 7, [2 1] 
+Closing console
+Exit
+Opened log 1723503003
+Destroyed plop: 1, [2 2] 
+Placed plop: 2, [2 0] 
+Destroyed plop: 2, [2 0] 
+Placed plop: 3, [2 0] 
+Destroyed plop: 3, [2 0] 
+Placed plop: 4, [2 0] 
+Destroyed plop: 4, [2 0] 
+Placed plop: 5, [2 0] 
+Destroyed plop: 5, [2 0] 
+Placed plop: 6, [2 0] 
+Destroyed plop: 6, [2 0] 
+Placed plop: 7, [2 0] 
+Destroyed plop: 7, [2 0] 
+Placed plop: 8, [2 0] 
+Destroyed plop: 8, [2 0] 
+Placed plop: 9, [2 0] 
+Destroyed plop: 9, [2 0] 
+Placed plop: 10, [2 0] 
+Placed plop: 11, [2 2] 
+Destroyed plop: 11, [2 2] 
+Placed plop: 12, [2 2] 
+Destroyed plop: 12, [2 2] 
+Destroyed plop: 10, [2 0] 
+Closing console
+Exit
+Opened log 1723503145
+Destroyed plop: 1, [2 2] 
+Placed plop: 2, [4 2] 
+Placed plop: 3, [6 2] 
+Destroyed plop: 3, [6 2] 
+Destroyed plop: 2, [4 2] 
+Placed plop: 4, [2 2] 
+Destroyed plop: 4, [2 2] 
+Placed plop: 5, [6 2] 
+Closing console
+Exit
+Opened log 1723503338
+Closing console
+Exit
+Opened log 1723503410
+Placed plop: 1, [2 2] 
+Closing console
+Exit
+Opened log 1723503636
+Placed plop: 1, [2 2] 
+Placed plop: 2, [7 5] 
+Placed plop: 3, [9 7] 
+Destroyed plop: 3, [9 7] 
+Destroyed plop: 2, [7 5] 
+Closing console
+Exit
+Opened log 1723505185
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 3] 
+Placed plop: 3, [4 1] 
+Placed plop: 4, [2 2] 
+Closing console
+Exit
+Opened log 1723505706
+Placed plop: 1, [2 2] 
+Placed plop: 2, [2 3] 
+Placed plop: 3, [4 3] 
+Closing console
+Exit
+Opened log 1723508849
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 2] 
+Placed plop: 3, [4 3] 
+Placed plop: 4, [5 3] 
+Placed plop: 5, [5 2] 
+Closing console
+Exit
+Opened log 1723511388
+Placed plop: 1, [2 2] 
+Placed plop: 2, [0 0] 
+Placed plop: 3, [1 0] 
+Placed plop: 4, [2 0] 
+Placed plop: 5, [3 0] 
+Placed plop: 6, [3 1] 
+Placed plop: 7, [3 2] 
+Placed plop: 8, [3 3] 
+Placed plop: 9, [3 4] 
+Placed plop: 10, [3 5] 
+Placed plop: 11, [2 5] 
+Closing console
+Exit
+Opened log 1723514863
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 3] 
+Placed plop: 3, [3 3] 
+Placed plop: 4, [4 4] 
+Placed plop: 5, [3 4] 
+Placed plop: 6, [2 3] 
+Placed plop: 7, [5 3] 
+Closing console
+Exit
+Opened log 1723516543
+Placed plop: 1, [2 2] 
+Placed plop: 2, [5 2] 
+Placed plop: 3, [5 1] 
+Placed plop: 4, [6 1] 
+Placed plop: 5, [4 1] 
+Placed plop: 6, [5 3] 
+Placed plop: 7, [4 3] 
+Placed plop: 8, [4 4] 
+Placed plop: 9, [6 4] 
+Placed plop: 10, [7 4] 
+Placed plop: 11, [7 5] 
+Placed plop: 12, [6 5] 
+Placed plop: 13, [6 6] 
+Placed plop: 14, [7 6] 
+Placed plop: 15, [8 6] 
+Placed plop: 16, [8 5] 
+Placed plop: 17, [8 4] 
+Placed plop: 18, [7 7] 
+Destroyed plop: 18, [7 7] 
+Destroyed plop: 14, [7 6] 
+Destroyed plop: 15, [8 6] 
+Destroyed plop: 16, [8 5] 
+Destroyed plop: 13, [6 6] 
+Destroyed plop: 12, [6 5] 
+Destroyed plop: 10, [7 4] 
+Placed plop: 19, [7 4] 
+Closing console
+Exit
+Opened log 1723516681
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 2] 
+Placed plop: 3, [6 2] 
+Placed plop: 4, [6 3] 
+Placed plop: 5, [6 1] 
+Placed plop: 6, [7 2] 
+Closing console
+Exit
+Opened log 1723516815
+Placed plop: 1, [2 2] 
+Placed plop: 2, [5 2] 
+Placed plop: 3, [6 2] 
+Placed plop: 4, [7 2] 
+Placed plop: 5, [8 2] 
+Placed plop: 6, [9 2] 
+Closing console
+Exit
+Opened log 1723517132
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 3] 
+Placed plop: 3, [5 3] 
+Placed plop: 4, [5 2] 
+Placed plop: 5, [7 3] 
+Closing console
+Exit
+Opened log 1723517510
+Placed plop: 1, [2 2] 
+Placed plop: 2, [5 1] 
+Closing console
+Exit
+Opened log 1723517590
+Placed plop: 1, [2 2] 
+Closing console
+Exit
+Opened log 1723517609
+Placed plop: 1, [2 2] 
+Closing console
+Exit
+Opened log 1723517727
+Placed plop: 1, [2 2] 
+Placed plop: 2, [6 2] 
+Placed plop: 3, [6 3] 
+Placed plop: 4, [5 3] 
+Placed plop: 5, [4 3] 
+Placed plop: 6, [4 4] 
+Closing console
+Exit
+Opened log 1723517773
+Placed plop: 1, [2 2] 
+Placed plop: 2, [5 2] 
+Placed plop: 3, [6 2] 
+Placed plop: 4, [6 3] 
+Placed plop: 5, [7 2] 
+Closing console
+Exit
+Opened log 1723517837
+Placed plop: 1, [2 2] 
+Closing console
+Exit
+Opened log 1723517866
+Placed plop: 1, [2 2] 
+Placed plop: 2, [6 2] 
+Placed plop: 3, [5 2] 
+Placed plop: 4, [7 2] 
+Placed plop: 5, [7 1] 
+Closing console
+Exit
+Opened log 1723518037
+Placed plop: 1, [2 2] 
+Placed plop: 2, [5 3] 
+Placed plop: 3, [6 3] 
+Placed plop: 4, [6 4] 
+Placed plop: 5, [6 5] 
+Placed plop: 6, [6 6] 
+Placed plop: 7, [5 6] 
+Placed plop: 8, [4 5] 
+Placed plop: 9, [5 5] 
+Destroyed plop: 5, [6 5] 
+Placed plop: 10, [6 5] 
+Placed plop: 11, [7 5] 
+Closing console
+Exit
+Opened log 1723518075
+Placed plop: 1, [2 2] 
+Placed plop: 2, [6 2] 
+Placed plop: 3, [7 2] 
+Placed plop: 4, [8 2] 
+Placed plop: 5, [8 1] 
+Placed plop: 6, [6 3] 
+Closing console
+Exit
+Opened log 1723518224
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 3] 
+Placed plop: 3, [5 3] 
+Placed plop: 4, [5 2] 
+Placed plop: 5, [5 4] 
+Placed plop: 6, [5 5] 
+Closing console
+Exit
+Opened log 1723518255
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 3] 
+Placed plop: 3, [5 3] 
+Placed plop: 4, [6 3] 
+Placed plop: 5, [6 2] 
+Placed plop: 6, [6 1] 
+Placed plop: 7, [7 1] 
+Placed plop: 8, [6 4] 
+Placed plop: 9, [6 5] 
+Placed plop: 10, [4 2] 
+Placed plop: 11, [4 1] 
+Placed plop: 12, [3 1] 
+Placed plop: 13, [2 1] 
+Placed plop: 14, [1 1] 
+Placed plop: 15, [3 2] 
+Placed plop: 16, [4 4] 
+Closing console
+Exit
+Opened log 1723518676
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 2] 
+Placed plop: 3, [5 2] 
+Placed plop: 4, [5 1] 
+Placed plop: 5, [3 1] 
+Destroyed plop: 1, [2 2] 
+Placed plop: 6, [2 2] 
+Destroyed plop: 3, [5 2] 
+Placed plop: 7, [5 2] 
+Placed plop: 8, [4 1] 
+Placed plop: 9, [4 3] 
+Closing console
+Exit
+Opened log 1723518711
+Placed plop: 1, [2 2] 
+Placed plop: 2, [3 1] 
+Placed plop: 3, [2 1] 
+Placed plop: 4, [1 1] 
+Placed plop: 5, [3 2] 
+Placed plop: 6, [3 3] 
+Placed plop: 7, [3 4] 
+Placed plop: 8, [2 3] 
+Placed plop: 9, [4 3] 
+Closing console
+Exit
