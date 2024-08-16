@@ -10,8 +10,6 @@
 
 struct default_tile;
 struct grass;
-struct road;
-struct water_tower;
 struct plop_instance;
 struct plop;
 struct tile;
@@ -48,11 +46,8 @@ struct tiles {
 	
 	static tile *DEFAULT_TILE;
 	static tile *GRASS;
-	static tile *ROAD;
-	static tile *WATER_TOWER;
 	static tile *WATER_PIPE;
 	static tile *DIRT;
-	static tile *COMMERCIAL_ZONE;
 };
 
 /*
@@ -339,37 +334,6 @@ ch_co_t sampleImageCHCO(float x, float y) {
 	return chco;
 }
 
-
-struct building {
-	building(float t0, float t1, float t2, float t3, int width, int height, int waterConsumption, int powerConsumption, int population, float polution, float waterPolution) {
-		atlas[0] = t0;
-		atlas[1] = t1;
-		atlas[2] = t2;
-		atlas[3] = t3;
-		this->width = width;
-		this->height = height;
-		this->waterConsumption = waterConsumption;
-		this->powerConsumption = powerConsumption;
-		this->population = population;
-		this->polution = polution;
-		this->waterPolution = waterPolution;
-	}
-	float atlas[4];
-	int width;
-	int height;
-	int waterConsumption;
-	int powerConsumption;
-	int population;
-	float polution;
-	float waterPolution;
-};
-
-building commercial_buildings[] = {
-	building(2,3,3,4,1,1,1,0,0,0,0),
-	building(0,5,2,7,2,1,1,0,0,0,0),
-	building(3,4,5,7,2,2,1,0,0,0,0)
-};
-
 struct tile {
 	int id;
 	tilePartial defaultState;
@@ -442,8 +406,8 @@ struct tile {
 		tileComplete neighbors[4];
 		getNeighbors(tc, &neighbors[0]);
 		for (int i = 0; i < 4; i++) {
-			if (neighbors[i].parent->id == tiles::ROAD->id)
-				tc->partial->setRoad(true);
+			//if (neighbors[i].parent->id == tiles::ROAD->id)
+			//	tc->partial->setRoad(true);
 		}
 	}
 	
@@ -1034,16 +998,31 @@ sprite road_sprite(0,0,1,1);
 sprite road_con_sprite(1,0,1,1);
 sprite street_sprite(6,5,1,1);
 sprite street_con_sprite(7,5,1,1);
+
 sprite pool_sprite(4,3,1,1);
 sprite pool_con_sprite(5,3,1,1);
+sprite dry_pool_sprite(6,3,1,1);
+sprite dry_pool_con_sprite(7,3,1,1);
+
 sprite grass_sprite(1,1,1,1);
 sprite dry_dirt_sprite(2,1,1,1);
 sprite wet_dirt_sprite(3,0,1,1);
 sprite dry_plop_sprite(1,4,1,1);
 sprite wet_plop_sprite(1,3,1,1);
+
 sprite water_tower_sprite(0,1,1,2);
 sprite water_well_sprite(0,4,1,1);
 sprite large_water_pump_sprite(0,7,2,2);
+sprite water_pipe_sprite(3,1,1,1);
+sprite water_pipe_con_sprite(0,3,1,1);
+
+sprite no_water_sprite(6,0,1,1);
+sprite no_road_sprite(6,1,1,1);
+
+sprite tall_building_sprite(5,0,1,3);
+sprite building1_sprite(2,3,1,1);
+sprite building2_sprite(0,5,2,2);
+sprite building3_sprite(3,4,2,3);
 
 simple_connecting_sprite road_con_tex_sprite(&road_sprite, &road_con_sprite);
 simple_connecting_sprite street_con_tex_sprite(&street_sprite, &street_con_sprite);
@@ -1062,7 +1041,6 @@ void init_plops() {
 	water_well_plop.water = 500.0f;
 	water_pump_large_plop.water = 24000.0f;
 	pool_plop.water = -200.0f;
-
 }
 
 tilePartial *getPartial(int x, int y) {
@@ -1151,224 +1129,6 @@ struct plop_tile : public tile {
 
 } plop_tile;
 
-struct road : public tileable {
-	road() {
-		tiles::add(this);
-		
-		textureAtlas[0] = 0;
-		textureAtlas[1] = 0;
-		textureAtlas[2] = 1;
-		textureAtlas[3] = 1;
-		
-		connectingTextureAtlas[0] = 1;
-		connectingTextureAtlas[1] = 0;
-		connectingTextureAtlas[2] = 2;
-		connectingTextureAtlas[3] = 1;
-		
-		defaultState = getDefaultState();
-	}
-};
-
-void buildingRenderer(tileComplete *tc, building *bd, float offsetx, float offsety, float sizex, float sizey) {
-	float textureSizeW = bd->atlas[2] - bd->atlas[0];
-	float textureSizeH = bd->atlas[3] - bd->atlas[1];
-	for (int x = 0; x < sizex * textureSizeW; x++) {
-		for (int y = 0; y < sizey * textureSizeH; y++) {
-			if (offsetx + x >= adv::width || offsety + y - (textureSizeH - 1) * sizey >= adv::height || offsetx + x < 0 || offsety + y - ((textureSizeH - 1) * sizey) < 0)
-				;//continue;
-			float xf = ((bd->atlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
-			float yf = ((bd->atlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
-			ch_co_t chco = sampleImageCHCO(xf, yf);
-			if (chco.a < 255)
-				continue;
-			adv::write(offsetx + x, offsety + y - ((textureSizeH - 1) * sizey), chco.ch, chco.co);
-		}
-	}
-}
-
-struct buildingTest : public tile {
-	buildingTest() {
-		tiles::add(this);
-		defaultState= getDefaultState();
-	}
-	
-	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
-		buildingRenderer(tc, &commercial_buildings[1], offsetx, offsety, sizex, sizey);
-	}
-};
-
-struct commercial_zone : public tileable {
-	commercial_zone() {
-		tiles::add(this);
-		
-		textureAtlas[0] = 3;
-		textureAtlas[1] = 3;
-		textureAtlas[2] = 4;
-		textureAtlas[3] = 4;
-		
-		defaultState = getDefaultState();
-	}
-	
-	int getTileZone(tileComplete *tc) override {
-		return ZONING_COMMERCIAL;
-	}
-	
-	int getPopulation(tileComplete *tc) override {
-		return tc->partial->hasWater() && hasRoadConnection(tc) && tc->partial->hasBoolean(0) ? 10 : 0;
-	}
-	
-	int getCapacity(tileComplete *tc) override {
-		return tc->partial->hasWater() && hasRoadConnection(tc) && tc->partial->hasBoolean(0) ? 100 : 0;
-	}
-	
-	void onRandomTick(tileComplete *tc, int x, int y) override {
-		tilePartial *tp = tc->partial;
-		if (!tp->hasBoolean(0) && tp->hasBoolean(0,4)) {
-			if (tp->hasConnection(EAST)) {
-				getPartial(EAST_F)->setBoolean(true,0);
-				tp->setBuildingId(1);
-			}
-			else
-				tp->setBuildingId(0);			
-			
-			tp->setBoolean(true, 0);
-		}
-	}
-	
-	bool needsRoadConnection(tileComplete *tc) override {
-		return tc->partial->hasWater();
-	}
-	
-	int waterConsumption(tileComplete *tc) override {
-		if (tc->partial->hasBoolean(0))
-			return commercial_buildings[tc->partial->getBuildingId()].waterConsumption * getPopulation(tc) + commercial_buildings[tc->partial->getBuildingId()].waterConsumption;
-		return 0;
-	}
-	
-	void connectToNeighbors(tileComplete *tc, int x, int y) override {
-		tilePartial *tp = tc->partial;
-		tp->setBoolean(true,0,4);
-		unsigned char old = tp->data.a[0];
-		tp->setConnection(0);
-		tp->data.a[0] &= tp->data.a[0] ^ 0x0f;
-		tilePartial *neighbors[4];
-		neighbors[0] = getPartial(NORTH_F);
-		neighbors[1] = getPartial(EAST_F);
-		neighbors[2] = getPartial(SOUTH_F);
-		neighbors[3] = getPartial(WEST_F);
-		for (int i = 0; i < 4; i++) {
-			if (neighbors[i]->id == tp->id /*&& neighbors[i]->hasBoolean(0,4)*/) {
-				tp->setConnection(1 << i);
-				//tp->setBoolean(false,0,4);
-			}
-		}
-	}
-	
-	void onCreate(tileComplete *tc, int x, int y) override {
-		tilePartial *tp = tc->partial;
-		connectToNeighbors(tc,x,y);
-		
-		tilePartial *neighbors[4];
-		neighbors[0] = getPartial(x,y-1);//NORTH
-		neighbors[1] = getPartial(x+1,y);//EAST
-		neighbors[2] = getPartial(x,y+1);//SOUTH
-		neighbors[3] = getPartial(x-1,y);//WEST
-		
-		for (int i = 0; i < 4; i++) {
-			if (neighbors[i]->id == tiles::ROAD->id) {
-					//getTile(neighbors[i])->onUpdate(neighbors[i])
-				//tp->data.a[0] |= (1 << i);
-				tp->setFacing(i);
-			}
-		}
-		
-		//base
-		updateRoadConnections(tc);
-	}
-	
-	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {		
-		tilePartial *tp = tc->partial;
-		if (tp->hasBoolean(0)) {
-			if (!tp->hasBoolean(0,4))
-				return;
-			buildingRenderer(tc, &commercial_buildings[tp->getBuildingId()], offsetx, offsety, sizex, sizey);
-			return;
-		}
-		
-		for (int x = 0; x < sizex; x++) {
-			for (int y = 0; y < sizey; y++) {
-				if (offsetx + x >= adv::width || offsety + y >= adv::height || offsetx + x < 0 || offsety + y < 0)
-					continue;
-				int ta0 = textureAtlas[0];
-				int ta1 = textureAtlas[1];
-				if (tp->hasBoolean(0)) {
-					ta0 = 2;
-					ta1 = 3;
-				}
-				float xf = ((ta0 * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
-				float yf = ((ta1 * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
-				pixel pix = sampleImage(xf, yf);
-				ch_co_t chco = sampleImageCHCO(xf, yf);
-				
-				if (!tp->hasBoolean(0)) {
-					for (int i = 0; i < 4; i++) {
-						if (!(tp->data.a[0] & (1 << i))) {
-							float xfto = (float(x) / sizex) * textureSize;
-							float yfto = (float(y) / sizey) * textureSize;
-							if (i == 1 || i ==2)
-								xfto = (2.99f * textureSize) - xfto;
-							else
-								xfto = (2 * textureSize) + xfto;
-							if (i == 0 || i == 1)
-								yfto = (2.99f * textureSize) - yfto;
-							else
-								yfto = (2 * textureSize) + yfto;
-							xfto /= textureWidth;
-							yfto /= textureHeight;
-							pixel pix2 = sampleImage(xfto, yfto);
-							ch_co_t chco2 = sampleImageCHCO(xfto, yfto);
-							if (pix2.a == 255) {
-								pix = pix2;			
-								chco = chco2;
-							}								
-						}
-					}
-					
-					//Arrow
-					{
-						int facing = tp->getFacing();
-						float xfto = (float(x) / sizex) * textureSize;
-						float yfto = (float(y) / sizey) * textureSize;
-						if (facing == 0 || facing == 1)
-							yfto = (2.99f * textureSize) - yfto;
-						else
-							yfto = (2 * textureSize) + yfto;
-						if (facing == 1 || facing == 2)
-							xfto = (3.99f * textureSize) - xfto;
-						else
-							xfto = (3 * textureSize) + xfto;
-						xfto /= textureWidth;
-						yfto /= textureHeight;
-						pixel pix2 = sampleImage(xfto, yfto);
-						ch_co_t chco2 = sampleImageCHCO(xfto, yfto);
-						if (pix2.a == 255) {
-							pix = pix2;			
-							chco = chco2;
-						}								
-					}
-				}
-				
-				if (pix.a < 255)
-					continue;
-				//wchar_t ch;
-				//color_t co;
-				//getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
-				adv::write(offsetx + x, offsety + y, chco.ch, chco.co);
-			}
-		}
-	}
-};
-
 struct grass : public tile {
 	grass() {
 		tiles::add(this);
@@ -1421,34 +1181,6 @@ struct dirt : public tile {
 		tile::draw(tc,offsetx,offsety,sizex,sizey);		
 		*/
 	}
-};
-
-struct multitilesprite : public tile {
-	multitilesprite() {}
-	multitilesprite(int t0, int t1, int t2, int t3) { tiles::add(this); setAtlas(t0,t1,t2,t3); defaultState = getDefaultState(); }
-	
-	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
-		tilePartial *tp = tc->partial;
-		//Default is drawing texture from the atlas. ignoring transparent and retaining scale
-		int textureSizeW = textureAtlas[2] - textureAtlas[0];
-		int textureSizeH = textureAtlas[3] - textureAtlas[1];
-		for (int x = 0; x < sizex * textureSizeW; x++) {
-			for (int y = 0; y < sizey * textureSizeH; y++) {
-				if (offsetx + x >= adv::width || offsety + y - (textureSizeH - 1) * sizey >= adv::height || offsetx + x < 0 || offsety + y - ((textureSizeH - 1) * sizey) < 0)
-					continue;
-				float xf = ((textureAtlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
-				float yf = ((textureAtlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
-				pixel pix = sampleImage(xf, yf);
-				if (pix.a < 255)
-					continue;
-				//wchar_t ch;
-				//color_t co;
-				//getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
-				ch_co_t chco = sampleImageCHCO(xf, yf);
-				adv::write(offsetx + x /*+ (textureSizeW * sizex)*/, offsety + y - ((textureSizeH - 1) * sizey), chco.ch, chco.co);
-			}
-		}
-	}	
 };
 
 struct water_pipe : public tileable {
@@ -1542,42 +1274,10 @@ tile *getTile(tilePartial *partial) {
 }
 
 tile *tiles::DEFAULT_TILE = new default_tile;
-tile *tiles::ROAD = new road;
+
 tile *tiles::GRASS = new grass;
-//tile *tiles::WATER_TOWER = new water_tower;
 tile *tiles::WATER_PIPE = new water_pipe;
 tile *tiles::DIRT = new dirt;
-tile *tiles::COMMERCIAL_ZONE = new commercial_zone;
-//tile *tile0 = new bigbuildingtesttile;
-tile *tile1 = new multitilesprite(5,0,6,3);
-tile *drypool = new tileable(6,3,7,4,7,3,8,4, true);
-tile *nowater = new tile(6,0,7,1, true);
-tile *noroad = new tile(6,1,7,2,true);
-//tile *waterwell = new water_well;
-
-struct pool : public tileable {
-	pool()
-		:tileable(4,3,5,4,5,3,6,4) {
-		
-	}
-	
-	int waterConsumption(tileComplete *tc) override {
-		return 50;
-	}
-	
-	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
-		tilePartial *tp = tc->partial;
-		//if (((int)offsetx) % 2 == 0)//
-		if (tp->hasWater())
-			tileable::draw(tc,offsetx,offsety,sizex,sizey);
-		else {
-			drypool->draw(tc,offsetx,offsety,sizex,sizey);
-			//nowater->draw(tc,offsetx + (sizex * 0.1f),offsety - (sizey * 0.5f),sizex * 0.8f,sizey * 0.8f);
-		}
-	}
-};
-
-pool *pooltile = new pool();
 
 tile *tiles::tileRegistry[TILE_COUNT];
 
@@ -1785,11 +1485,13 @@ void displayTileMap() {
 
 			tc.parent->draw(&tc, offsetx * width, offsety * height, width, height);
 			if (tc.parent->waterConsumption(&tc) > 0 && !tc.partial->hasWater()) {
-				nowater->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
+				//nowater->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
+				no_water_sprite.draw(offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
 			}
 			else
 				if (tc.parent->needsRoadConnection(&tc) && !tc.parent->hasRoadConnection(&tc)) {
-					noroad->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
+					//noroad->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
+					no_road_sprite.draw(offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
 				}
 		}
 	}

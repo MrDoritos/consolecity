@@ -2956,3 +2956,14 @@ Network size 1
 input 1200.000000 output 0.000000 ratio inf radius 5.000000
 Closing console
 Exit
+Opened log 1723785867
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1723785985
+Placed plop: 1, [2 2] 
+Closing console
+Exit
