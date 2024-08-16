@@ -579,21 +579,19 @@ struct sprite {
 
 	int atlas[4];
 
-	int atlasWidth() {
-		return atlas[2] - atlas[0];
-	}
+	virtual int getAtlW() {	return atlas[2] - atlas[0];	}
 
-	int atlasHeight() {
-		return atlas[3] - atlas[1];
-	}
+	virtual int getAtlH() { return atlas[3] - atlas[1];	}
 
-	virtual pixel sampleSprite(float x, float y) {
-		return sampleImage(x, y);
-	}
+	virtual int getPixT() { return textureSize; }
 
-	virtual ch_co_t sampleSpriteCHCO(float x, float y) {
-		return sampleImageCHCO(x, y);
-	}
+	virtual int getPixTW() { return textureWidth; }
+
+	virtual int getPixTH() { return textureHeight; }
+
+	virtual pixel sampleSprite(float x, float y) { return sampleImage(x, y); }
+
+	virtual ch_co_t sampleSpriteCHCO(float x, float y) { return sampleImageCHCO(x, y); }
 
 	virtual void drawPixel(int x, int y, pixel pix) {
 		wchar_t ch;
@@ -605,17 +603,17 @@ struct sprite {
 	void draw(int scrX0 /*screen offset x*/, int scrY0 /*screen offset y*/, int scrW /*draw width on screen*/, int scrH /*draw height on screen*/, int atl0, int atl1, int atl2, int atl3, bool hflip = false, bool vflip = false) {
 		//Default is drawing texture from the atlas. ignoring transparent and retaining scale
 		int *textureAtlas = &atlas[0];
-		int atlW = atlasWidth(); // number of images
-		int atlH = atlasHeight(); // number of images
+		int atlW = getAtlW(); // number of images
+		int atlH = getAtlH(); // number of images
 
 		int scrX1 = scrX0 + scrW; // max x for draw
 		int scrY1 = scrY0 + scrH; // max y for draw
 		int maxW = adv::width; // max screen width
 		int maxH = adv::height; // max screen height
 
-		int pixT = textureSize; // each texture size in pixels
-		int pixTW = textureWidth; // total atlas texture width
-		int pixTH = textureHeight; // total atlas texture height
+		int pixT = getPixT();//textureSize; // each texture size in pixels
+		int pixTW = getPixTW();//textureWidth; // total atlas texture width
+		int pixTH = getPixTH();//textureHeight; // total atlas texture height
 
 		int pixX0 = atl0 * pixT; 
 		int pixY0 = atl1 * pixT;
@@ -688,20 +686,120 @@ struct sprite {
 	}
 };
 
-struct overlay : sprite {
-	overlay(sprite base):sprite(base) {
-		canvas = new pixel[atlasHeight() * atlasWidth()];
+struct sprite_overlay : sprite {
+	sprite_overlay(sprite *base):sprite(*base) {
+		_pixTW = base->getAtlW() * base->getPixT();
+		_pixTH = base->getAtlH() * base->getPixT();
+		fprintf(stderr, "New overlay sprite: %i %i\n", _pixTW, _pixTH);
+		canvas = new pixel[_pixTW * _pixTH];
+		set(base);
 
-	}
-
-	pixel *canvas;
-
-	void add(sprite sp) {
 		
 	}
 
-	void draw(int offsetx, int offsety, int sizex, int sizey) override {
+	~sprite_overlay() {
+		//delete[] canvas;
+	}
 
+	pixel *canvas;
+	int _pixTW;
+	int _pixTH;
+
+	int getPixTW() override { return _pixTW; }
+	int getPixTH() override { return _pixTH; }
+
+	pixel sampleSprite(float x, float y) override {
+		//return pixel(12,190,50);
+		int imX = x * _pixTW;
+		int imY = y * _pixTH;
+		return canvas[imY * _pixTW + imX];
+	}
+
+	ch_co_t sampleSpriteCHCO(float x, float y) override {
+		int imX = x * _pixTW;
+		int imY = y * _pixTH;
+		ch_co_t chco;
+		
+		float r = getPixT() / getPixTW();
+
+		pixel pix = sampleSprite(x, y);
+
+		getDitherColored(pix.r, pix.g, pix.b, &chco.ch, &chco.co);
+		chco.a = pix.a;
+
+		return chco;
+	}
+
+	void set(sprite *sp) {
+		float spxf0 = (sp->atlas[0] * sp->getPixT()) / float(textureWidth);
+		float spyf0 = (sp->atlas[1] * sp->getPixT()) / float(textureHeight);
+		float spxf1 = (sp->atlas[2] * sp->getPixT()) / float(textureWidth);
+		float spyf1 = (sp->atlas[3] * sp->getPixT()) / float(textureHeight);
+
+		int cw = getPixTW();
+		int ch = getPixTH();
+
+		fprintf(stderr, "Setting overlay sprite: %i %i\n", cw, ch);
+
+
+		return;
+		for (int x = 0; x < cw; x++) {
+			for (int y = 0; y < ch; y++) {
+				float xf = float(x) / cw;
+				float yf = float(y) / ch;
+
+				float sxf = (spxf0 + (xf * (spxf1 - spxf0)));
+				float syf = (spyf0 + (yf * (spyf1 - spyf0)));
+
+				//canvas[y * getPixTW() + x] = sampleImage(sxf, syf);
+				canvas[y * cw + x] = pixel(60,180,60);
+			}
+		}
+	}
+
+	void add(sprite *sp) {
+		float spxf0 = (sp->atlas[0] * sp->getPixT() / float(sp->getPixTW()));
+		float spyf0 = (sp->atlas[1] * sp->getPixT() / float(sp->getPixTH()));
+		float spxf1 = (sp->atlas[2] * sp->getPixT() / float(sp->getPixTW()));
+		float spyf1 = (sp->atlas[3] * sp->getPixT() / float(sp->getPixTH()));
+
+		for (int x = 0; x < getPixTW(); x++) {
+			for (int y = 0; y < getPixTH(); y++) {
+				float xf = float(x) / getPixTW();
+				float yf = float(y) / getPixTH();
+
+				float sxf = (spxf0 + (xf * (spxf1 - spxf0)));
+				float syf = (spyf0 + (yf * (spyf1 - spyf0)));
+
+				pixel pix = sp->sampleSprite(sxf, syf); 
+				//pixel pix = sprite.sampleSprite(sp, sxf, syf);
+				
+				//sum pixel using alpha
+				pixel *can = &canvas[y * getPixTW() + x];
+
+				continue;
+
+				can->r = (can->r * (255 - pix.a) + pix.r * pix.a);
+				can->g = (can->g * (255 - pix.a) + pix.g * pix.a);
+				can->b = (can->b * (255 - pix.a) + pix.b * pix.a);
+				if (can->a + pix.a > 255)
+					can->a = 255;
+				else
+					can->a = can->a + pix.a;
+			}
+		}
+	}
+};
+
+struct random_overlay : sprite_overlay {
+	random_overlay(sprite *base, sprite *overlay):sprite_overlay(base) {
+		//if (rand() % 5 == 0)
+			//add(overlay);
+			set(base);
+
+			
+		for (int i = 0; i < getPixTW() * getPixTH(); i++)
+			canvas[i] = pixel(160, 120, 190);
 	}
 };
 
@@ -755,6 +853,30 @@ struct plop_registry {
 };
 
 plop_registry plops;
+
+struct plop_network_value {
+	virtual bool isSaturated() {return false;}
+};
+
+struct plop_network_static {
+
+};
+
+struct plop_properties {
+	float efficiency; //0-1
+	float funding;
+	float monthlyCost;
+	int width, height;
+
+	plop_network_value water;
+	plop_network_value power;
+	plop_network_value pollution;
+	plop_network_value crime;
+	plop_network_value health;
+	plop_network_value education;
+	plop_network_value traffic;
+	plop_network_value wealth;
+};
 
 struct plop_instance {
 	plop_instance(plop *p, int ox, int oy, int sx, int sy) {
@@ -857,6 +979,9 @@ struct plop_instance {
 	int population;
 };
 
+/*
+Whatever the plop type is, this struct is responsible for generating a plop_instance
+*/
 struct plop {
 	plop(sprite* tex, int plop_width = 1, int plop_height = 1, bool placeable=true):plop() {
 		this->tex = tex;
@@ -1011,6 +1136,7 @@ sprite dry_pool_sprite(6,3,1,1);
 sprite dry_pool_con_sprite(7,3,1,1);
 
 sprite grass_sprite(1,1,1,1);
+sprite *grass_sprite_random;
 sprite dry_dirt_sprite(2,1,1,1);
 sprite wet_dirt_sprite(3,0,1,1);
 sprite dry_plop_sprite(1,4,1,1);
@@ -1151,6 +1277,11 @@ struct grass : public tile {
 		textureAtlas[3] = 2;
 		
 		defaultState = getDefaultState();
+	}
+
+	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
+		//grass_sprite_random->draw(offsetx, offsety, sizex, sizey);
+		grass_sprite.draw(offsetx, offsety, sizex, sizey);
 	}
 };
 
@@ -1708,6 +1839,8 @@ int wmain() {
 			texturechco[int(y * textureWidth) + int(x)] = chco;
 		}
 	}
+
+	grass_sprite_random = new random_overlay(new sprite_overlay(&grass_sprite), &street_sprite);
 	
 	while (!adv::ready) console::sleep(10);
 	
