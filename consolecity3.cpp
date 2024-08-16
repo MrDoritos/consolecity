@@ -20,7 +20,6 @@ tilePartial *getPartial(int, int);
 tileComplete getComplete(int, int);
 tile *getTile(tilePartial*);
 
-
 #define ZONING_NONE 0
 #define ZONING_RESIDENTIAL 1
 #define ZONING_COMMERCIAL 2
@@ -101,6 +100,9 @@ Elementary school, high school, college
 Fire station, police station
 */
 
+/*
+Struct for data stored within the game engine tile map
+*/
 struct tilePartial {
 	tilePartial() { id = 0; data.b = 0; }
 	unsigned char id;
@@ -194,6 +196,9 @@ struct tilePartial {
 	}
 };
 
+/*
+Struct for the complete identity of a tile instance
+*/
 struct tileComplete {
 	tileComplete() {}
 	tileComplete(tile *parent, tilePartial *partial, int tileX, int tileY) {
@@ -222,18 +227,17 @@ tilePartial *tileMap = nullptr;
 int tileMapHeight = 100;
 int tileMapWidth = 100;
 int textureSize = 16;
-float scale = 4;
-int selectorTileId = 0;
+
 float frametime = 33.333f;
 FILE *logFile = stderr;
 
+float xfact = 0.7071067812f; //0.5f;
+float yfact = 0.7071067812f; //0.5f;
+
+float scale = 4;
 float viewX;
 float viewY;
 
-//float xfact = 0.5f;
-//float yfact = 0.5f;
-float xfact = 0.7071067812f;
-float yfact = 0.7071067812f;
 
 float getOffsetX(float x, float y) {
 	return round(((((y * yfact) + (x * xfact)) * xfact) + viewX) * 1000.0f) / 1000.0f;
@@ -251,6 +255,7 @@ float getHeight() {
 	return 1.0f * scale;
 }
 
+int selectorTileId;
 int selectorX;
 int selectorY;
 
@@ -295,6 +300,7 @@ bool placementMode;
 bool waterView;
 bool infoMode;
 bool statsMode;
+bool queryMode;
 
 struct pixel {
 	pixel() {
@@ -743,7 +749,6 @@ struct plop_registry {
 
 	}
 
-
 	int id;
 	std::vector<plop_instance*> instances;
 	std::vector<plop*> placeable;
@@ -760,9 +765,7 @@ struct plop_instance {
 		originY = oy;
 
 		water = 0;
-		watered = false;
 		power = 0;
-		powered = false;
 	}
 
 	plop_instance() {
@@ -835,13 +838,16 @@ struct plop_instance {
 	int id;
 
 	//always part of the plop, not the tile
+	//some of these are examples for brainstorming
 	float education;
 	float crime;
 	float fire;
 	float health;
+	float traffic;
+	float wealth;
 
-	bool watered;
-	bool powered;
+	//bool watered;
+	//bool powered;
 
 	float water;	
 	float power;
@@ -1031,10 +1037,16 @@ simple_connecting_sprite pool_con_tex_sprite(&pool_sprite, &pool_con_sprite);
 plop water_tower_plop(&water_tower_sprite);
 plop water_well_plop(&water_well_sprite);
 plop water_pump_large_plop(&large_water_pump_sprite, 2, 1);
+
 plop_connecting road_plop(&road_con_tex_sprite);
 plop_connecting street_plop(&street_con_tex_sprite);
 //plop_connecting water_pipe_plop(new sprite(3,1,1,1));
 plop_connecting pool_plop(&pool_con_tex_sprite);
+
+plop tall_building_plop(&tall_building_sprite, 1, 1);
+plop building1_plop(&building1_sprite);
+plop building2_plop(&building2_sprite, 2, 1);
+plop building3_plop(&building3_sprite, 2, 2);
 
 void init_plops() {
 	water_tower_plop.water = 1200.0f;
@@ -1416,7 +1428,11 @@ void init() {
 		delete [] tileMap;
 	
 	tileMap = new tilePartial[tileMapWidth * tileMapHeight];
-	
+
+	for (auto _ip : plops.instances) {
+		_ip->~plop_instance();
+	}
+
 	for (int y = 0; y < tileMapHeight; y++) {
 		for (int x = 0; x < tileMapWidth; x++) {
 			*getPartial(x,y) = tiles::GRASS->getDefaultState();
@@ -2020,7 +2036,6 @@ int wmain() {
 				for (auto ip : plops.instances) {
 					if (ip->waterSupply())
 						continue;
-					ip->watered = false;
 					ip->water = 0;
 				}
 
@@ -2085,7 +2100,6 @@ int wmain() {
 					}
 
 					for (auto user : waterUsers) {
-						user->watered = false;
 						user->water = 0;
 						tileRadiusLoop(user->originX, user->originY, radius, [&](int x, int y) {
 							if (user->isWellWatered() || user->waterSupply())
@@ -2098,7 +2112,6 @@ int wmain() {
 							float desiredWater = abs(user->waterUsage());
 							if (input >= desiredWater) {
 								input -= desiredWater;
-								user->watered = true;
 								user->water += desiredWater;
 							} 
 						});

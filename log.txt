@@ -2967,3 +2967,156 @@ Opened log 1723785985
 Placed plop: 1, [2 2] 
 Closing console
 Exit
+Opened log 1723787002
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [4 2] [4 3] [4 4] 
+Placed plop: 3, [5 2] [5 3] [5 4] 
+Destroyed plop: 3, [5 2] [5 3] [5 4] 
+Destroyed plop: 3, [5 2] [5 3] [5 4] 
+Placed plop: 4, [5 1] [5 2] [5 3] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Destroyed plop: 2, [4 2] [4 3] [4 4] 
+Destroyed plop: 2, [4 2] [4 3] [4 4] 
+Placed plop: 5, [4 1] [4 2] [4 3] 
+Placed plop: 6, [6 1] [6 2] [6 3] 
+Closing console
+Exit
+Opened log 1723787062
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [5 4] [5 5] [6 4] [6 5] 
+Destroyed plop: 2, [5 4] [5 5] [6 4] [6 5] 
+Placed plop: 3, [6 5] [6 6] [7 5] [7 6] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Destroyed plop: 3, [6 5] [6 6] [7 5] [7 6] 
+Destroyed plop: 3, [6 5] [6 6] [7 5] [7 6] 
+Placed plop: 4, [7 5] [7 6] [8 5] [8 6] 
+Destroyed plop: 4, [7 5] [7 6] [8 5] [8 6] 
+Destroyed plop: 4, [7 5] [7 6] [8 5] [8 6] 
+Placed plop: 5, [6 5] [6 6] [7 5] [7 6] 
+Placed plop: 6, [6 7] [6 8] [7 7] [7 8] 
+Destroyed plop: 6, [6 7] [6 8] [7 7] [7 8] 
+Destroyed plop: 6, [6 7] [6 8] [7 7] [7 8] 
+Placed plop: 7, [5 7] [5 8] [6 7] [6 8] 
+Destroyed plop: 7, [5 7] [5 8] [6 7] [6 8] 
+Destroyed plop: 5, [6 5] [6 6] [7 5] [7 6] 
+Destroyed plop: 7, [5 7] [5 8] [6 7] [6 8] 
+Placed plop: 8, [5 6] [5 7] [6 6] [6 7] 
+Destroyed plop: 8, [5 6] [5 7] [6 6] [6 7] 
+Destroyed plop: 8, [5 6] [5 7] [6 6] [6 7] 
+Placed plop: 9, [5 5] [5 6] [6 5] [6 6] 
+Placed plop: 10, [5 3] [6 3] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 11, [5 2] [6 2] 
+Placed plop: 12, [5 1] 
+Placed plop: 13, [4 2] 
+Placed plop: 14, [5 4] 
+Placed plop: 15, [6 4] 
+Destroyed plop: 9, [5 5] [5 6] [6 5] [6 6] 
+Placed plop: 16, [6 5] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Destroyed plop: 10, [5 3] [6 3] 
+Placed plop: 17, [6 3] 
+Destroyed plop: 11, [5 2] [6 2] 
+Placed plop: 18, [6 2] 
+Placed plop: 19, [5 3] 
+Placed plop: 20, [5 2] 
+Closing console
+Exit
+Opened log 1723787464
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 8
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [8 10] 
+Placed plop: 3, [8 9] 
+Placed plop: 4, [8 8] 
+Placed plop: 5, [8 7] 
+Placed plop: 6, [8 6] 
+Placed plop: 7, [9 6] 
+Placed plop: 8, [10 6] 
+Placed plop: 9, [10 7] 
+Placed plop: 10, [10 8] 
+Placed plop: 11, [10 9] 
+Placed plop: 12, [10 10] 
+Placed plop: 13, [9 10] 
+Placed plop: 14, [9 9] 
+Placed plop: 15, [9 8] 
+Placed plop: 16, [9 7] 
+Placed plop: 17, [13 16] 
+Placed plop: 18, [13 17] 
+Placed plop: 19, [13 18] 
+Placed plop: 20, [14 18] 
+Placed plop: 21, [14 17] 
+Placed plop: 22, [14 16] 
+Placed plop: 23, [15 16] 
+Placed plop: 24, [16 17] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 17
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Placed plop: 25, [16 18] 
+Placed plop: 26, [15 18] 
+Placed plop: 27, [15 17] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 17
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 17
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 17
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 2, iter count: 2
+Network size 17
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 2, iter count: 2
+Network size 17
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 3, iter count: 3
+Network size 17
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 3, iter count: 3
+Network size 17
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 2, iter count: 2
+Network size 17
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 27
+input 1200.000000 output 5200.000000 ratio 0.230769 radius 1.153846
+Water calculuation, current network count: 1, iter count: 1
+Network size 31
+input 1200.000000 output 5200.000000 ratio 0.230769 radius 1.153846
+Water calculuation, current network count: 1, iter count: 1
+Network size 34
+input 1200.000000 output 5200.000000 ratio 0.230769 radius 1.153846
+Water calculuation, current network count: 1, iter count: 1
+Network size 34
+input 1200.000000 output 5200.000000 ratio 0.230769 radius 1.153846
+Water calculuation, current network count: 1, iter count: 1
+Network size 35
+input 1200.000000 output 5200.000000 ratio 0.230769 radius 1.153846
+Water calculuation, current network count: 1, iter count: 1
+Network size 36
+input 1200.000000 output 5200.000000 ratio 0.230769 radius 1.153846
+Water calculuation, current network count: 1, iter count: 1
+Network size 39
+input 1200.000000 output 5200.000000 ratio 0.230769 radius 1.153846
+Closing console
+Exit
