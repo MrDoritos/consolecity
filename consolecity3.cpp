@@ -632,39 +632,57 @@ struct sprite {
 		adv::write(x, y, ch, co);
 	}
 
-	void draw(int scrX0, int scrY0, int scrW, int scrH, int atl0, int atl1, int atl2, int atl3, bool hflip = false, bool vflip = false) {
+	void draw(int scrX0 /*screen offset x*/, int scrY0 /*screen offset y*/, int scrW /*draw width on screen*/, int scrH /*draw height on screen*/, int atl0, int atl1, int atl2, int atl3, bool hflip = false, bool vflip = false) {
 		//Default is drawing texture from the atlas. ignoring transparent and retaining scale
 		int *textureAtlas = &atlas[0];
-		int atlW = atlasWidth();
-		int atlH = atlasHeight();
+		int atlW = atlasWidth(); // number of images
+		int atlH = atlasHeight(); // number of images
 
-		int scrX1 = scrX0 + scrW;
-		int scrY1 = scrY0 + scrH;
-		int maxW = adv::width;
-		int maxH = adv::height;
+		int scrX1 = scrX0 + scrW; // max x for draw
+		int scrY1 = scrY0 + scrH; // max y for draw
+		int maxW = adv::width; // max screen width
+		int maxH = adv::height; // max screen height
 
-		int pixT = textureSize;
-		int pixTW = textureWidth;
-		int pixTH = textureHeight;
+		int pixT = textureSize; // each texture size in pixels
+		int pixTW = textureWidth; // total atlas texture width
+		int pixTH = textureHeight; // total atlas texture height
 
-		int pixX0 = atl0 * pixT;
+		int pixX0 = atl0 * pixT; 
 		int pixY0 = atl1 * pixT;
 		int pixX1 = atl2 * pixT;
 		int pixY1 = atl3 * pixT;		
 
-		for (int x = 0; x < scrW * atlW; x++) { // 0 - screen pixels per current atlas texture X index
-			for (int y = 0; y < scrH * atlH; y++) { // 0 - screen pixels per current atlas texture Y index
+		int pixAtlW = atlW * pixT; // total atlas texture width
+		int pixAtlH = atlH * pixT; // total atlas texture height
+
+		float fAtlX0 = pixX0 / pixTW;
+		float fAtlY0 = pixY0 / pixTH;
+		float fAtlX1 = pixX1 / pixTW;
+		float fAtlY1 = pixY1 / pixTH;
+
+		int maxIterW = scrW * atlW;
+		int maxIterH = scrH * atlH;
+
+		for (int x = 0; x < maxIterW; x++) { // 0 - screen pixels per current atlas texture X index
+			for (int y = 0; y < maxIterH; y++) { // 0 - screen pixels per current atlas texture Y index
+
+				float xsmpf = float(x) / maxIterW; // fraction of screen
+				float ysmpf = float(y) / maxIterH;
 
 				int scrX = scrX0 + x; // current screen pixel X
-				int scrY = scrY0 + y - ((atlH - 1) * scrH); // current screen pixel Y with atlas height offset
+				int scrY = scrY0 + y - ((atlH - 1) * scrH); // current screen pixel Y with atlas height offset, why do we do this?
 
 				int xsmp = x;
 				int ysmp = y;
 
-				if (hflip)
+				if (hflip) {
 					xsmp = (scrW * (atlW) - 1) - x;
-				if (vflip)
+					xsmpf = .999999 - xsmpf;
+				}
+				if (vflip) {
 					ysmp = scrH * atlH - y;
+					ysmpf = .999999 - ysmpf;
+				}
 
 				//bounds check for screen
 				if (scrX >= maxW || scrY >= maxH)
@@ -672,31 +690,18 @@ struct sprite {
 				if (scrX < 0 || scrY < 0)
 					continue;
 
-				float xf = (pixX0 + (float(xsmp) / scrW) * pixT) / pixTW;
-				float yf = (pixY0 + (float(ysmp) / scrH) * pixT) / pixTH;
+				//using x/ysmpf instead
+				//sampler takes fraction of atlas
+				float xf = pixX0;
+				float yf = pixY0;
+				xf += xsmpf * pixAtlW;
+				yf += ysmpf * pixAtlH;
+				xf /= pixTW;
+				yf /= pixTH;
 
-				/*
-				if (hflip)
-					xf = (((atl0 + 0.999f) * textureSize) / textureWidth) - xf;
-				if (vflip)
-					yf = (((atl1 + 0.999f) * textureSize) / textureHeight) - yf;
-				*/
+				//float xf = (pixX0 + (float(xsmp) / scrW) * pixT) / pixTW;
+				//float yf = (pixY0 + (float(ysmp) / scrH) * pixT) / pixTH;
 
-				//convert atlas xy index to texture coord with current screen pixel xy
-
-				
-		/*
-		mirroring sample direction, not atlas
-
-		if (i == 1 || i ==2)
-			xfto = ((connectingTextureAtlas[0] + 0.99f) * textureSize) - xfto;
-		else
-			xfto = (connectingTextureAtlas[0] * textureSize) + xfto;
-		if (i == 0 || i == 1)
-			yfto = ((connectingTextureAtlas[1] + 0.99f) * textureSize) - yfto;
-		else
-			yfto = (connectingTextureAtlas[1] * textureSize) + yfto;
-		*/
 				pixel pix = sampleSprite(xf, yf);
 				if (pix.a < 255)
 					continue;
