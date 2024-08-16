@@ -347,3 +347,2414 @@ Placed plop: 8, [2 3]
 Placed plop: 9, [4 3] 
 Closing console
 Exit
+Opened log 1723751071
+Placed plop: 1, [2 2] 
+Placed plop: 2, [6 2] 
+Placed plop: 3, [7 2] 
+Placed plop: 4, [8 2] 
+Placed plop: 5, [8 3] 
+Placed plop: 6, [8 4] 
+Placed plop: 7, [6 1] 
+Placed plop: 8, [6 3] 
+Placed plop: 9, [9 2] 
+Placed plop: 10, [9 4] 
+Placed plop: 11, [7 3] 
+Destroyed plop: 11, [7 3] 
+Placed plop: 12, [5 3] 
+Closing console
+Exit
+Opened log 1723751145
+Placed plop: 1, [2 2] 
+Placed plop: 2, [5 2] 
+Placed plop: 3, [6 2] 
+Placed plop: 4, [6 1] 
+Placed plop: 5, [6 3] 
+Placed plop: 6, [7 2] 
+Placed plop: 7, [7 3] 
+Placed plop: 8, [8 3] 
+Closing console
+Exit
+Opened log 1723751241
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 3] 
+Placed plop: 3, [5 3] 
+Placed plop: 4, [6 3] 
+Placed plop: 5, [6 4] 
+Placed plop: 6, [7 4] 
+Closing console
+Exit
+Opened log 1723751329
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 2] 
+Placed plop: 3, [5 2] 
+Placed plop: 4, [6 2] 
+Placed plop: 5, [6 3] 
+Placed plop: 6, [6 4] 
+Placed plop: 7, [7 4] 
+Placed plop: 8, [7 5] 
+Placed plop: 9, [7 3] 
+Placed plop: 10, [4 3] 
+Closing console
+Exit
+Opened log 1723751422
+Placed plop: 1, [2 2] 
+Placed plop: 2, [1 0] 
+Placed plop: 3, [1 1] 
+Placed plop: 4, [1 2] 
+Destroyed plop: 4, [1 2] 
+Placed plop: 5, [1 2] 
+Placed plop: 6, [5 2] 
+Placed plop: 7, [5 3] 
+Placed plop: 8, [6 3] 
+Placed plop: 9, [6 4] 
+Placed plop: 10, [7 3] 
+Placed plop: 11, [7 2] 
+Placed plop: 12, [7 4] 
+Placed plop: 13, [7 5] 
+Placed plop: 14, [6 5] 
+Placed plop: 15, [5 4] 
+Placed plop: 16, [5 5] 
+Placed plop: 17, [5 6] 
+Placed plop: 18, [6 6] 
+Closing console
+Exit
+Opened log 1723752089
+Placed plop: 1, [2 2] 
+Closing console
+Exit
+Opened log 1723752223
+Placed plop: 1, [2 2] 
+Closing console
+Exit
+Opened log 1723752585
+Placed plop: 1, [2 2] 
+Placed plop: 2, [4 3] 
+Placed plop: 3, [5 3] 
+Placed plop: 4, [5 2] 
+Placed plop: 5, [6 2] 
+Placed plop: 6, [4 4] 
+Placed plop: 7, [4 1] 
+Placed plop: 8, [5 1] 
+Placed plop: 9, [4 0] 
+Placed plop: 10, [3 0] 
+Closing console
+Exit
+Opened log 1723752839
+Placed plop: 1, [2 2] 
+Placed plop: 2, [5 4] 
+Placed plop: 3, [6 4] 
+Placed plop: 4, [6 5] 
+Placed plop: 5, [5 5] 
+Placed plop: 6, [13 10] 
+Placed plop: 7, [13 9] 
+Closing console
+Exit
+Opened log 1723767220
+Placed plop: 1, [2 2] 
+Placed plop: 2, [5 5] 
+Placed plop: 3, [4 5] 
+Placed plop: 4, [3 5] 
+Placed plop: 5, [4 4] 
+Closing console
+Exit
+Opened log 1723775822
+Placed plop: 1, [2 2] 
+Placed plop: 2, [5 2] 
+Closing console
+Exit
+Opened log 1723776058
+Placed plop: 1, [2 2] 
+Placed plop: 2, [5 3] 
+Closing console
+Exit
+Opened log 1723776162
+Placed plop: 1, [2 2] 
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [4 2] 
+Placed plop: 3, [5 2] 
+Placed plop: 4, [4 1] 
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -600.000000 ratio -2.000000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 1: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Network 2: input 1200.000000 output -3000.000000 ratio -0.400000 radius 0.000000
+Closing console
+Exit
+Opened log 1723776456
+Placed plop: 1, [2 2] 
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [6 2] 
+Placed plop: 3, [7 2] 
+Placed plop: 4, [8 2] 
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 7
+Network 1: input 1200.000000 output 3600.000000 ratio 0.333333 radius 1.666667
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Network size 11
+Network 1: input 1200.000000 output 5800.000000 ratio 0.206897 radius 1.034483
+Placed plop: 5, [6 6] 
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Network size 11
+Network 1: input 1200.000000 output 7600.000000 ratio 0.157895 radius 0.789474
+Closing console
+Exit
+Opened log 1723776666
+Placed plop: 1, [2 2] 
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [5 2] 
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 1
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Placed plop: 3, [7 2] 
+Placed plop: 4, [8 2] 
+Placed plop: 5, [9 2] 
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Placed plop: 6, [10 2] 
+Placed plop: 7, [11 2] 
+Placed plop: 8, [12 2] 
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Network size 4
+Network 1: input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Placed plop: 9, [7 3] 
+Placed plop: 10, [6 3] 
+Placed plop: 11, [5 3] 
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Network size 13
+Network 1: input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Closing console
+Exit
+Opened log 1723777125
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [4 2] 
+Placed plop: 3, [4 3] 
+Placed plop: 4, [4 4] 
+Placed plop: 5, [3 4] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Placed plop: 6, [2 4] 
+Placed plop: 7, [1 4] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Closing console
+Exit
+Opened log 1723777269
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [5 2] 
+Placed plop: 3, [5 3] 
+Placed plop: 4, [5 4] 
+Placed plop: 5, [5 5] 
+Placed plop: 6, [4 5] 
+Placed plop: 7, [4 4] 
+Placed plop: 8, [4 3] 
+Destroyed plop: 8, [4 3] 
+Placed plop: 9, [4 3] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Placed plop: 10, [3 5] 
+Placed plop: 11, [3 4] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Placed plop: 12, [2 5] 
+Placed plop: 13, [2 4] 
+Placed plop: 14, [2 3] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Placed plop: 15, [3 3] 
+Placed plop: 16, [3 2] 
+Placed plop: 17, [4 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 3000.000000 ratio 0.400000 radius 2.000000
+Closing console
+Exit
+Opened log 1723777737
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [4 2] 
+Placed plop: 3, [5 2] 
+Placed plop: 4, [6 2] 
+Placed plop: 5, [7 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 600.000000 ratio 2.000000 radius 5.000000
+Placed plop: 6, [2 4] 
+Placed plop: 7, [3 4] 
+Placed plop: 8, [4 4] 
+Placed plop: 9, [5 4] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Placed plop: 10, [6 4] 
+Placed plop: 11, [4 3] 
+Placed plop: 12, [5 3] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Closing console
+Exit
+Opened log 1723777933
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [4 2] 
+Placed plop: 3, [5 2] 
+Placed plop: 4, [6 2] 
+Placed plop: 5, [7 2] 
+Placed plop: 6, [8 2] 
+Placed plop: 7, [9 2] 
+Placed plop: 8, [10 2] 
+Destroyed plop: 3, [5 2] 
+Placed plop: 9, [5 2] 
+Placed plop: 10, [5 3] 
+Placed plop: 11, [6 3] 
+Placed plop: 12, [7 3] 
+Placed plop: 13, [8 3] 
+Placed plop: 14, [5 1] 
+Placed plop: 15, [4 1] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1400.000000 ratio 0.857143 radius 4.285714
+Closing console
+Exit
+Opened log 1723778264
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [4 2] 
+Placed plop: 3, [5 2] 
+Placed plop: 4, [6 2] 
+Placed plop: 5, [7 2] 
+Placed plop: 6, [8 2] 
+Placed plop: 7, [5 1] 
+Placed plop: 8, [4 1] 
+Placed plop: 9, [7 0] 
+Placed plop: 10, [8 0] 
+Placed plop: 11, [10 1] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1000.000000 ratio 1.200000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 6
+input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 8
+input 1200.000000 output 2000.000000 ratio 0.600000 radius 3.000000
+Closing console
+Exit
+Opened log 1723778358
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [5 0] 
+Destroyed plop: 2, [5 0] 
+Placed plop: 3, [5 0] 
+Placed plop: 4, [5 1] 
+Placed plop: 5, [5 2] 
+Placed plop: 6, [5 3] 
+Placed plop: 7, [5 5] 
+Placed plop: 8, [5 4] 
+Placed plop: 9, [6 3] 
+Placed plop: 10, [6 2] 
+Placed plop: 11, [6 1] 
+Placed plop: 12, [7 2] 
+Placed plop: 13, [8 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1800.000000 ratio 0.666667 radius 3.333333
+Closing console
+Exit
+Opened log 1723778453
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [5 2] 
+Placed plop: 3, [6 2] 
+Placed plop: 4, [7 2] 
+Placed plop: 5, [8 2] 
+Placed plop: 6, [8 3] 
+Placed plop: 7, [7 3] 
+Placed plop: 8, [6 3] 
+Placed plop: 9, [5 3] 
+Placed plop: 10, [5 1] 
+Placed plop: 11, [6 1] 
+Placed plop: 12, [7 1] 
+Placed plop: 13, [8 1] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 1200.000000 ratio 1.000000 radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 5
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 6
+input 1200.000000 output 2400.000000 ratio 0.500000 radius 2.500000
+Placed plop: 14, [3 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 6
+input 2400.000000 output 2400.000000 ratio 1.000000 radius 5.000000
+Closing console
+Exit
+Opened log 1723778785
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [2 0] 
+Placed plop: 3, [9 0] 
+Placed plop: 4, [10 0] 
+Placed plop: 5, [11 0] 
+Placed plop: 6, [12 0] 
+Placed plop: 7, [13 0] 
+Placed plop: 8, [14 0] 
+Placed plop: 9, [15 0] 
+Placed plop: 10, [15 1] 
+Placed plop: 11, [14 1] 
+Placed plop: 12, [13 1] 
+Placed plop: 13, [12 1] 
+Placed plop: 14, [11 1] 
+Destroyed plop: 14, [11 1] 
+Placed plop: 15, [11 1] 
+Placed plop: 16, [11 2] 
+Placed plop: 17, [12 2] 
+Placed plop: 18, [13 2] 
+Water calculuation, current network count: 2, iter count: 2
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 19, [14 2] 
+Closing console
+Exit
+Opened log 1723778912
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [2 0] 
+Placed plop: 3, [7 0] 
+Placed plop: 4, [7 1] 
+Placed plop: 5, [7 2] 
+Placed plop: 6, [8 2] 
+Placed plop: 7, [9 2] 
+Placed plop: 8, [10 2] 
+Placed plop: 9, [11 2] 
+Placed plop: 10, [12 2] 
+Placed plop: 11, [13 2] 
+Placed plop: 12, [14 2] 
+Placed plop: 13, [14 1] 
+Water calculuation, current network count: 2, iter count: 2
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 14, [13 1] 
+Placed plop: 15, [12 1] 
+Placed plop: 16, [11 1] 
+Placed plop: 17, [10 1] 
+Placed plop: 18, [9 1] 
+Placed plop: 19, [8 1] 
+Placed plop: 20, [8 0] 
+Placed plop: 21, [9 0] 
+Placed plop: 22, [10 0] 
+Placed plop: 23, [11 0] 
+Placed plop: 24, [12 0] 
+Placed plop: 25, [13 0] 
+Placed plop: 26, [14 0] 
+Water calculuation, current network count: 2, iter count: 2
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 3, iter count: 3
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 15
+input 2400.000000 output 4800.000000 ratio 0.500000 radius 2.500000
+Water calculuation, current network count: 1, iter count: 1
+Network size 15
+input 2400.000000 output 4800.000000 ratio 0.500000 radius 2.500000
+Closing console
+Exit
+Opened log 1723780149
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [4 2] 
+Placed plop: 3, [5 2] 
+Placed plop: 4, [4 1] 
+Placed plop: 5, [5 1] 
+Water calculuation, current network count: 2, iter count: 2
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 4
+input 96000.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 2, iter count: 2
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 4
+input 96000.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1723780388
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [1 0] 
+Closing console
+Exit
+Opened log 1723780568
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [1 0] 
+Placed plop: 3, [2 0] 
+Placed plop: 4, [4 2] 
+Placed plop: 5, [3 1] 
+Water calculuation, current network count: 4, iter count: 4
+Network size 2
+input 48000.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+input 24000.000000 output 0.000000 ratio inf radius 5.000000
+Network size 1
+input 24000.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 6, iter count: 6
+Network size 12
+input 97200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1723780666
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 2, iter count: 2
+Network size 4
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 8
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [6 3] 
+Water calculuation, current network count: 2, iter count: 2
+Network size 9
+input 25200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 3, [7 3] 
+Destroyed plop: 2, [6 3] 
+Placed plop: 4, [6 3] 
+Destroyed plop: 4, [6 3] 
+Placed plop: 5, [6 3] 
+Destroyed plop: 5, [6 3] 
+Water calculuation, current network count: 2, iter count: 2
+Network size 9
+input 1200.000000 output 200.000000 ratio 6.000000 radius 5.000000
+Placed plop: 6, [6 3] 
+Destroyed plop: 6, [6 3] 
+Placed plop: 7, [6 3] 
+Destroyed plop: 7, [6 3] 
+Placed plop: 8, [6 2] 
+Placed plop: 9, [6 3] 
+Destroyed plop: 9, [6 3] 
+Destroyed plop: 8, [6 2] 
+Placed plop: 10, [6 2] 
+Destroyed plop: 10, [6 2] 
+Closing console
+Exit
+Opened log 1723781098
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Destroyed plop: 1, [2 2] 
+Placed plop: 2, [1 2] [2 2] 
+Placed plop: 3, [4 2] [5 2] 
+Destroyed plop: 3, [4 2] [5 2] 
+Placed plop: 4, [3 2] [4 2] 
+Destroyed plop: 2, [1 2] [2 2] 
+Destroyed plop: 4, [3 2] [4 2] 
+Placed plop: 5, [2 2] [3 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 4
+input 24000.000000 output 0.000000 ratio inf radius 5.000000
+Destroyed plop: 5, [2 2] [3 2] 
+Placed plop: 6, [3 2] [4 2] 
+Destroyed plop: 6, [3 2] [4 2] 
+Placed plop: 7, [4 2] [5 2] 
+Placed plop: 8, [5 1] 
+Destroyed plop: 7, [4 2] [5 2] 
+Placed plop: 9, [5 2] 
+Closing console
+Exit
+Opened log 1723781264
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [4 1] 
+Placed plop: 3, [4 2] 
+Placed plop: 4, [5 2] 
+Placed plop: 5, [6 2] 
+Placed plop: 6, [6 1] 
+Placed plop: 7, [6 0] 
+Placed plop: 8, [5 0] 
+Placed plop: 9, [4 0] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1723781391
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1723781416
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [5 2] 
+Placed plop: 3, [5 3] 
+Placed plop: 4, [5 4] 
+Placed plop: 5, [6 4] 
+Placed plop: 6, [7 4] 
+Placed plop: 7, [7 3] 
+Placed plop: 8, [7 2] 
+Placed plop: 9, [6 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1723781465
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [5 2] 
+Placed plop: 3, [5 3] 
+Placed plop: 4, [5 4] 
+Placed plop: 5, [6 4] 
+Placed plop: 6, [6 5] 
+Closing console
+Exit
+Opened log 1723781483
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [5 2] 
+Placed plop: 3, [5 3] 
+Placed plop: 4, [5 4] 
+Placed plop: 5, [6 4] 
+Placed plop: 6, [7 4] 
+Placed plop: 7, [8 4] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1723781540
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [5 2] 
+Placed plop: 3, [5 3] 
+Placed plop: 4, [5 4] 
+Placed plop: 5, [6 4] 
+Placed plop: 6, [7 4] 
+Placed plop: 7, [7 3] 
+Placed plop: 8, [7 2] 
+Placed plop: 9, [6 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 10, [6 3] 
+Placed plop: 11, [8 4] 
+Destroyed plop: 11, [8 4] 
+Destroyed plop: 7, [7 3] 
+Destroyed plop: 10, [6 3] 
+Placed plop: 12, [7 3] 
+Closing console
+Exit
+Opened log 1723781583
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Placed plop: 2, [5 1] 
+Destroyed plop: 2, [5 1] 
+Placed plop: 3, [5 1] 
+Placed plop: 4, [6 1] 
+Placed plop: 5, [7 1] 
+Placed plop: 6, [7 2] 
+Placed plop: 7, [7 3] 
+Destroyed plop: 7, [7 3] 
+Placed plop: 8, [7 3] 
+Placed plop: 9, [6 3] 
+Placed plop: 10, [5 3] 
+Placed plop: 11, [5 2] 
+Closing console
+Exit

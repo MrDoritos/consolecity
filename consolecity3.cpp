@@ -5,6 +5,7 @@
 #include <math.h>
 #include <chrono>
 #include <vector>
+#include <set>
 #include <iterator>
 
 struct default_tile;
@@ -258,8 +259,8 @@ float getHeight() {
 int selectorX;
 int selectorY;
 
-int waterSupply;
-int waterDemand;
+float waterSupply;
+float waterDemand;
 int waterNetworks;
 
 int commercialJobs;
@@ -730,12 +731,14 @@ struct overlay : sprite {
 };
 
 struct simple_connecting_sprite : sprite {
-	simple_connecting_sprite(sprite base, sprite over):sprite(base), base(base), over(over) {}
+	//simple_connecting_sprite(sprite base, sprite over):sprite(base), base(base), over(over) {}
+
+	simple_connecting_sprite(sprite *base, sprite *over):sprite(*base), base(base), over(over) {}
 
 	//default sprite is tr
 	void draw_connections(int scrX0, int scrY0, int scrW, int scrH,
 						  bool tl, bool tr, bool bl, bool br) {
-		base.draw(scrX0, scrY0, scrW, scrH);
+		base->draw(scrX0, scrY0, scrW, scrH);
 		bool con[] = {tl,tr,bl,br};
 		bool args[] = {
 			false,true,
@@ -747,11 +750,11 @@ struct simple_connecting_sprite : sprite {
 
 		for (int i = 0; i < 4; i++) {
 			if (con[i])
-				over.draw(scrX0, scrY0, scrW, scrH, over.atlas[0], over.atlas[1], over.atlas[2], over.atlas[3], args[i * 2], args[i * 2 + 1]);
+				over->draw(scrX0, scrY0, scrW, scrH, over->atlas[0], over->atlas[1], over->atlas[2], over->atlas[3], args[i * 2], args[i * 2 + 1]);
 		}
 	}
 
-	sprite base, over;
+	sprite *base, *over;
 };
 
 struct plop_registry {
@@ -786,20 +789,31 @@ struct plop_instance {
 		sizeY = sy;
 		originX = ox;
 		originY = oy;
+
+		water = 0;
+		watered = false;
+		power = 0;
+		powered = false;
 	}
 
 	plop_instance() {
 
 	}
 
-	virtual float maxWater();
+	virtual float maxWater(); //references plop, returns max water usage for this plop
 
-	virtual float waterUsage() {
+	virtual float waterUsage() { //returns actual water usage/supply based on state
 		return maxWater();
 	}
 
-	virtual bool waterSupply() {
+	virtual bool waterSupply() { //returns true if this plop supplies water
 		return waterUsage() > 0;
+	}
+
+	virtual bool isWellWatered() { //returns true if this plop has enough water
+		if (waterSupply())
+			return true;
+		return water >= abs(waterUsage());
 	}
 
 	virtual void render();
@@ -869,17 +883,25 @@ struct plop_instance {
 };
 
 struct plop {
-	plop(sprite* tex, bool placeable=true):plop() {
+	plop(sprite* tex, int plop_width = 1, int plop_height = 1, bool placeable=true):plop() {
 		this->tex = tex;
 		if (placeable) {
 			plops.placeable.push_back(this);
 		}
+		this->width = plop_width;
+		this->height = plop_height;
+
+		default_instance = createInstance();
 	}
 
 	plop() {
+		width = 1;
+		height = 1;
+
 		default_instance = createInstance();
 
 		tex = nullptr;
+		water = 0;
 	}
 
 	virtual void render(plop_instance * instance) {
@@ -896,7 +918,7 @@ struct plop {
 	}	
 
 	virtual plop_instance* createInstance() {
-		return createInstance(0,0,1,1);
+		return createInstance(0,0,width,height);
 	}
 
 	virtual plop_instance* createInstance(int ox, int oy, int sx, int sy) {
@@ -909,8 +931,8 @@ struct plop {
 
 	virtual void getDefaultInstance(plop_instance * to_fill) {
 		to_fill->base_plop = this;
-		to_fill->sizeX = 1;
-		to_fill->sizeY = 1;
+		to_fill->sizeX = width;
+		to_fill->sizeY = height;
 	}
 
 	virtual plop_instance* getDefaultInstance() {
@@ -930,7 +952,8 @@ struct plop {
 	virtual void onPlace() {}
 
 	float water;
-
+	int width;
+	int height;
 	sprite *tex;
 	plop_instance *default_instance;
 };
@@ -1005,21 +1028,36 @@ float plop_instance::maxWater() {
 sprite road_sprite(0,0,1,1);
 sprite road_con_sprite(1,0,1,1);
 sprite street_sprite(6,5,1,1);
-sprite street_con_sprite(6,5,1,1);
+sprite street_con_sprite(7,5,1,1);
 sprite pool_sprite(4,3,1,1);
 sprite pool_con_sprite(5,3,1,1);
+sprite grass_sprite(1,1,1,1);
+sprite dry_dirt_sprite(2,1,1,1);
+sprite wet_dirt_sprite(3,0,1,1);
+sprite dry_plop_sprite(1,4,1,1);
+sprite wet_plop_sprite(1,3,1,1);
+sprite water_tower_sprite(0,1,1,2);
+sprite water_well_sprite(0,4,1,1);
+sprite large_water_pump_sprite(0,7,2,2);
 
-plop water_tower_plop(new sprite(0,1,1,2));
-plop water_well_plop(new sprite(0,4,1,1));
-plop_connecting road_plop(new simple_connecting_sprite(road_sprite, road_con_sprite));
-plop_connecting street_plop(new simple_connecting_sprite(street_sprite, street_con_sprite));
+simple_connecting_sprite road_con_tex_sprite(&road_sprite, &road_con_sprite);
+simple_connecting_sprite street_con_tex_sprite(&street_sprite, &street_con_sprite);
+simple_connecting_sprite pool_con_tex_sprite(&pool_sprite, &pool_con_sprite);
+
+plop water_tower_plop(&water_tower_sprite);
+plop water_well_plop(&water_well_sprite);
+plop water_pump_large_plop(&large_water_pump_sprite, 2, 1);
+plop_connecting road_plop(&road_con_tex_sprite);
+plop_connecting street_plop(&street_con_tex_sprite);
 //plop_connecting water_pipe_plop(new sprite(3,1,1,1));
-plop_connecting pool_plop(new simple_connecting_sprite(pool_sprite, pool_con_sprite));
+plop_connecting pool_plop(&pool_con_tex_sprite);
 
 void init_plops() {
 	water_tower_plop.water = 1200.0f;
 	water_well_plop.water = 500.0f;
+	water_pump_large_plop.water = 24000.0f;
 	pool_plop.water = -200.0f;
+
 }
 
 tilePartial *getPartial(int x, int y) {
@@ -1353,6 +1391,20 @@ struct dirt : public tile {
 	
 	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
 		tilePartial *tp = tc->partial;
+
+		if (tc->parent_plop_instance) {
+			if (tc->parent_plop_instance->isWellWatered())
+				wet_plop_sprite.draw(offsetx, offsety, sizex, sizey);
+			else
+				dry_plop_sprite.draw(offsetx, offsety, sizex, sizey);
+		} else {
+			if (tp->hasWater())
+				wet_dirt_sprite.draw(offsetx, offsety, sizex, sizey);
+			else
+				dry_dirt_sprite.draw(offsetx, offsety, sizex, sizey);
+		}
+
+		/*
 		if (!tp->hasWater())
 			if (tc->parent->waterConsumption(tc) > 0)
 				setAtlas(1,4,2,5);
@@ -1360,8 +1412,9 @@ struct dirt : public tile {
 				setAtlas(2,1,3,2);		
 		else
 			setAtlas(1,3,2,4);
-				
+
 		tile::draw(tc,offsetx,offsety,sizex,sizey);		
+		*/
 	}
 };
 
@@ -1441,6 +1494,7 @@ struct water_pipe : public tileable {
 	}
 	
 	void updateWater(tileComplete *tc, int x, int y) {
+		return;
 		tilePartial *tp = tc->partial;
 		if (tp->hasUnderground(UNDERGROUND_WATER_PIPE)) {
 			if (waterSupply > waterDemand) {
@@ -1535,6 +1589,23 @@ tile *tiles::get(int id) {
 		return DEFAULT_TILE;
 }
 
+bool isInRadius(int ox, int oy, int px, int py, float r) {
+	int dx = ox - px;
+	int dy = oy - py;
+	return (dx * dx) + (dy * dy) < r * r;
+}
+
+template<typename FUNCTION>
+void tileRadiusLoop(int x, int y, float radius, FUNCTION func) {
+	for (int xx = x - radius; xx < x + radius; xx++) {
+		for (int yy = y - radius; yy < y + radius; yy++) {
+			if (isInRadius(xx,yy,x,y,radius))
+				func(xx,yy);
+			//func(xx,yy);
+		}
+	}
+}
+
 std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria)(tileComplete), std::vector<tileComplete> &network) {
 	if (std::find(network.begin(), network.end(), current) != network.end())
 		return network;
@@ -1552,9 +1623,9 @@ std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria
 	};
 
 	for (int i = 0; i < 4; i++) {
-		if (q[i].parent_plop_instance && q[i].parent_plop == current.parent_plop) {
-			walk_network(q[i], meetsCriteria, network);
-		}
+		//if (q[i].parent_plop_instance && q[i].parent_plop == current.parent_plop) {
+		//	walk_network(q[i], meetsCriteria, network);
+		//}
 
 
 		if (meetsCriteria(q[i])) {
@@ -1566,17 +1637,23 @@ std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria
 }
 
 void place(plop_instance *pi) {
-	tileComplete cmp = getComplete(pi->originX, pi->originY);
-	if (cmp.parent_plop_instance != nullptr) {
-		cmp.parent_plop_instance->onDestroy();
-	}
+	for (tileComplete clr : pi->getTiles()) 
+		if (clr.parent_plop_instance != nullptr) {
+			clr.parent_plop_instance->onDestroy();
+			clr.parent_plop_instance->~plop_instance();
+		}
+
+	//tileComplete cmp = getComplete(pi->originX, pi->originY);
+	//if (cmp.parent_plop_instance != nullptr) {
+	//	cmp.parent_plop_instance->onDestroy();
+	//}
 	pi->onPlace();
-	cmp.parent->onCreate(&cmp, pi->originX, pi->originY);
-	cmp.parent->updateNeighbors(&cmp, pi->originX, pi->originY);
+	//cmp.parent->onCreate(&cmp, pi->originX, pi->originY);
+	//cmp.parent->updateNeighbors(&cmp, pi->originX, pi->originY);
 }
 
 void place(int x, int y, plop *p) {
-	place(p->registerNewInstance(x, y, 1, 1));
+	place(p->registerNewInstance(x, y, p->width, p->height));
 }
 
 void destroy(int x, int y) {
@@ -2134,6 +2211,7 @@ int wmain() {
 			}
 		}
 		
+		if (microday == 0)
 		switch (day) {
 			case 1: { //check for road connection
 				for (int x = 0; x < tileMapWidth; x++) {
@@ -2186,75 +2264,141 @@ int wmain() {
 			
 			case 3: { //water calculations
 				waterNetworks = 0;
+				waterDemand = 0;
+				waterSupply = 0;
+
+				for (auto _ip : plops.instances) {
+					if (_ip->waterSupply())
+						waterSupply += _ip->waterUsage();
+					else
+						waterDemand += abs(_ip->waterUsage());
+				}
 
 				//form water supply networks and distribute available water
 				std::vector<std::vector<tileComplete>> networks;
 				//for (auto _ip : plops.instances) {
-				for (int x = 0; x < tileMapWidth; x++) 
-				for (int y = 0; y < tileMapHeight; y++) {
-					tileComplete tile = getComplete(x, y);
-					plop_instance *_ip = tile.parent_plop_instance;
+				for (int x = 0; x < tileMapWidth; x++) {
+					for (int y = 0; y < tileMapHeight; y++) {
+						tileComplete tile = getComplete(x, y);
+						plop_instance *_ip = tile.parent_plop_instance;
 
-					if (!tile.partial->hasUnderground(UNDERGROUND_WATER_PIPE))
-						continue; // No production, not a water supply, or not a water pipe
+						if (!tile.partial->hasUnderground(UNDERGROUND_WATER_PIPE))
+							continue; // No production, not a water supply, or not a water pipe
 
-					if (_ip && _ip->waterUsage() <= 0)
-						continue;
+						if (_ip && _ip->waterUsage() <= 0)
+							continue;
 
-					bool newNetwork = true;
+						bool newNetwork = true;
 
-					for (auto network : networks) {
-						if (std::find(network.begin(), network.end(), tile) != network.end()) {
-							newNetwork = false;
-							break;
+						for (auto network : networks) {
+							if (std::find(network.begin(), network.end(), tile) != network.end()) {
+								newNetwork = false;
+								break;
+							}
+						}
+
+						if (newNetwork) {
+							std::vector<tileComplete> network;
+							networks.push_back(walk_network(tile, isWaterNetwork, network));
+							waterNetworks++;
 						}
 					}
-
-					if (newNetwork) {
-						std::vector<tileComplete> network;
-						networks.push_back(walk_network(tile, isWaterNetwork, network));
-						waterNetworks++;
-					}
 				}
-				
+
 				//reset water flags for correct display
-				for (int i = 0; i < tileMapWidth * tileMapHeight; i++)
+				for (int i = 0; i < tileMapWidth * tileMapHeight; i++) {
 					tileMap[i].setWater(false);
+				}
+
+				for (auto ip : plops.instances) {
+					if (ip->waterSupply())
+						continue;
+					ip->watered = false;
+					ip->water = 0;
+				}
+
+				fprintf(logFile, "Water calculuation, current network count: %li, iter count: %i\n", networks.size(), waterNetworks);
 
 				//eh to test we'll set good networks with water
 				for (auto network : networks) {
+					std::set<plop_instance*> waterUsers;
+					std::set<plop_instance*> waterProviders;
+
+					//abs(tile.parent_plop_instance->waterUsage()) > 0.0f
+
+					float input = 0, output = 0;
+
+					for (auto tile : network) { //find water users
+						if (tile.parent_plop_instance && tile.parent_plop_instance->waterSupply()) {
+							if (waterProviders.find(tile.parent_plop_instance) != waterProviders.end())
+								continue; //if already accounted for, skip it
+							waterProviders.insert(tile.parent_plop_instance);
+							input += tile.parent_plop_instance->waterUsage();
+						}
+					}
+					
+					if (waterProviders.empty())
+						continue; //no water providers, no state change for network
+
+					// best would be expanding radius from tiles in network based upon the available water remaining
+
+					//search radius for water users
+					for (auto tile : network) {
+						tileRadiusLoop(tile.tileX, tile.tileY, 5, [&](int x, int y) {
+							tileComplete tc = getComplete(x, y);
+							if (tc.parent_plop_instance && tc.parent_plop_instance->waterUsage() < 0) {
+								if (waterUsers.find(tc.parent_plop_instance) != waterUsers.end())
+									return; //if already accounted for, skip it
+								waterUsers.insert(tc.parent_plop_instance);
+								output += abs(tc.parent_plop_instance->waterUsage());
+							}
+						});
+					}
+
+					float ratio = input / output; //base the radius upon this
+
+					float maxRadius = 5.0f;
+					float radius = ratio * maxRadius;
+					if (radius < 0.0f)
+						radius = 0;
+					if (radius > maxRadius)
+						radius = maxRadius;
+
+					fprintf(logFile, "Network size %li\n", network.size());
+					fprintf(logFile, "input %f output %f ratio %f radius %f\n", input, output, ratio, radius);
+
+					//blindly set water based on radius
 					for (auto tile : network) {
 						tile.partial->setWater(true);
-						for (int x = tile.tileX - 5; x < tile.tileX + 5; x++) {
-							for (int y = tile.tileY - 5; y < tile.tileY + 5; y++) {
-								int xx = x - tile.tileX;
-								int yy = y - tile.tileY;
-								if ((xx * xx) + (yy * yy) < 25) {
-									tilePartial *tp = getPartial(x, y);
-									tp->setWater(true);
-								}
-							}
-						}
+						//int dr = 5;
+						tileRadiusLoop(tile.tileX, tile.tileY, radius, [&](int x, int y) {
+							tileComplete tc = getComplete(x, y);
+							tc.partial->setWater(true);
+						});
 					}
+
+					for (auto user : waterUsers) {
+						user->watered = false;
+						user->water = 0;
+						tileRadiusLoop(user->originX, user->originY, radius, [&](int x, int y) {
+							if (user->isWellWatered() || user->waterSupply())
+								return;
+
+							tileComplete tc = getComplete(x, y);
+							if (!isWaterNetwork(tc))
+								return;
+							
+							float desiredWater = abs(user->waterUsage());
+							if (input >= desiredWater) {
+								input -= desiredWater;
+								user->watered = true;
+								user->water += desiredWater;
+							} 
+						});
+					}
+
 				}
 
-				break;
-				
-				//first calculate the demand then resize water spread
-				waterDemand = 0;
-				
-				for (int x = 0; x < tileMapWidth; x++) {
-					for (int y = 0; y < tileMapHeight; y++) {
-						tileComplete tc = getComplete(x,y);
-						tc.partial->setWater(0);
-						if (waterDemand + tc.parent->waterConsumption(&tc) <= waterSupply) {
-							tc.partial->setWater(1);
-						}
-						waterDemand += tc.parent->waterConsumption(&tc);
-					}
-				}
-				
-				
 				break;
 			}
 		}
