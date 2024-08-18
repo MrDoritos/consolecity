@@ -853,29 +853,104 @@ struct plop_registry {
 };
 
 plop_registry plops;
+typedef float net_t;
 
 struct plop_network_value {
-	virtual bool isSaturated() {return false;}
+	plop_network_value(net_t min, net_t max, net_t value) {
+		this->value = value;
+		this->min = min;
+		this->max = max;
+	}
+
+	virtual bool isSaturated() { return abs(max) <= abs(value); }
+
+	virtual bool isDepleted() { return abs(min) >= abs(value); }
+
+	virtual bool isSupply() { return value > 0 || max > 0; }
+	
+	virtual net_t getValue() { return value; }
+
+	virtual net_t getMin() { return min; }
+
+	virtual net_t getMax() { return max; }
+
+	/*
+	Try to add value to the current value, returns the amount that was not added or subtracted
+
+
+
+	Ex:
+	Consumer
+		Max: -800
+		Value: -200
+		Min: 0
+		Tmp: 500
+		Amount: 300
+		Return: 300
+
+		Final values
+		Max: -800
+		Value: -500 
+		Min: 0
+	*/
+	virtual net_t addValue(net_t amount) {
+		net_t tmp = abs(value) + amount;
+		fprintf(logFile, "Adding value: %f %f %f %f\n", value, amount, tmp, value - tmp);
+
+		if (abs(tmp) > abs(max))
+			value = max;
+		else
+		if (abs(tmp) < abs(min))
+			value = min;
+		else {
+			value = tmp;
+			if (max < 0) {
+				value = -tmp;
+			}
+		}
+
+		return amount - (tmp + value);
+	}
+
+	virtual void setMax(net_t max) { this->max = max; }
+
+	virtual void setMin(net_t min) { this->min = min; }
+
+	virtual void setValue(net_t value) { this->value = value; }
+	
+	protected:
+	net_t value;
+	net_t min;
+	net_t max;
 };
 
-struct plop_network_static {
+struct plop_network_static : plop_network_value {
+	plop_network_static(net_t min, net_t max, net_t value) : plop_network_value(min, max, value) {
+	}
 
+	virtual net_t addValue(net_t amount) {
+		return 0;
+	}
 };
 
 struct plop_properties {
+	plop_properties() {
+
+	}
+
 	float efficiency; //0-1
 	float funding;
 	float monthlyCost;
 	int width, height;
 
-	plop_network_value water;
-	plop_network_value power;
-	plop_network_value pollution;
-	plop_network_value crime;
-	plop_network_value health;
-	plop_network_value education;
-	plop_network_value traffic;
-	plop_network_value wealth;
+	plop_network_value *water = 0;
+	plop_network_value *power = 0;
+	plop_network_value *pollution = 0;
+	plop_network_value *crime = 0;
+	plop_network_value *health = 0;
+	plop_network_value *education = 0;
+	plop_network_value *traffic = 0;
+	plop_network_value *wealth = 0;
 };
 
 struct plop_instance {
@@ -892,6 +967,12 @@ struct plop_instance {
 
 	plop_instance() {
 
+	}
+
+	virtual plop_properties* createProperties() {
+		plop_properties *pp = new plop_properties();
+		pp->water = new plop_network_value(0, 100, 0);
+		return pp;
 	}
 
 	virtual float maxWater(); //references plop, returns max water usage for this plop
@@ -956,6 +1037,8 @@ struct plop_instance {
 	}
 
 	plop *base_plop;
+	plop_properties *properties;
+
 	int sizeX, sizeY, originX, originY;
 	int id;
 
@@ -991,14 +1074,14 @@ struct plop {
 		this->width = plop_width;
 		this->height = plop_height;
 
-		default_instance = createInstance();
+		//default_instance = createInstance();
 	}
 
 	plop() {
 		width = 1;
 		height = 1;
 
-		default_instance = createInstance();
+		//default_instance = createInstance();
 
 		tex = nullptr;
 		water = 0;
@@ -1022,13 +1105,20 @@ struct plop {
 	}
 
 	virtual plop_instance* createInstance(int ox, int oy, int sx, int sy) {
-		return new plop_instance(this, ox, oy, sx, sy);
+		plop_instance *pi = new plop_instance(this, ox, oy, sx, sy);
+		pi->properties = pi->createProperties();
+		return pi;
 	}
 
 	virtual plop_instance* registerNewInstance(int ox, int oy, int sx, int sy) {
 		return plops.registerPlop(createInstance(ox, oy, sx, sy));
 	}
 
+	virtual plop_instance* getDefaultInstance() {
+		return createInstance();
+	}
+
+/*
 	virtual void getDefaultInstance(plop_instance * to_fill) {
 		to_fill->base_plop = this;
 		to_fill->sizeX = width;
@@ -1038,6 +1128,7 @@ struct plop {
 	virtual plop_instance* getDefaultInstance() {
 		return default_instance;
 	}
+*/
 
 	virtual bool isPlaceable(tileComplete *tc) {
 		return !tc->partial->isPlop();
@@ -1055,7 +1146,7 @@ struct plop {
 	int width;
 	int height;
 	sprite *tex;
-	plop_instance *default_instance;
+	//plop_instance *default_instance;
 };
 
 struct plop_connecting : public plop {
@@ -1096,6 +1187,56 @@ struct plop_connecting : public plop {
 		*/
 	}
 
+};
+
+struct water_provider_plop : public plop {
+	water_provider_plop(sprite *tex, net_t water_creation, int plop_width = 1, int plop_height = 1, bool placeable=true):plop(tex,plop_width,plop_height,placeable) {
+		fprintf(logFile, "Water provider plop created: %f\n", water_creation);
+		this->water_creation = water_creation;
+	}
+
+	struct water_provider_plop_instance : public plop_instance {
+		water_provider_plop_instance(water_provider_plop *p, int ox, int oy, int sx, int sy):plop_instance(p, ox, oy, sx, sy) {
+			fprintf(logFile, "Water provider plop instance created\n");
+		}
+
+		plop_properties* createProperties() override {
+			fprintf(logFile, "Water provider plop instance properties created\n");
+			plop_properties *pp = plop_instance::createProperties();
+			pp->water = new plop_network_static(0, ((water_provider_plop*)base_plop)->water, ((water_provider_plop*)base_plop)->water);
+			return pp;
+		};
+	};
+
+	plop_instance* createInstance(int ox, int oy, int sx, int sy) override {
+		plop_instance *pi = new water_provider_plop_instance(this, ox, oy, sx, sy);
+		pi->properties = pi->createProperties();
+		return pi;
+	}
+
+	net_t water_creation;
+
+	virtual float maxWater() {
+		return water;
+	}
+};
+
+struct network_provider_plop : public plop {
+	network_provider_plop(sprite *tex, net_t water, net_t power, int plop_width = 1, int plop_height = 1, bool placeable=true):plop(tex,plop_width,plop_height,placeable) {
+		_water = water;
+		_power = power;
+	}
+
+	plop_instance* createInstance(int ox, int oy, int sx, int sy) override {
+		plop_instance *pi = new plop_instance(this, ox, oy, sx, sy);
+		plop_properties* pp = pi->createProperties();
+		pp->water = new plop_network_value(0, _water, 0);
+		pp->power = new plop_network_value(0, _power, 0);
+		pi->properties = pp;
+		return pi;
+	}
+
+	net_t _water, _power;
 };
 
 plop_instance *plop_registry::registerPlop(plop_instance * p) {
@@ -1160,16 +1301,16 @@ simple_connecting_sprite road_con_tex_sprite(&road_sprite, &road_con_sprite);
 simple_connecting_sprite street_con_tex_sprite(&street_sprite, &street_con_sprite);
 simple_connecting_sprite pool_con_tex_sprite(&pool_sprite, &pool_con_sprite);
 
-plop water_tower_plop(&water_tower_sprite);
-plop water_well_plop(&water_well_sprite);
-plop water_pump_large_plop(&large_water_pump_sprite, 2, 1);
+water_provider_plop water_tower_plop(&water_tower_sprite, 1200.0f);
+water_provider_plop water_well_plop(&water_well_sprite, 500.0f);
+water_provider_plop water_pump_large_plop(&large_water_pump_sprite, 24000.0f, 2, 1);
 
 plop_connecting road_plop(&road_con_tex_sprite);
 plop_connecting street_plop(&street_con_tex_sprite);
 //plop_connecting water_pipe_plop(new sprite(3,1,1,1));
 plop_connecting pool_plop(&pool_con_tex_sprite);
 
-plop tall_building_plop(&tall_building_sprite, 1, 1);
+network_provider_plop tall_building_plop(&tall_building_sprite, -800, -400, 1, 1);
 plop building1_plop(&building1_sprite);
 plop building2_plop(&building2_sprite, 2, 1);
 plop building3_plop(&building3_sprite, 2, 2);
@@ -1223,6 +1364,7 @@ struct selector : public tile {
 	unsigned int ticks;
 	//tile *selectedTile;
 	plop *selectedPlop;
+	plop_instance *currentPlop;
 	
 	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
 		tilePartial *tp = tc->partial;
@@ -1234,11 +1376,12 @@ struct selector : public tile {
 			} else {
 				//selectedTile->draw(getComplete(&selectedTile->defaultState, selectedTile, tc->tileX, tc->tileY, &cmp), offsetx, offsety, sizex, sizey);
 				
-				plop_instance pi;
-				memcpy(selectedPlop->getDefaultInstance(), &pi, sizeof(plop_instance));
-				pi.originX = tc->tileX;
-				pi.originY = tc->tileY;
-				selectedPlop->render(&pi);
+				//plop_instance pi;
+				//memcpy(selectedPlop->default_instance, &pi, sizeof(plop_instance));
+				currentPlop->originX = tc->tileX;
+				currentPlop->originY = tc->tileY;
+				//selectedPlop->render(&pi);
+				currentPlop->render();
 			}
 		}
 	}
@@ -1256,7 +1399,7 @@ struct plop_tile : public tile {
 	}
 
 	tilePartial getPlop(plop *p) {
-		return getPlop(p->getDefaultInstance());
+		return getPlop(p->createInstance());
 	}
 
 	tilePartial getPlop(plop_instance *p) {
@@ -1528,6 +1671,7 @@ void init() {
 	tileSelector = selector();
 	//tileSelector.selectedTile = tiles::get(selectorTileId);
 	tileSelector.selectedPlop = plops.getPlaceable(selectorTileId);
+	tileSelector.currentPlop = tileSelector.selectedPlop->createInstance();
 
 	scale = 4;
 	waterView = false;
@@ -1842,7 +1986,7 @@ int wmain() {
 
 	grass_sprite_random = new random_overlay(new sprite_overlay(&grass_sprite), &street_sprite);
 	
-	while (!adv::ready) console::sleep(10);
+	//while (!adv::ready) console::sleep(10);
 	
 	#ifdef __linux__
 	//curs_set(0);
@@ -1940,6 +2084,7 @@ int wmain() {
 					selectorTileId = 0;
 				//tileSelector.selectedTile = tiles::get(selectorTileId);
 				tileSelector.selectedPlop = plops.getPlaceable(selectorTileId);
+				tileSelector.currentPlop = tileSelector.selectedPlop->createInstance();
 				break;
 			case '1':
 				selectorTileId--;
@@ -1949,7 +2094,7 @@ int wmain() {
 
 				//tileSelector.selectedTile = tiles::get(selectorTileId);
 				tileSelector.selectedPlop = plops.getPlaceable(selectorTileId);
-
+				tileSelector.currentPlop = tileSelector.selectedPlop->createInstance();
 				break;
 			}			
 		}
@@ -2028,9 +2173,10 @@ int wmain() {
 		//std::chrono::duration<float, std::milli> elapsedTimef = t2 - t1;
 		tp1 = tp2;
 			
-		if (elapsedTimef < frametime)
-			console::sleep(frametime - elapsedTimef);
+		//if (elapsedTimef < frametime)
+		//	console::sleep(frametime - elapsedTimef);
 		//console::sleep(20);
+		adv::waitForReadyFrame();
 		{
 			char buf[50];
 			snprintf(&buf[0], 49, "%.1f fps - %.1f ms ft", (1.0f/elapsedTimef)*1000.0f, elapsedTimef);
@@ -2123,11 +2269,21 @@ int wmain() {
 				waterDemand = 0;
 				waterSupply = 0;
 
+				//Network summary
 				for (auto _ip : plops.instances) {
+					if (!_ip->properties || !_ip->properties->water)
+						continue;
+
+					if (_ip->properties->water->isSupply())
+						waterSupply += _ip->properties->water->getValue(); 
+					else
+						waterDemand += abs(_ip->properties->water->getMax());
+					/*
 					if (_ip->waterSupply())
 						waterSupply += _ip->waterUsage();
 					else
 						waterDemand += abs(_ip->waterUsage());
+					*/
 				}
 
 				//form water supply networks and distribute available water
@@ -2141,7 +2297,8 @@ int wmain() {
 						if (!tile.partial->hasUnderground(UNDERGROUND_WATER_PIPE))
 							continue; // No production, not a water supply, or not a water pipe
 
-						if (_ip && _ip->waterUsage() <= 0)
+						//if (_ip && _ip->waterUsage() <= 0)
+						if (_ip && _ip->properties && _ip->properties->water && !_ip->properties->water->isSupply())
 							continue;
 
 						bool newNetwork = true;
@@ -2166,10 +2323,18 @@ int wmain() {
 					tileMap[i].setWater(false);
 				}
 
+				//reset consumer values
 				for (auto ip : plops.instances) {
-					if (ip->waterSupply())
+					//if (ip->waterSupply())
+					//	continue;
+					//ip->water = 0;
+					if (!ip || !ip->properties || !ip->properties->water)
 						continue;
-					ip->water = 0;
+
+					if (ip->properties->water->isSupply())
+						continue;
+
+					ip->properties->water->setValue(0);
 				}
 
 				fprintf(logFile, "Water calculuation, current network count: %li, iter count: %i\n", networks.size(), waterNetworks);
@@ -2184,11 +2349,13 @@ int wmain() {
 					float input = 0, output = 0;
 
 					for (auto tile : network) { //find water users
-						if (tile.parent_plop_instance && tile.parent_plop_instance->waterSupply()) {
+						//if (tile.parent_plop_instance && tile.parent_plop_instance->waterSupply()) {
+						if (tile.parent_plop_instance && tile.parent_plop_instance->properties && tile.parent_plop_instance->properties->water && tile.parent_plop_instance->properties->water->isSupply()) {
 							if (waterProviders.find(tile.parent_plop_instance) != waterProviders.end())
 								continue; //if already accounted for, skip it
 							waterProviders.insert(tile.parent_plop_instance);
-							input += tile.parent_plop_instance->waterUsage();
+							//input += tile.parent_plop_instance->waterUsage();
+							input += tile.parent_plop_instance->properties->water->getValue();
 						}
 					}
 					
@@ -2201,11 +2368,13 @@ int wmain() {
 					for (auto tile : network) {
 						tileRadiusLoop(tile.tileX, tile.tileY, 5, [&](int x, int y) {
 							tileComplete tc = getComplete(x, y);
-							if (tc.parent_plop_instance && tc.parent_plop_instance->waterUsage() < 0) {
+							//if (tc.parent_plop_instance && tc.parent_plop_instance->waterUsage() < 0) {
+							if (tc.parent_plop_instance && tc.parent_plop_instance->properties && tc.parent_plop_instance->properties->water && !tc.parent_plop_instance->properties->water->isSupply()) {
 								if (waterUsers.find(tc.parent_plop_instance) != waterUsers.end())
 									return; //if already accounted for, skip it
 								waterUsers.insert(tc.parent_plop_instance);
-								output += abs(tc.parent_plop_instance->waterUsage());
+								//output += abs(tc.parent_plop_instance->waterUsage());
+								output += abs(tc.parent_plop_instance->properties->water->getMax());
 							}
 						});
 					}
@@ -2233,21 +2402,29 @@ int wmain() {
 					}
 
 					for (auto user : waterUsers) {
-						user->water = 0;
+						//user->water = 0;
+						user->properties->water->setValue(0);
 						tileRadiusLoop(user->originX, user->originY, radius, [&](int x, int y) {
-							if (user->isWellWatered() || user->waterSupply())
+							//if (user->isWellWatered() || user->waterSupply())
+							if (user->properties->water->isSaturated() || user->properties->water->isSupply()) {
+								fprintf(logFile, "Saturated or supply\n");
 								return;
+							}
 
 							tileComplete tc = getComplete(x, y);
 							if (!isWaterNetwork(tc))
 								return;
 							
-							float desiredWater = abs(user->waterUsage());
-							if (input >= desiredWater) {
-								input -= desiredWater;
-								user->water += desiredWater;
-							} 
+							//float desiredWater = abs(user->waterUsage());
+							//if (input >= desiredWater) {
+							//	input -= desiredWater;
+							//	user->water += desiredWater;
+							//}
+							fprintf(logFile, "Calc water\n");
+							input -= user->properties->water->addValue(-input); 
 						});
+
+						fprintf(logFile, "Water user %f/%f (%f)\n", user->properties->water->getValue(), user->properties->water->getMax(), input);
 					}
 
 				}
