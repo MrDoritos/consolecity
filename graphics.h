@@ -7,6 +7,43 @@
 struct ch_co_t;
 struct pixel;
 
+template<typename T>
+struct _pos {
+    _pos(T x, T y) {
+        this->x = x;
+        this->y = y;
+    }
+    _pos() {
+        x = 0;
+        y = 0;
+    }
+    T x, y;
+};
+
+template<typename T>
+struct _size : public _pos<T> {
+    _size(T x, T y, T width, T height) {
+        this->x = x;
+        this->y = y;
+        this->width = width;
+        this->height = height;
+    }
+    _size(T width, T height) {
+        this->width = width;
+        this->height = height;
+    }
+    _size() {
+        width = 0;
+        height = 0;
+    }
+    T width, height;
+};
+
+typedef _pos<int> posi;
+typedef _size<int> sizei;
+typedef _pos<float> posf;
+typedef _size<float> sizef;
+
 ch_co_t *texturechco;
 
 unsigned char *texture;

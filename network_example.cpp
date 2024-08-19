@@ -176,13 +176,67 @@ struct Game {
         }
     };
 
-    struct PlopAbstract {
+    struct TileData {
+        unsigned char id;
+    };
+
+    struct PlopAbstract;
+
+    struct TileEvent {
+        Size size; // user input of selected area
+        TileData data; // tile data of origin tile
+    };
+
+    //Support singletons of tile and instances of plop
+    struct TileAbstract {
+        virtual void onPlaceEvent(TileEvent) = 0;
+        virtual void onDestroyEvent(TileEvent) = 0;
+        virtual void onUpdateEvent(TileEvent) = 0;
+        virtual void onRandomEvent(TileEvent) = 0;
+        virtual void render(TileEvent) = 0;
+        virtual void setInstanceData(TileEvent) = 0;
+        virtual PlopAbstract *getPlop(TileEvent) = 0;
+    };
+
+    static std::vector<TileAbstract*> tiles;
+
+    //Singleton
+    struct Tile : public TileAbstract {
+        Tile() {
+            tiles.push_back(this);
+        }
+        void onPlaceEvent(TileEvent s) override {}
+        void onDestroyEvent(TileEvent s) override {}
+        void onUpdateEvent(TileEvent s) override {}
+        void onRandomEvent(TileEvent s) override {}
+        void render(TileEvent s) override {}
+        void setInstanceData(TileEvent s) override {}
+        PlopAbstract *getPlop(TileEvent s) override {return nullptr;}
+    };
+
+    struct Sprite {};
+
+    //Created here
+    struct TileSprite : public Tile {
+        TileSprite(Sprite spr) {
+            sprite = spr;
+        }
+        void render(TileEvent s) override {
+
+        }
+        Sprite sprite;
+    };
+
+    TileSprite tileGrass(Sprite());
+
+    struct PlopAbstract : public TileAbstract {
         virtual NetworkProvider *getNetworkProvider() = 0;
-        virtual void onPlaceEvent() = 0;
-        virtual void onDestroyEvent() = 0;
         virtual PlopAbstract *clone() = 0; // clone default
         virtual Size getSize() = 0;
-        virtual void render() = 0;
+        
+        //virtual void onPlaceEvent() = 0;
+        //virtual void onDestroyEvent() = 0;
+        //virtual void render() = 0;
     };
 
     struct Plop : public PlopAbstract, NetworkProvider {

@@ -263,34 +263,21 @@ bool queryMode;
 
 struct tile {
 	int id;
-	tilePartial defaultState;
-	unsigned char textureAtlas[4];
+	sprite tex;
 	
-	tile() {
-		id = 0;		
-		
-		textureAtlas[0] = 3;
-		textureAtlas[1] = 0;
-		textureAtlas[2] = 4;
-		textureAtlas[3] = 1;
-		
-		defaultState = getDefaultState();
-	}
+	tile(bool add = false) : tile(sprite(0,0,1,1),add) {}
 	
-	tile(int t0, int t1, int t2, int t3, bool skip = false) {
-		if (!skip) 
+	tile(sprite tex, bool add = false) : tex(tex) {
+		id = 0;
+		if (add)
 			tiles::add(this);
-				
-		setAtlas(t0,t1,t2,t3);
-		
-		defaultState = getDefaultState();
 	}
+
+	tile(int t0, int t1, int t2, int t3, bool skip = false)
+		:tile(sprite(t0,t1,t2-t0,t3-t1), !skip) {}
 	
 	void setAtlas(int a, int b, int c, int d) {
-		textureAtlas[0] = a;
-		textureAtlas[1] = b;
-		textureAtlas[2] = c;
-		textureAtlas[3] = d;
+		tex.setAtlas({a,b,c-a,d-b});
 	}
 	
 	virtual tilePartial getDefaultState() {
@@ -302,22 +289,7 @@ struct tile {
 	//offsetx,offsety top left
 	//sizex,sizey width height
 	virtual void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) {
-		//int sizex = sizexf, sizey = sizeyf;
-		tilePartial *tp = tc->partial;
-		if (offsetx >= adv::width || offsety >= adv::height || offsetx + sizex < 0 || offsety + sizey < 0)
-			return;
-		for (int x = 0; x < sizex; x++) {
-			for (int y = 0; y < sizey; y++) {
-				if (offsetx + x >= adv::width || offsety + y >= adv::height || offsetx + x < 0 || offsety + y < 0)
-					continue;
-				float xf = ((textureAtlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
-				float yf = ((textureAtlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
-				ch_co_t chco = sampleImageCHCO(xf, yf);
-				if (chco.a < 255)
-					continue;
-				adv::write(offsetx + x, offsety + y, chco.ch, chco.co);
-			}
-		}
+		tex.draw(offsetx,offsety,sizex,sizey);
 	}
 	
 	virtual void onCreate(tileComplete *tc, int x, int y) {}
@@ -391,17 +363,9 @@ struct tile {
 };
 
 struct tileable : public tile {	
-	tileable() {}
-	tileable(int t0, int t1, int t2, int t3, int t4, int t5, int t6, int t7, bool skip = false) {
-		if (!skip)
-			tiles::add(this);
-		setAtlas(t0,t1,t2,t3);
-		connectingTextureAtlas[0] = t4;
-		connectingTextureAtlas[1] = t5;
-		connectingTextureAtlas[2] = t6;
-		connectingTextureAtlas[3] = t7;
-		defaultState = getDefaultState();
-	}
+	tileable():tex_connecting(tex) {}
+	tileable(int t0, int t1, int t2, int t3, int t4, int t5, int t6, int t7, bool skip = false) 
+	:tile(t0,t1,t2,t3,skip),tex_connecting(t4,t5,t6,t7) {}
 
 	virtual void connectToNeighbors(tileComplete *tc, int x, int y) {
 		tilePartial *tp = tc->partial;
@@ -429,7 +393,8 @@ struct tileable : public tile {
 		return tp->hasConnection(direction);
 	}
 	
-	int connectingTextureAtlas[4];
+	//int connectingTextureAtlas[4];
+	sprite tex_connecting;
 	
 	void onCreate(tileComplete *tc, int x, int y) override {
 		tilePartial *tp = tc->partial;
@@ -447,8 +412,8 @@ struct tileable : public tile {
 			for (int y = 0; y < sizey; y++) {
 				if (offsetx + x >= adv::width || offsety + y >= adv::height || offsetx + x < 0 || offsety + y < 0)
 					continue;
-				float xf = ((textureAtlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
-				float yf = ((textureAtlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
+				float xf = ((tex.atlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
+				float yf = ((tex.atlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
 				pixel pix = sampleImage(xf, yf);
 				ch_co_t chco = sampleImageCHCO(xf, yf);
 				for (int i = 0; i < 4; i++) {
@@ -456,13 +421,13 @@ struct tileable : public tile {
 						float xfto = (float(x) / sizex) * textureSize;
 						float yfto = (float(y) / sizey) * textureSize;
 						if (i == 1 || i ==2)
-							xfto = ((connectingTextureAtlas[0] + 0.99f) * textureSize) - xfto;
+							xfto = ((tex_connecting.atlas[0] + 0.99f) * textureSize) - xfto;
 						else
-							xfto = (connectingTextureAtlas[0] * textureSize) + xfto;
+							xfto = (tex_connecting.atlas[0] * textureSize) + xfto;
 						if (i == 0 || i == 1)
-							yfto = ((connectingTextureAtlas[1] + 0.99f) * textureSize) - yfto;
+							yfto = ((tex_connecting.atlas[1] + 0.99f) * textureSize) - yfto;
 						else
-							yfto = (connectingTextureAtlas[1] * textureSize) + yfto;
+							yfto = (tex_connecting.atlas[1] * textureSize) + yfto;
 						xfto /= textureWidth;
 						yfto /= textureHeight;
 						pixel pix2 = sampleImage(xfto, yfto);
@@ -944,9 +909,13 @@ void init_plops() {
 	pool_plop.water = -200.0f;
 }
 
+tilePartial partially_garbage;
+
 tilePartial *getPartial(int x, int y) {
-	if (x >= tileMapWidth || x < 0 || y >= tileMapHeight || y < 0)
-		return &tiles::DEFAULT_TILE->defaultState;
+	if (x >= tileMapWidth || x < 0 || y >= tileMapHeight || y < 0) {
+		fprintf(logFile, "Out of bounds: %i %i\n", x, y);
+		return &(partially_garbage = tilePartial());//&tiles::DEFAULT_TILE->defaultState;
+	}
 	return &tileMap[y * tileMapWidth + x];
 }
 
@@ -974,14 +943,7 @@ tileComplete *getComplete(tilePartial *tp, tile *parent, int x, int y, tileCompl
 }
 
 struct selector : public tile {
-	selector() {
-		textureAtlas[0] = 1;
-		textureAtlas[1] = 2;
-		textureAtlas[2] = 2;
-		textureAtlas[3] = 3;
-		
-		defaultState = getDefaultState();
-	}
+	selector():tile(selector_sprite) {}
 	
 	unsigned int ticks;
 	//tile *selectedTile;
@@ -994,32 +956,18 @@ struct selector : public tile {
 			tile::draw(tc,offsetx,offsety,sizex,sizey);
 			tileComplete cmp;
 			if (waterView) {
-				tiles::WATER_PIPE->draw(getComplete(&tiles::WATER_PIPE->defaultState, tiles::WATER_PIPE, tc->tileX, tc->tileY, &cmp), offsetx, offsety, sizex, sizey);
+				tilePartial state = tiles::WATER_PIPE->getDefaultState();
+				tiles::WATER_PIPE->draw(getComplete(&state, tiles::WATER_PIPE, tc->tileX, tc->tileY, &cmp), offsetx, offsety, sizex, sizey);
 			} else {
-				//selectedTile->draw(getComplete(&selectedTile->defaultState, selectedTile, tc->tileX, tc->tileY, &cmp), offsetx, offsety, sizex, sizey);
-				
-				//plop_instance pi;
-				//memcpy(selectedPlop->default_instance, &pi, sizeof(plop_instance));
 				currentPlop->originX = tc->tileX;
 				currentPlop->originY = tc->tileY;
-				//selectedPlop->render(&pi);
 				currentPlop->render();
 			}
 		}
 	}
 } tileSelector;
 
-struct default_tile : public tile {
-	default_tile() {
-		tiles::add(this);
-	}
-};
-
 struct plop_tile : public tile {
-	plop_tile() {
-
-	}
-
 	tilePartial getPlop(plop *p) {
 		return getPlop(p->createInstance());
 	}
@@ -1032,36 +980,7 @@ struct plop_tile : public tile {
 
 } plop_tile;
 
-struct grass : public tile {
-	grass() {
-		tiles::add(this);
-		
-		textureAtlas[0] = 1;
-		textureAtlas[1] = 1;
-		textureAtlas[2] = 2;
-		textureAtlas[3] = 2;
-		
-		defaultState = getDefaultState();
-	}
-
-	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
-		//grass_sprite_random->draw(offsetx, offsety, sizex, sizey);
-		grass_sprite.draw(offsetx, offsety, sizex, sizey);
-	}
-};
-
 struct dirt : public tile {
-	dirt() {
-		tiles::add(this);
-		
-		textureAtlas[0] = 2;
-		textureAtlas[1] = 1;
-		textureAtlas[2] = 3;
-		textureAtlas[3] = 2;
-		
-		defaultState = getDefaultState();
-	}
-	
 	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
 		tilePartial *tp = tc->partial;
 
@@ -1076,37 +995,11 @@ struct dirt : public tile {
 			else
 				dry_dirt_sprite.draw(offsetx, offsety, sizex, sizey);
 		}
-
-		/*
-		if (!tp->hasWater())
-			if (tc->parent->waterConsumption(tc) > 0)
-				setAtlas(1,4,2,5);
-			else
-				setAtlas(2,1,3,2);		
-		else
-			setAtlas(1,3,2,4);
-
-		tile::draw(tc,offsetx,offsety,sizex,sizey);		
-		*/
 	}
 };
 
 struct water_pipe : public tileable {
-	water_pipe() {
-		tiles::add(this);
-		
-		textureAtlas[0] = 3;
-		textureAtlas[1] = 1;
-		textureAtlas[2] = 4;
-		textureAtlas[3] = 2;
-		
-		connectingTextureAtlas[0] = 0;
-		connectingTextureAtlas[1] = 3;
-		connectingTextureAtlas[2] = 1;
-		connectingTextureAtlas[3] = 4;
-		
-		defaultState = getDefaultState();
-	}
+	water_pipe():tileable(3,1,1,1,0,3,1,1) {}
 	
 	bool connectingCondition(tileComplete *tc, int direction) override {
 		tilePartial *tp = tc->partial;
@@ -1181,9 +1074,8 @@ tile *getTile(tilePartial *partial) {
 	return tiles::get(partial->id);
 }
 
-tile *tiles::DEFAULT_TILE = new default_tile;
-
-tile *tiles::GRASS = new grass;
+tile *tiles::DEFAULT_TILE = new tile(true);
+tile *tiles::GRASS = new tile(grass_sprite, true);
 tile *tiles::WATER_PIPE = new water_pipe;
 tile *tiles::DIRT = new dirt;
 
@@ -1222,6 +1114,8 @@ void tileRadiusLoop(int x, int y, float radius, FUNCTION func) {
 std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria)(tileComplete), std::vector<tileComplete> &network) {
 	if (std::find(network.begin(), network.end(), current) != network.end())
 		return network;
+	if (current.partial == nullptr)
+		return network;
 
 	network.push_back(current);
 
@@ -1250,23 +1144,32 @@ std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria
 }
 
 void place(plop_instance *pi) {
-	for (tileComplete clr : pi->getTiles()) 
+	for (tileComplete clr : pi->getTiles()) {
+		if (clr.partial == nullptr)
+			return;
 		if (clr.parent_plop_instance != nullptr) {
 			clr.parent_plop_instance->onDestroy();
 			clr.parent_plop_instance->~plop_instance();
 		}
+	}
 
 	//tileComplete cmp = getComplete(pi->originX, pi->originY);
 	//if (cmp.parent_plop_instance != nullptr) {
 	//	cmp.parent_plop_instance->onDestroy();
 	//}
+	if (pi == nullptr)
+		return;
+
+	if (std::find(plops.instances.begin(), plops.instances.end(), pi) == plops.instances.end())
+		plops.instances.push_back(pi);
+
 	pi->onPlace();
 	//cmp.parent->onCreate(&cmp, pi->originX, pi->originY);
 	//cmp.parent->updateNeighbors(&cmp, pi->originX, pi->originY);
 }
 
 void place(int x, int y, plop *p) {
-	place(p->registerNewInstance(x, y, p->width, p->height));
+	place(p->createInstance(x, y, p->width, p->height));
 }
 
 void destroy(int x, int y) {
@@ -1468,7 +1371,8 @@ void display() {
 		float offsetx = getOffsetX(selectorX, selectorY);
 		float offsety = getOffsetY(selectorX, selectorY);
 		tileComplete cmp;
-		tileSelector.draw(getComplete(&tileSelector.defaultState, &tileSelector, selectorX, selectorY, &cmp), offsetx * width, offsety * height, width, height);
+		tilePartial state = tileSelector.getDefaultState();
+		tileSelector.draw(getComplete(&state, &tileSelector, selectorX, selectorY, &cmp), offsetx * width, offsety * height, width, height);
 	}
 
 	//water_well_plop.render(water_well_plop.createInstance(0,0,0,0));
@@ -1663,6 +1567,8 @@ int wmain() {
 				if (waterView) {
 					//tilePartial *partial = getPartial(selectorX, selectorY);
 					tileComplete cmp = getComplete(selectorX, selectorY);
+					if (cmp.partial == nullptr)
+						break;
 					cmp.partial->setUnderground(UNDERGROUND_WATER_PIPE);
 					tiles::WATER_PIPE->onCreate(&cmp, selectorX, selectorY);
 					tiles::WATER_PIPE->updateNeighbors(&cmp, selectorX, selectorY);
@@ -1685,6 +1591,8 @@ int wmain() {
 			{
 				if (waterView) {
 					tileComplete cmp = getComplete(selectorX, selectorY);
+					if (cmp.partial == nullptr)
+						break;
 					tiles::WATER_PIPE->onDestroy(&cmp, selectorX, selectorY);
 					//cmp.partial->setUnderground(0);
 					//tiles::WATER_PIPE->updateNeighbors(&cmp, selectorX, selectorY);
@@ -1990,6 +1898,8 @@ int wmain() {
 					for (auto tile : network) {
 						tileRadiusLoop(tile.tileX, tile.tileY, 5, [&](int x, int y) {
 							tileComplete tc = getComplete(x, y);
+							if (tc.partial == nullptr)
+								return;
 							//if (tc.parent_plop_instance && tc.parent_plop_instance->waterUsage() < 0) {
 							if (tc.parent_plop_instance && tc.parent_plop_instance->properties && tc.parent_plop_instance->properties->water && !tc.parent_plop_instance->properties->water->isSupply()) {
 								if (waterUsers.find(tc.parent_plop_instance) != waterUsers.end())
@@ -2019,6 +1929,9 @@ int wmain() {
 						//int dr = 5;
 						tileRadiusLoop(tile.tileX, tile.tileY, radius, [&](int x, int y) {
 							tileComplete tc = getComplete(x, y);
+							if (tc.partial == nullptr)
+								return;
+
 							tc.partial->setWater(true);
 						});
 					}

@@ -4776,3 +4776,224 @@ Saturated or supply
 Water user -800.000000/-800.000000 (1200.000000)
 Closing console
 Exit
+Opened log 1724040513
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 7
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1724042970
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 2, iter count: 2
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1724043612
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water provider plop instance created
+Water provider plop instance properties created
+Water calculuation, current network count: 2, iter count: 2
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 2, [6 1] 
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 3, [7 3] 
+Placed plop: 4, [8 3] 
+Placed plop: 5, [8 4] 
+Water calculuation, current network count: 2, iter count: 2
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Network size 6
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1724043767
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1724044045
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 1, iter count: 1
+Network size 8
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 3, iter count: 3
+Network size 9
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 4, iter count: 4
+Network size 9
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water calculuation, current network count: 4, iter count: 4
+Network size 9
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1724044232
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1724044266
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Closing console
+Exit
+Opened log 1724045309
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Closing console
+Exit
+Opened log 1724045414
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 1] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 1] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 1] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [1 1] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [1 1] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [3 1] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [4 1] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [4 1] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [4 1] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [4 1] 
+Closing console
+Exit
+Opened log 1724045701
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [0 0] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [3 1] 
+Water calculuation, current network count: 3, iter count: 3
+Water calculuation, current network count: 2, iter count: 2
+Water calculuation, current network count: 1, iter count: 1
+Closing console
+Exit
+Opened log 1724046122
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Water calculuation, current network count: 1, iter count: 1
+Water calculuation, current network count: 1, iter count: 1
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: -1472596992, [15 8] 
+Water calculuation, current network count: 2, iter count: 2
+Closing console
+Exit
+Opened log 1724046215
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Water calculuation, current network count: 1, iter count: 1
+Closing console
+Exit
+Opened log 1724046232
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Closing console
+Exit

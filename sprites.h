@@ -14,6 +14,13 @@ struct sprite {
 
 	int atlas[4];
 
+	virtual void setAtlas(sizei atlas) {
+		this->atlas[0] = atlas.x;
+		this->atlas[1] = atlas.y;
+		this->atlas[2] = atlas.x + atlas.width;
+		this->atlas[3] = atlas.y + atlas.height;
+	}
+
 	virtual int getAtlW() {	return atlas[2] - atlas[0];	}
 
 	virtual int getAtlH() { return atlas[3] - atlas[1];	}
@@ -264,6 +271,8 @@ struct simple_connecting_sprite : sprite {
 
 	sprite *base, *over;
 };
+
+sprite selector_sprite(1,2,1,1);
 
 sprite road_sprite(0,0,1,1);
 sprite road_con_sprite(1,0,1,1);
