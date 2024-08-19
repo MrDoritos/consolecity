@@ -4997,3 +4997,522 @@ Placed plop: 0, [2 2]
 Water calculuation, current network count: 1, iter count: 1
 Closing console
 Exit
+Opened log 1724046433
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [11 5] 
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [13 7] [14 7] 
+Placed plop: 0, [13 9] 
+Placed plop: 0, [12 9] 
+Placed plop: 0, [11 9] 
+Placed plop: 0, [11 8] 
+Placed plop: 0, [11 7] 
+Water calculuation, current network count: 3, iter count: 3
+Placed plop: 0, [14 9] 
+Placed plop: 0, [14 8] 
+Placed plop: 311713984, [13 8] 
+Placed plop: 311712976, [12 8] 
+Placed plop: 0, [12 7] 
+Placed plop: 0, [12 6] 
+Placed plop: 0, [11 6] 
+Water calculuation, current network count: 3, iter count: 3
+Placed plop: 0, [10 6] 
+Placed plop: 0, [10 7] 
+Placed plop: 0, [10 8] 
+Placed plop: 0, [10 9] 
+Placed plop: 0, [11 10] 
+Closing console
+Exit
+Opened log 1724046498
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [10 7] 
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [13 7] 
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [13 9] [14 9] 
+Placed plop: 0, [13 11] 
+Placed plop: 0, [12 11] 
+Water calculuation, current network count: 4, iter count: 4
+Closing console
+Exit
+Opened log 1724046633
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [6 4] 
+Water calculuation, current network count: 1, iter count: 1
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [9 5] [10 5] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: -530512896, [10 7] [11 7] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: -530512896, [12 7] [13 7] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: -530512896, [11 7] [12 7] 
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: -530512896, [9 7] [10 7] 
+Water calculuation, current network count: 3, iter count: 3
+Placed plop: 0, [12 9] 
+Placed plop: 0, [13 9] 
+Placed plop: 0, [14 9] 
+Placed plop: -529534928, [15 9] 
+Placed plop: -529532976, [15 10] 
+Placed plop: 0, [15 11] 
+Placed plop: 0, [15 12] 
+Placed plop: 0, [15 13] 
+Placed plop: 0, [14 14] 
+Placed plop: 0, [14 13] 
+Placed plop: 0, [14 12] 
+Placed plop: 0, [14 11] 
+Placed plop: 0, [14 10] 
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Water calculuation, current network count: 3, iter count: 3
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 0, [13 11] 
+Placed plop: 0, [12 11] 
+Placed plop: 0, [11 11] 
+Placed plop: 0, [10 11] 
+Placed plop: 0, [9 11] 
+Placed plop: 0, [10 10] 
+Placed plop: 0, [11 10] 
+Placed plop: 0, [12 10] 
+Placed plop: 0, [13 10] 
+Closing console
+Exit
+Opened log 1724046737
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 1, [2 2] 
+Water calculuation, current network count: 1, iter count: 1
+Out of bounds: -2 0
+Out of bounds: -2 1
+Out of bounds: -2 2
+Out of bounds: -2 3
+Out of bounds: -2 4
+Out of bounds: -1 -1
+Out of bounds: -1 0
+Out of bounds: -1 1
+Out of bounds: -1 2
+Out of bounds: -1 3
+Out of bounds: -1 4
+Out of bounds: -1 5
+Out of bounds: 0 -2
+Out of bounds: 0 -1
+Out of bounds: 1 -2
+Out of bounds: 1 -1
+Out of bounds: 2 -2
+Out of bounds: 2 -1
+Out of bounds: 3 -2
+Out of bounds: 3 -1
+Out of bounds: 4 -2
+Out of bounds: 4 -1
+Out of bounds: 5 -1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Out of bounds: -2 0
+Out of bounds: -2 1
+Out of bounds: -2 2
+Out of bounds: -2 3
+Out of bounds: -2 4
+Out of bounds: -1 -1
+Out of bounds: -1 0
+Out of bounds: -1 1
+Out of bounds: -1 2
+Out of bounds: -1 3
+Out of bounds: -1 4
+Out of bounds: -1 5
+Out of bounds: 0 -2
+Out of bounds: 0 -1
+Out of bounds: 1 -2
+Out of bounds: 1 -1
+Out of bounds: 2 -2
+Out of bounds: 2 -1
+Out of bounds: 3 -2
+Out of bounds: 3 -1
+Out of bounds: 4 -2
+Out of bounds: 4 -1
+Out of bounds: 5 -1
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 2, [7 5] 
+Placed plop: 3, [9 5] 
+Placed plop: 4, [10 7] 
+Placed plop: 5, [11 7] 
+Placed plop: 6, [12 7] 
+Placed plop: 7, [12 6] 
+Water calculuation, current network count: 2, iter count: 2
+Out of bounds: -2 0
+Out of bounds: -2 1
+Out of bounds: -2 2
+Out of bounds: -2 3
+Out of bounds: -2 4
+Out of bounds: -1 -1
+Out of bounds: -1 0
+Out of bounds: -1 1
+Out of bounds: -1 2
+Out of bounds: -1 3
+Out of bounds: -1 4
+Out of bounds: -1 5
+Out of bounds: 0 -2
+Out of bounds: 0 -1
+Out of bounds: 1 -2
+Out of bounds: 1 -1
+Out of bounds: 2 -2
+Out of bounds: 2 -1
+Out of bounds: 3 -2
+Out of bounds: 3 -1
+Out of bounds: 4 -2
+Out of bounds: 4 -1
+Out of bounds: 5 -1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Out of bounds: -2 0
+Out of bounds: -2 1
+Out of bounds: -2 2
+Out of bounds: -2 3
+Out of bounds: -2 4
+Out of bounds: -1 -1
+Out of bounds: -1 0
+Out of bounds: -1 1
+Out of bounds: -1 2
+Out of bounds: -1 3
+Out of bounds: -1 4
+Out of bounds: -1 5
+Out of bounds: 0 -2
+Out of bounds: 0 -1
+Out of bounds: 1 -2
+Out of bounds: 1 -1
+Out of bounds: 2 -2
+Out of bounds: 2 -1
+Out of bounds: 3 -2
+Out of bounds: 3 -1
+Out of bounds: 4 -2
+Out of bounds: 4 -1
+Out of bounds: 5 -1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Calc water
+Adding value: 0.000000 -1200.000000 -1200.000000 1200.000000
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Water user -800.000000/-800.000000 (400.000000)
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Water provider plop instance created
+Water provider plop instance properties created
+Placed plop: 8, [11 6] 
+Placed plop: 9, [10 6] 
+Placed plop: 10, [9 6] 
+Placed plop: 11, [8 6] 
+Placed plop: 12, [7 6] 
+Water calculuation, current network count: 2, iter count: 2
+Out of bounds: -2 0
+Out of bounds: -2 1
+Out of bounds: -2 2
+Out of bounds: -2 3
+Out of bounds: -2 4
+Out of bounds: -1 -1
+Out of bounds: -1 0
+Out of bounds: -1 1
+Out of bounds: -1 2
+Out of bounds: -1 3
+Out of bounds: -1 4
+Out of bounds: -1 5
+Out of bounds: 0 -2
+Out of bounds: 0 -1
+Out of bounds: 1 -2
+Out of bounds: 1 -1
+Out of bounds: 2 -2
+Out of bounds: 2 -1
+Out of bounds: 3 -2
+Out of bounds: 3 -1
+Out of bounds: 4 -2
+Out of bounds: 4 -1
+Out of bounds: 5 -1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Out of bounds: -2 0
+Out of bounds: -2 1
+Out of bounds: -2 2
+Out of bounds: -2 3
+Out of bounds: -2 4
+Out of bounds: -1 -1
+Out of bounds: -1 0
+Out of bounds: -1 1
+Out of bounds: -1 2
+Out of bounds: -1 3
+Out of bounds: -1 4
+Out of bounds: -1 5
+Out of bounds: 0 -2
+Out of bounds: 0 -1
+Out of bounds: 1 -2
+Out of bounds: 1 -1
+Out of bounds: 2 -2
+Out of bounds: 2 -1
+Out of bounds: 3 -2
+Out of bounds: 3 -1
+Out of bounds: 4 -2
+Out of bounds: 4 -1
+Out of bounds: 5 -1
+Network size 1
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Calc water
+Adding value: 0.000000 -1200.000000 -1200.000000 1200.000000
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Water user -800.000000/-800.000000 (400.000000)
+Water calculuation, current network count: 2, iter count: 2
+Out of bounds: -2 0
+Out of bounds: -2 1
+Out of bounds: -2 2
+Out of bounds: -2 3
+Out of bounds: -2 4
+Out of bounds: -1 -1
+Out of bounds: -1 0
+Out of bounds: -1 1
+Out of bounds: -1 2
+Out of bounds: -1 3
+Out of bounds: -1 4
+Out of bounds: -1 5
+Out of bounds: 0 -2
+Out of bounds: 0 -1
+Out of bounds: 1 -2
+Out of bounds: 1 -1
+Out of bounds: 2 -2
+Out of bounds: 2 -1
+Out of bounds: 3 -2
+Out of bounds: 3 -1
+Out of bounds: 4 -2
+Out of bounds: 4 -1
+Out of bounds: 5 -1
+Network size 1
+input 1200.000000 output 0.000000 ratio inf radius 5.000000
+Out of bounds: -2 0
+Out of bounds: -2 1
+Out of bounds: -2 2
+Out of bounds: -2 3
+Out of bounds: -2 4
+Out of bounds: -1 -1
+Out of bounds: -1 0
+Out of bounds: -1 1
+Out of bounds: -1 2
+Out of bounds: -1 3
+Out of bounds: -1 4
+Out of bounds: -1 5
+Out of bounds: 0 -2
+Out of bounds: 0 -1
+Out of bounds: 1 -2
+Out of bounds: 1 -1
+Out of bounds: 2 -2
+Out of bounds: 2 -1
+Out of bounds: 3 -2
+Out of bounds: 3 -1
+Out of bounds: 4 -2
+Out of bounds: 4 -1
+Out of bounds: 5 -1
+Network size 5
+input 1200.000000 output 800.000000 ratio 1.500000 radius 5.000000
+Calc water
+Adding value: 0.000000 -1200.000000 -1200.000000 1200.000000
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Saturated or supply
+Water user -800.000000/-800.000000 (400.000000)
+Closing console
+Exit

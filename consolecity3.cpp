@@ -1145,8 +1145,6 @@ std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria
 
 void place(plop_instance *pi) {
 	for (tileComplete clr : pi->getTiles()) {
-		if (clr.partial == nullptr)
-			return;
 		if (clr.parent_plop_instance != nullptr) {
 			clr.parent_plop_instance->onDestroy();
 			clr.parent_plop_instance->~plop_instance();
@@ -1157,11 +1155,11 @@ void place(plop_instance *pi) {
 	//if (cmp.parent_plop_instance != nullptr) {
 	//	cmp.parent_plop_instance->onDestroy();
 	//}
-	if (pi == nullptr)
-		return;
+	//if (pi == nullptr)
+	//	return;
 
 	if (std::find(plops.instances.begin(), plops.instances.end(), pi) == plops.instances.end())
-		plops.instances.push_back(pi);
+		plops.registerPlop(pi);
 
 	pi->onPlace();
 	//cmp.parent->onCreate(&cmp, pi->originX, pi->originY);
@@ -1567,8 +1565,8 @@ int wmain() {
 				if (waterView) {
 					//tilePartial *partial = getPartial(selectorX, selectorY);
 					tileComplete cmp = getComplete(selectorX, selectorY);
-					if (cmp.partial == nullptr)
-						break;
+					//if (cmp.partial == nullptr)
+						//break;
 					cmp.partial->setUnderground(UNDERGROUND_WATER_PIPE);
 					tiles::WATER_PIPE->onCreate(&cmp, selectorX, selectorY);
 					tiles::WATER_PIPE->updateNeighbors(&cmp, selectorX, selectorY);
@@ -1591,8 +1589,8 @@ int wmain() {
 			{
 				if (waterView) {
 					tileComplete cmp = getComplete(selectorX, selectorY);
-					if (cmp.partial == nullptr)
-						break;
+					//if (cmp.partial == nullptr)
+					//	break;
 					tiles::WATER_PIPE->onDestroy(&cmp, selectorX, selectorY);
 					//cmp.partial->setUnderground(0);
 					//tiles::WATER_PIPE->updateNeighbors(&cmp, selectorX, selectorY);
