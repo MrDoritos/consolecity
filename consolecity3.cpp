@@ -25,12 +25,12 @@ tile *getTile(tilePartial*);
 #define TILE_COUNT 12
 #define NORTH 1
 #define EAST 2
-#define SOUTH 4
-#define WEST 8
+#define WEST 4
+#define SOUTH 8
 #define NORTH_F x,y-1
 #define EAST_F x+1,y
-#define SOUTH_F x,y+1
 #define WEST_F x-1,y
+#define SOUTH_F x,y+1
 #define UNDERGROUND_WATER_PIPE 1
 #define UNDERGROUND_SUBWAY 2
 
@@ -261,8 +261,62 @@ bool infoMode;
 bool statsMode;
 bool queryMode;
 
-struct tile {
+struct tileEvent : public tileComplete {
+	tileEvent(tileComplete tc):tileComplete(tc),size(tc.tileX,tc.tileY,1,1) {}
+	tileEvent() {}
+	sizei size;
+	enum {
+		PLACE, DESTROY, UPDATE, RANDOM, NETWORK
+	} event;
+};
+
+struct tileEventHandler {
+	virtual void handle(tileEvent e) {
+		switch (e.event) {
+			case tileEvent::PLACE:
+				onPlaceEvent(e);
+				break;
+			case tileEvent::DESTROY:
+				onDestroyEvent(e);
+				break;
+			case tileEvent::UPDATE:
+				onUpdateEvent(e);
+				break;
+			case tileEvent::RANDOM:
+				onRandomEvent(e);
+				break;
+			case tileEvent::NETWORK:
+				onNetworkEvent(e);
+				break;
+		}
+		onEvent(e);
+	}
+	virtual void onEvent(tileEvent e) {}
+	virtual void onPlaceEvent(tileEvent e) {}
+	virtual void onDestroyEvent(tileEvent e) {}
+	virtual void onUpdateEvent(tileEvent e) {}
+	virtual void onRandomEvent(tileEvent e) {}
+	virtual void onNetworkEvent(tileEvent e) {}
+};
+
+struct networkProvider {
+
+};
+
+networkProvider no_provider;
+
+struct tileBase : public tileEventHandler {
 	int id;
+	virtual void render(tileEvent e) = 0;
+	virtual sizef getRenderArea(tileEvent e) = 0;
+	virtual tilePartial getDefaultState() = 0;
+	virtual void copyState(tilePartial *tile) = 0;
+	virtual networkProvider *getNetworkProvider(tileEvent e) = 0;
+	virtual plop *getPlop(tileEvent e) = 0;
+};
+
+struct tile : public tileBase {
+	//int id;
 	sprite tex;
 	
 	tile(bool add = false) : tile(sprite(0,0,1,1),add) {}
@@ -280,173 +334,98 @@ struct tile {
 		tex.setAtlas({a,b,c-a,d-b});
 	}
 	
-	virtual tilePartial getDefaultState() {
+	tilePartial getDefaultState() override {
 		tilePartial partial;
 		partial.id = id;
 		return partial;
 	}
-	
-	//offsetx,offsety top left
-	//sizex,sizey width height
-	virtual void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) {
-		tex.draw(offsetx,offsety,sizex,sizey);
+
+	sizef getRenderArea(tileEvent e) override {
+		posf pos = getOffsetXY(posf{(float)e.size.x,(float)e.size.y});
+		posf siz = posf{getWidth(),getHeight()};
+		return {pos.x * siz.x, pos.y * siz.y, siz.x, siz.y};
 	}
 	
-	virtual void onCreate(tileComplete *tc, int x, int y) {}
-	
-	virtual void onUpdate(tileComplete *tc, int x, int y) {}
-	
-	virtual void onDestroy(tileComplete *tc, int x, int y) {}
-	
-	virtual bool hasRoadConnection(tileComplete *tc) { return tc->partial->hasRoad(); }
-	
-	virtual void updateRoadConnections(tileComplete *tc) {
-		tc->partial->setRoad(false);
-		tileComplete neighbors[4];
-		getNeighbors(tc, &neighbors[0]);
-		for (int i = 0; i < 4; i++) {
-			//if (neighbors[i].parent->id == tiles::ROAD->id)
-			//	tc->partial->setRoad(true);
-		}
+	void render(tileEvent e) override {
+		//tex.draw
+		draw(e, getRenderArea(e));
+	}
+
+	void copyState(tilePartial *tile) override {
+		*tile = getDefaultState();
+	}
+
+	networkProvider *getNetworkProvider(tileEvent e) override {
+		return &no_provider;
+	}
+
+	plop *getPlop(tileEvent e) override {
+		return nullptr;
+	}
+
+	virtual void draw(tileEvent e, sizef area) {
+		tex.draw(area);
 	}
 	
-	virtual int getTileZone(tileComplete *tc) {
-		return ZONING_NONE;
-	}
-	
-	virtual int getPopulation(tileComplete *tc) {
-		return 0;
-	}
-	
-	virtual int getCapacity(tileComplete *tc) {
-		return 0;
-	}
-	
-	void getNeighbors(tileComplete *tc, tileComplete *neighbors) {
-		int x = tc->tileX;
-		int y = tc->tileY;
+	void getNeighbors(tileEvent e, tileEvent *neighbors) {
+		int x = e.size.x, y = e.size.y;
 		neighbors[0] = getComplete(NORTH_F);//NORTH
 		neighbors[1] = getComplete(EAST_F);//EAST
-		neighbors[2] = getComplete(SOUTH_F);//SOUTH
-		neighbors[3] = getComplete(WEST_F);//WEST
+		neighbors[2] = getComplete(WEST_F);//WEST
+		neighbors[3] = getComplete(SOUTH_F);//SOUTH
 	}
 	
-	virtual bool needsRoadConnection(tileComplete *tc) { return false; }
-	
-	virtual int waterConsumption(tileComplete *tc) { return 0; }
-
-	virtual int waterProduction(tileComplete *tc) { return 0; }
-
-	virtual int powerConsumption(tileComplete *tc) { return 0; }
-
-	virtual int powerProduction(tileComplete *tc) { return 0; }
-
-
-	void updateNeighbors(tileComplete *tc, int x, int y) {
-		tilePartial *tp = tc->partial;
-		tileComplete neighbors[4];
-		neighbors[0] = getComplete(x,y-1);//NORTH
-		neighbors[1] = getComplete(x+1,y);//EAST
-		neighbors[2] = getComplete(x,y+1);//SOUTH
-		neighbors[3] = getComplete(x-1,y);//WEST
-		neighbors[0].parent->onUpdate(&neighbors[0], x,y-1);
-		neighbors[1].parent->onUpdate(&neighbors[1], x+1,y);
-		neighbors[2].parent->onUpdate(&neighbors[2], x,y+1);
-		neighbors[3].parent->onUpdate(&neighbors[3], x-1,y);
-		tiles::WATER_PIPE->onUpdate(&neighbors[0], x,y-1);
-		tiles::WATER_PIPE->onUpdate(&neighbors[1], x+1,y);
-		tiles::WATER_PIPE->onUpdate(&neighbors[2], x,y+1);
-		tiles::WATER_PIPE->onUpdate(&neighbors[3], x-1,y);
+	void updateNeighbors(tileEvent e) {
+		int x = e.size.x;
+		int y = e.size.y;
+		tileEvent neighbors[4];
+		getNeighbors(e, neighbors);
+		neighbors[0].parent->onUpdateEvent(neighbors[0]);
+		neighbors[1].parent->onUpdateEvent(neighbors[1]);
+		neighbors[2].parent->onUpdateEvent(neighbors[2]);
+		neighbors[3].parent->onUpdateEvent(neighbors[3]);
+		tiles::WATER_PIPE->onUpdateEvent(neighbors[0]);
+		tiles::WATER_PIPE->onUpdateEvent(neighbors[1]);
+		tiles::WATER_PIPE->onUpdateEvent(neighbors[2]);
+		tiles::WATER_PIPE->onUpdateEvent(neighbors[3]);
 	}
-	
-	virtual void onRandomTick(tileComplete *tc, int x, int y) {}
 };
 
 struct tileable : public tile {	
-	tileable():tex_connecting(tex) {}
-	tileable(int t0, int t1, int t2, int t3, int t4, int t5, int t6, int t7, bool skip = false) 
-	:tile(t0,t1,t2,t3,skip),tex_connecting(t4,t5,t6,t7) {}
+	tileable(simple_connecting_sprite tex, bool add = false) :tile(add),tex_connecting(tex) {}
 
-	virtual void connectToNeighbors(tileComplete *tc, int x, int y) {
-		tilePartial *tp = tc->partial;
-		unsigned char old = tp->data.a[0];
-		tp->setConnection(0);
-		tp->data.a[0] &= tp->data.a[0] ^ 0x0f;
-		tilePartial *neighbors[4];
-		neighbors[0] = getPartial(x,y-1);//NORTH
-		neighbors[1] = getPartial(x+1,y);//EAST
-		neighbors[2] = getPartial(x,y+1);//SOUTH
-		neighbors[3] = getPartial(x-1,y);//WEST
+	virtual void connectToNeighbors(tileEvent e) {
+		bool con[4];
+		getConnections(e, &con[0]);
+		for (int i = 0; i < 4; i++)
+			e.partial->setConnection(con[i] << i);
+	}
+
+	virtual void getConnections(tileEvent e, bool *con) {
 		for (int i = 0; i < 4; i++) {
-			if (neighbors[i]->id == tp->id) {
-				if (!((old & (1 << i))>0));
-					//getTile(neighbors[i])->onUpdate(neighbors[i])
-				//tp->data.a[0] |= (1 << i);
-				//neighbors[i]->setConnection(1 << (i + 2 % 4));
-				tp->setConnection(1 << i);
-			}
+			con[i] = connectingCondition(e, 1 << i);
 		}
 	}
 	
-	virtual bool connectingCondition(tileComplete *tc, int direction) {
-		tilePartial *tp = tc->partial;
-		return tp->hasConnection(direction);
+	virtual bool connectingCondition(tileEvent e, int direction) {
+		return e.partial->hasConnection(direction);
 	}
 	
 	//int connectingTextureAtlas[4];
-	sprite tex_connecting;
+	simple_connecting_sprite tex_connecting;
 	
-	void onCreate(tileComplete *tc, int x, int y) override {
-		tilePartial *tp = tc->partial;
-		connectToNeighbors(tc,x,y);
+	void onPlaceEvent(tileEvent e) override {
+		connectToNeighbors(e);
 	}
 	
-	void onUpdate(tileComplete *tc, int x, int y) override {
-		tilePartial *tp = tc->partial;
-		connectToNeighbors(tc,x,y);
+	void onUpdateEvent(tileEvent e) override {
+		connectToNeighbors(e);
 	}
 	
-	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
-		tilePartial *tp = tc->partial;
-		for (int x = 0; x < sizex; x++) {
-			for (int y = 0; y < sizey; y++) {
-				if (offsetx + x >= adv::width || offsety + y >= adv::height || offsetx + x < 0 || offsety + y < 0)
-					continue;
-				float xf = ((tex.atlas[0] * textureSize) + ((float(x) / sizex) * textureSize)) / textureWidth;
-				float yf = ((tex.atlas[1] * textureSize) + ((float(y) / sizey) * textureSize)) / textureHeight;
-				pixel pix = sampleImage(xf, yf);
-				ch_co_t chco = sampleImageCHCO(xf, yf);
-				for (int i = 0; i < 4; i++) {
-					if (connectingCondition(tc, 1 << i)) {
-						float xfto = (float(x) / sizex) * textureSize;
-						float yfto = (float(y) / sizey) * textureSize;
-						if (i == 1 || i ==2)
-							xfto = ((tex_connecting.atlas[0] + 0.99f) * textureSize) - xfto;
-						else
-							xfto = (tex_connecting.atlas[0] * textureSize) + xfto;
-						if (i == 0 || i == 1)
-							yfto = ((tex_connecting.atlas[1] + 0.99f) * textureSize) - yfto;
-						else
-							yfto = (tex_connecting.atlas[1] * textureSize) + yfto;
-						xfto /= textureWidth;
-						yfto /= textureHeight;
-						pixel pix2 = sampleImage(xfto, yfto);
-						ch_co_t chco2 = sampleImageCHCO(xfto, yfto);
-						if (pix2.a == 255) {
-							pix = pix2;			
-							chco = chco2;
-						}							
-					}
-				}
-				
-				if (pix.a < 255)
-					continue;
-				//wchar_t ch;
-				//color_t co;
-				//getDitherColored(pix.r,pix.g,pix.b,&ch,&co);
-				adv::write(offsetx + x, offsety + y, chco.ch, chco.co);
-			}
-		}
+	void draw(tileEvent e, sizef area) override {
+		bool con[4];
+		getConnections(e, &con[0]);
+		tex_connecting.draw_connections(area, &con[0]);
 	}
 };
 
@@ -624,7 +603,7 @@ struct plop_instance {
 		if (waterSupply()) {
 			//getPartial(originX, originY)->setUnderground(UNDERGROUND_WATER_PIPE);
 			tileComplete tc = getComplete(originX, originY);
-			tiles::WATER_PIPE->onCreate(&tc, originX, originY);
+			tiles::WATER_PIPE->onPlaceEvent(tc);
 		}
 		fprintf(logFile, "\n");
 	}
@@ -950,19 +929,19 @@ struct selector : public tile {
 	plop *selectedPlop;
 	plop_instance *currentPlop;
 	
-	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
-		tilePartial *tp = tc->partial;
+	void render(tileEvent e) override {
+		e.size.x = selectorX;
+		e.size.y = selectorY;
+		sizef area = getRenderArea(e);
 		if (ticks++ % 20 > 9) {
-			tile::draw(tc,offsetx,offsety,sizex,sizey);
-			tileComplete cmp;
-			if (waterView) {
-				tilePartial state = tiles::WATER_PIPE->getDefaultState();
-				tiles::WATER_PIPE->draw(getComplete(&state, tiles::WATER_PIPE, tc->tileX, tc->tileY, &cmp), offsetx, offsety, sizex, sizey);
-			} else {
-				currentPlop->originX = tc->tileX;
-				currentPlop->originY = tc->tileY;
-				currentPlop->render();
-			}
+			selector_sprite.draw(area);
+		}
+		if (waterView) {
+			water_pipe_sprite.draw(area);
+		} else {
+			currentPlop->originX = e.size.x;
+			currentPlop->originY = e.size.y;
+			currentPlop->render();
 		}
 	}
 } tileSelector;
@@ -981,57 +960,52 @@ struct plop_tile : public tile {
 } plop_tile;
 
 struct dirt : public tile {
-	void draw(tileComplete *tc, float offsetx, float offsety, float sizex, float sizey) override {
-		tilePartial *tp = tc->partial;
-
-		if (tc->parent_plop_instance) {
-			if (tc->parent_plop_instance->isWellWatered())
-				wet_plop_sprite.draw(offsetx, offsety, sizex, sizey);
+	void draw(tileEvent e, sizef area) override {
+		if (e.parent_plop_instance) {
+			if (e.parent_plop_instance->isWellWatered())
+				wet_plop_sprite.draw(area);
 			else
-				dry_plop_sprite.draw(offsetx, offsety, sizex, sizey);
+				dry_plop_sprite.draw(area);
 		} else {
-			if (tp->hasWater())
-				wet_dirt_sprite.draw(offsetx, offsety, sizex, sizey);
+			if (e.partial->hasWater())
+				wet_dirt_sprite.draw(area);
 			else
-				dry_dirt_sprite.draw(offsetx, offsety, sizex, sizey);
+				dry_dirt_sprite.draw(area);
 		}
 	}
 };
 
 struct water_pipe : public tileable {
-	water_pipe():tileable(3,1,1,1,0,3,1,1) {}
+	water_pipe():tileable(water_pipe_con_tex_sprite) {}
 	
-	bool connectingCondition(tileComplete *tc, int direction) override {
-		tilePartial *tp = tc->partial;
-		if (tp->id == tiles::WATER_PIPE->id)
-			return tileable::connectingCondition(tc, direction);
-		return tp->hasConnection(direction, 2);
-		//return true;
+	bool connectingCondition(tileEvent e, int direction) override {
+		if (e.partial->id == tiles::WATER_PIPE->id)
+			return tileable::connectingCondition(e, direction);
+		return e.partial->hasConnection(direction, 2);
 	}
 	
-	void connectToNeighbors(tileComplete *tc, int x, int y) override {
-		tilePartial *tp = tc->partial;
+	void connectToNeighbors(tileEvent e) override {
+		tilePartial *tp = e.partial;
 		if (tp->id == tiles::WATER_PIPE->id) {
-			tileable::connectToNeighbors(tc,x,y);
+			tileable::connectToNeighbors(e);
 			return;
 		}
 		//tp->data.a[2] = 0;
 		//tp->setConnection(0, 2);
 		tp->data.a[2] &= tp->data.a[2] ^ 0x0f;
-		tilePartial *neighbors[4];
-		neighbors[0] = getPartial(x,y-1);//NORTH
-		neighbors[1] = getPartial(x+1,y);//EAST
-		neighbors[2] = getPartial(x,y+1);//SOUTH
-		neighbors[3] = getPartial(x-1,y);//WEST
+		tileEvent neighbors[4];
+		getNeighbors(e, neighbors);
 		for (int i = 0; i < 4; i++) {
-			if (neighbors[i]->hasUnderground(UNDERGROUND_WATER_PIPE)) {
+			if (neighbors[i].partial->hasUnderground(UNDERGROUND_WATER_PIPE)) {
 				//neighbors[i]->setConnection(1 << (i + 2 % 4), 2);
 				tp->setConnection(1 << i, 2);
 			}
 		}
 	}
 	
-	void updateWater(tileComplete *tc, int x, int y) {
+	void updateWater(tileEvent e) {
+		tileComplete *tc = &e;
+		int x = e.size.x, y = e.size.y;
 		return;
 		tilePartial *tp = tc->partial;
 		if (tp->hasUnderground(UNDERGROUND_WATER_PIPE)) {
@@ -1050,23 +1024,23 @@ struct water_pipe : public tileable {
 		}
 	}
 	
-	void onUpdate(tileComplete *tc, int x, int y) override {
-		tilePartial *tp = tc->partial;
-		updateWater(tc, x, y);
-		tileable::onUpdate(tc,x,y);
+	void onUpdateEvent(tileEvent e) override {
+		tilePartial *tp = e.partial;
+		updateWater(e);
+		tileable::onUpdateEvent(e);
 	}
 	
-	void onCreate(tileComplete *tc, int x, int y) override {
-		tilePartial *tp = tc->partial;
+	void onPlaceEvent(tileEvent e) override {
+		tilePartial *tp = e.partial;
 		tp->setUnderground(UNDERGROUND_WATER_PIPE);
 			//tp->setWater(1);
-		updateWater(tc, x, y);
-		tileable::onCreate(tc,x,y);
+		updateWater(e);
+		tileable::onPlaceEvent(e);
 	}
 
-	void onDestroy(tileComplete *tc, int x, int y) override {
-		tc->partial->setUnderground(0);
-		updateNeighbors(tc,x,y);
+	void onDestroyEvent(tileEvent e) override {
+		e.partial->setUnderground(0);
+		updateNeighbors(e);
 	}
 };
 
@@ -1178,7 +1152,7 @@ void destroy(int x, int y) {
 		tc.parent_plop_instance->onDestroy();
 		tc.parent_plop_instance->~plop_instance();
 	}
-	t->onDestroy(&tc, x, y);
+	t->onDestroyEvent(tc);
 	//*tp = t->getDefaultState();
 	//tc.parent->updateNeighbors(&tc, x, y);
 }
@@ -1257,7 +1231,7 @@ void init() {
 	for (int y = 0; y < tileMapHeight; y++) {
 		for (int x = 0; x < tileMapWidth; x++) {
 			tileComplete cmp = getComplete(x,y);
-			cmp.parent->onCreate(&cmp, x, y);
+			cmp.parent->onPlaceEvent(cmp);
 			//getTile(getPartial(x,y))->onCreate(getPartial(x,y), x, y);
 			//getTile(getPartial(x,y))->onUpdate(getPartial(x,y), x, y);
 		}
@@ -1268,7 +1242,8 @@ void displayTileMap() {
 	float width = getWidth();
 	float height = getHeight();
 	tileComplete tc;
-	
+	tileEvent e;
+
 	for (int x = tileMapWidth - 1; x > - 1; x--) {
 		for (int y = 0; y < tileMapHeight; y++) {
 			//float offsetx = (((y * 0.707106f) + (x * 0.707106f)) * 0.707106f) + viewX;
@@ -1281,23 +1256,25 @@ void displayTileMap() {
 				continue;
 			
 			tc = getComplete(x,y);
+			e = tc;
 			tilePartial *partial = tc.partial;
 			
 			//if (partial->isPlop())
 			//	continue;
 
 			if (waterView) {
-				tiles::DIRT->draw(&tc, offsetx * width, offsety * height, width, height);
+				tiles::DIRT->render(e);
 				if (!partial->hasUnderground(UNDERGROUND_WATER_PIPE))
 					continue;
 				//getTile(partial)->draw(partial, offsetx * width, offsety * height, width, height);
-				tiles::WATER_PIPE->draw(&tc, offsetx * width, offsety * height, width, height);
+				tiles::WATER_PIPE->render(e);
 				
 				continue;
 			}			
 
 
-			tc.parent->draw(&tc, offsetx * width, offsety * height, width, height);
+			tc.parent->render(e);
+			/*
 			if (tc.parent->waterConsumption(&tc) > 0 && !tc.partial->hasWater()) {
 				//nowater->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
 				no_water_sprite.draw(offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
@@ -1307,6 +1284,7 @@ void displayTileMap() {
 					//noroad->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
 					no_road_sprite.draw(offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
 				}
+			*/
 		}
 	}
 
@@ -1369,8 +1347,10 @@ void display() {
 		float offsetx = getOffsetX(selectorX, selectorY);
 		float offsety = getOffsetY(selectorX, selectorY);
 		tileComplete cmp;
+		tileEvent e(cmp);
 		tilePartial state = tileSelector.getDefaultState();
-		tileSelector.draw(getComplete(&state, &tileSelector, selectorX, selectorY, &cmp), offsetx * width, offsety * height, width, height);
+		//tileSelector.draw(getComplete(&state, &tileSelector, selectorX, selectorY, &cmp), offsetx * width, offsety * height, width, height);
+		tileSelector.render(e);
 	}
 
 	//water_well_plop.render(water_well_plop.createInstance(0,0,0,0));
@@ -1568,8 +1548,8 @@ int wmain() {
 					//if (cmp.partial == nullptr)
 						//break;
 					cmp.partial->setUnderground(UNDERGROUND_WATER_PIPE);
-					tiles::WATER_PIPE->onCreate(&cmp, selectorX, selectorY);
-					tiles::WATER_PIPE->updateNeighbors(&cmp, selectorX, selectorY);
+					tiles::WATER_PIPE->onPlaceEvent(cmp);
+					tiles::WATER_PIPE->updateNeighbors(cmp);
 					break;
 				}
 
@@ -1591,7 +1571,7 @@ int wmain() {
 					tileComplete cmp = getComplete(selectorX, selectorY);
 					//if (cmp.partial == nullptr)
 					//	break;
-					tiles::WATER_PIPE->onDestroy(&cmp, selectorX, selectorY);
+					tiles::WATER_PIPE->onDestroyEvent(cmp);
 					//cmp.partial->setUnderground(0);
 					//tiles::WATER_PIPE->updateNeighbors(&cmp, selectorX, selectorY);
 					break;
@@ -1724,10 +1704,10 @@ int wmain() {
 				int x = rand() % tileMapWidth;
 				int y = rand() % tileMapHeight;
 				tileComplete tc = getComplete(x, y);
-				tc.parent->onRandomTick(&tc, x, y);
+				tc.parent->onRandomEvent(tc);
 				
 				if (tc.partial->hasUnderground(UNDERGROUND_WATER_PIPE))
-					((water_pipe*)(tiles::WATER_PIPE))->updateWater(&tc, x, y);
+					((water_pipe*)(tiles::WATER_PIPE))->updateWater(tc);
 			}
 		}
 		
@@ -1747,8 +1727,8 @@ int wmain() {
 				for (int x = 0; x < tileMapWidth; x++) {
 					for (int y = 0; y < tileMapHeight; y++) {
 						tileComplete tc = getComplete(x,y);
-						if (tc.parent->needsRoadConnection(&tc))
-							tc.parent->updateRoadConnections(&tc);
+						//if (tc.parent->needsRoadConnection(&tc))
+						//	tc.parent->updateRoadConnections(&tc);
 					}
 				}
 				break;
@@ -1766,6 +1746,7 @@ int wmain() {
 				for (int x = 0; x < tileMapWidth; x++) {
 					for (int y = 0; y < tileMapHeight; y++) {
 						tileComplete tc = getComplete(x,y);
+						/*
 						switch (tc.parent->getTileZone(&tc)) {
 							case ZONING_RESIDENTIAL: {
 								population += tc.parent->getPopulation(&tc);
@@ -1783,6 +1764,7 @@ int wmain() {
 								break;
 							}
 						}
+						*/
 					}
 				}
 				

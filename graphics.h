@@ -17,6 +17,9 @@ struct _pos {
         x = 0;
         y = 0;
     }
+    bool operator==(_pos<T> &p) {
+        return x == p.x && y == p.y;
+    }
     T x, y;
 };
 
@@ -35,6 +38,9 @@ struct _size : public _pos<T> {
     _size() {
         width = 0;
         height = 0;
+    }
+    bool operator==(_size<T> &s) {
+        return ((_pos<T>*)this)->operator==(s) && width == s.width && height == s.height;
     }
     T width, height;
 };
@@ -86,8 +92,20 @@ float getOffsetX(float x, float y) {
 	return round(((((y * yfact) + (x * xfact)) * xfact) + viewX) * 1000.0f) / 1000.0f;
 }
 
+float getOffsetX(posf p) {
+    return getOffsetX(p.x, p.y);
+}
+
 float getOffsetY(float x, float y) {
 	return round(((((y * yfact) - (x * xfact)) * yfact) + viewY) * 1000.0f) / 1000.0f;
+}
+
+float getOffsetY(posf p) {
+    return getOffsetY(p.x, p.y);
+}
+
+posf getOffsetXY(posf p) {
+    return posf(getOffsetX(p), getOffsetY(p));
 }
 
 float getWidth() {

@@ -123,6 +123,10 @@ struct sprite {
 		}
 	}
 
+	void draw(sizef area) {
+		draw(area.x, area.y, area.width, area.height);
+	}
+
 	virtual void draw(int scrX0, int scrY0, int scrW, int scrH) {
 		draw(scrX0, scrY0, scrW, scrH, atlas[0], atlas[1], atlas[2], atlas[3]);
 	}
@@ -269,6 +273,10 @@ struct simple_connecting_sprite : sprite {
 		}
 	}
 
+	void draw_connections(sizef area, bool *con) {
+		draw_connections(area.x, area.y, area.width, area.height, con[0], con[1], con[2], con[3]);
+	}
+
 	sprite *base, *over;
 };
 
@@ -308,3 +316,4 @@ sprite building3_sprite(3,4,2,3);
 simple_connecting_sprite road_con_tex_sprite(&road_sprite, &road_con_sprite);
 simple_connecting_sprite street_con_tex_sprite(&street_sprite, &street_con_sprite);
 simple_connecting_sprite pool_con_tex_sprite(&pool_sprite, &pool_con_sprite);
+simple_connecting_sprite water_pipe_con_tex_sprite(&water_pipe_sprite, &water_pipe_con_sprite);

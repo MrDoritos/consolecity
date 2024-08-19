@@ -182,28 +182,60 @@ struct Game {
 
     struct PlopAbstract;
 
+    enum GAME_EVENT_TYPE {
+        PLACE, DESTROY, UPDATE, RANDOM
+    };
+
     struct TileEvent {
         Size size; // user input of selected area
         TileData data; // tile data of origin tile
+        GAME_EVENT_TYPE event;
+    };
+
+    struct TileEventHandler {
+        virtual void handle(TileEvent e) {
+            switch (e.event) {
+                case PLACE:
+                    onPlaceEvent(e);
+                    break;
+                case DESTROY:
+                    onDestroyEvent(e);
+                    break;
+                case UPDATE:
+                    onUpdateEvent(e);
+                    break;
+                case RANDOM:
+                    onRandomEvent(e);
+                    break;
+            }
+            onEvent(e);
+        }
+        virtual void onEvent(TileEvent e) {
+            
+        }
+        virtual void onPlaceEvent(TileEvent e) {}
+        virtual void onDestroyEvent(TileEvent e) {}
+        virtual void onUpdateEvent(TileEvent e) {}
+        virtual void onRandomEvent(TileEvent e) {}
     };
 
     //Support singletons of tile and instances of plop
-    struct TileAbstract {
-        virtual void onPlaceEvent(TileEvent) = 0;
-        virtual void onDestroyEvent(TileEvent) = 0;
-        virtual void onUpdateEvent(TileEvent) = 0;
-        virtual void onRandomEvent(TileEvent) = 0;
+    struct TileAbstract : TileEventHandler {
         virtual void render(TileEvent) = 0;
         virtual void setInstanceData(TileEvent) = 0;
+        static TileAbstract *getInstance(TileData data) {
+            return nullptr;
+        }
+        static std::vector<TileAbstract*> tiles;
         virtual PlopAbstract *getPlop(TileEvent) = 0;
+        virtual NetworkProvider *getNetworkProvider(TileEvent) = 0;
     };
 
-    static std::vector<TileAbstract*> tiles;
 
     //Singleton
     struct Tile : public TileAbstract {
         Tile() {
-            tiles.push_back(this);
+            TileAbstract::tiles.push_back(this);
         }
         void onPlaceEvent(TileEvent s) override {}
         void onDestroyEvent(TileEvent s) override {}
@@ -230,7 +262,6 @@ struct Game {
     TileSprite tileGrass(Sprite());
 
     struct PlopAbstract : public TileAbstract {
-        virtual NetworkProvider *getNetworkProvider() = 0;
         virtual PlopAbstract *clone() = 0; // clone default
         virtual Size getSize() = 0;
         
