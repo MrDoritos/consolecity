@@ -1,0 +1,255 @@
+Power
+
+    Needs to be there before anything else to power utilities
+    Uses money and natural resources to create power
+    Usage rises in the summer
+
+    Consumers:
+    Production - Mostly never (0.1kW)
+    Consumption - kW demand (10kW)
+    Consumption Max - Defined max value rather than calculated (20kW)
+    Consumption Min - Defined min value to just function (0.1kW)
+    Storage - Store less than a kW (0.1kW)
+    Storage Max - Max kW able to store (0.2kW)
+    Value when 0 - May have on site power generation using another resource (5kW)
+
+    Producers:
+    Production - kW generated (1000kW)
+    Max - kW able to generate (10,000kW)
+    Consumption - kW per other network unit (100 Gas)
+    Consumption Max - Defined max value rather than calculated (1000 Gas)
+    Consumption Min - Defined min value to just function (0.1 Gas)
+    Storage - None in most cases (0 kW)
+    Storage Max - None in most cases (0 kW)
+
+Water
+
+    Uses power to create water
+    Stops making water and stops using power when there is water pollution
+    Residents don't live where there isn't water
+
+    Consumers:
+    Production - Only rural (50 gal)
+    Consumption - gal demand (100 gal)
+
+    Producers:
+    Production - 1000 gal
+    Storage - 1000 gal
+    Storage Max - 1000 gal
+
+Per plop instance
+
+    Default network values for selected networks
+    Modify resource acquisition by network?
+
+Fire
+
+    When a tile has no water, there is a higher fire risk
+
+Gas
+
+    Reduces power usage in buildings during the winter
+
+Population
+
+    Number of residents. Working class seek low commute time, low garbage, low crime, low pollution. High class seek low commute time, low garbage, no crime, high value, no pollution.
+
+Jobs
+
+    Population changes demand on job market, and job market changes demand on population. Investors look for new development. Startups look for cities. Franchises add more jobs and attract baseline population but decrease value.
+
+Traffic
+
+    Just the traffic volume on a section of road
+
+Garbage
+
+Value
+
+    Perceived value of the tile
+
+Crime
+
+    Lowers value, raises water usage, raises power usage, increases neighboring crime
+
+Education
+
+    Lowers crime, raises value, increases health
+
+Health
+
+    Lowers crime, increases life expectancy, raises value
+
+Resource creation
+
+    Coal
+    Oil
+    Iron
+    Sand -> Glass, Silicon
+    Silicon -> Electronics
+    Electronics -> High tech
+    Coal, Iron -> Steel
+    Oil -> Plastic
+    Wood
+    Wood -> Paper, Furniture
+
+    Steel -> Manufacturing
+    Plastic -> Manufacturing
+
+    Manufacturing -> Cars
+
+Freight time
+
+    Train
+    Plane
+
+Commute time
+    
+    Train
+    Internet
+    Car
+    Walking
+    Subway
+    Monorail
+    High speed train
+
+Mail, Distribution centers, Warehouses
+
+    Increases manufacturing demand
+    Increases freight export/import
+    Decreases value
+    Increases efficiency of commercial
+
+Zoning
+
+    Residential
+    Commercial
+    Farm
+    Industry
+
+
+Networks rely on each other, they produce, consume, or transform.
+
+
+Store a distance value for each node in the network?
+Can be 0
+
+
+Network update order
+Power
+Water
+Gas
+Pop
+Traffic
+
+
+Network event
+Peek network
+
+
+Network distribution styles
+    First come first serve (per utility network, water)
+    Road distance (ability to use the road network, police)
+    Direct displacement (radius, pollution)
+    Even distribution (per sum of input/output, power)
+
+Who does the distribution style?
+    Game loop
+
+Does share with network?
+
+All other fields 0
+    Power
+        Generator
+            Max prod 1200
+            prod 693
+
+        House
+            Consumption 10
+
+    Water
+        Well
+            Max prod 1000
+            prod 73
+
+        House
+            Consumption 10
+
+Each consumer or producer may have a network event fire multiple times
+
+Tick fired in network increases or decreases production or consumption
+
+Fire tick before balancing entire network, therefore user does not see the network in an inplausible / unbalanced state
+
+Water producers fire before consumers. Consumers use producers.
+Power consumers fire before producers. Producers match consumers.
+
+When production is greater than prod max, use storage
+When production is less than prod max, stow to storage
+When consumption is greater than consumption max, use storage
+When consumption is greater than input, use storage
+When consumption is less than input, stow to storage
+
+
+Update scheme per network per month for power
+Network is in "past month" state until ticked
+Ideally 'available' == 'demand' after consumer tick
+Since we can have multiple networks, simply add supply from all networks. If a single network can't power a building, its ratio will be less during distribution.
+- Sum shared max production (1ms)
+- Sum shared production (1p)
+- Sum shared current storage (1s)
+- Sum network supply (1u=1p+1s)
+- Sum max network supply (1mu=1ms+1s)
+- Sum network demand (1d)
+- If 1d > 1mu 
+    > Based upon distribution type, distribute
+    > Production currently cannot meet demand
+
+* Tick consumers
+    > Required to see if demand can be met now
+    > Demand changes for the next month supply/demand calculation
+    > Sets demand for storage too
+    - If 'available' >= 'demand'
+        - If 'available' >= 'consumption'
+            available -= consumption
+            storage += available
+    else
+    - If 'available' < 'demand'
+        available -= consumption
+        if (available < 0)
+            available += storage
+- Set consumers' available to 0
+- Sum network demand (2d)
+- Distribute demand (2d) evenly to producers' demand
+
+* Tick producers
+    > Will set new production numbers based upon 2d
+    > They do not desire to store unless network supply is greater than network demand
+    > Set available to production? No it's usually production
+- Sum shared max production (2m)
+- Sum shared production (2p)
+- Sum shared current storage (2s)
+- Sum network supply (2u=2p+2s)
+- Sum max network supply (2mu=2m+2s) 
+- Sum network demand (2d)
+- If 2d > 2mu
+    > available < consumer demand
+- Power is evenly distributed
+- 2l=2d/2u 
+- Set consumers' available to 2l*(consumer demand)
+- Add 2l*(consumer demand) to consumers' supply
+
+
+What exactly is the network calculating?
+- Let plops define how they interact with the network
+- By default consumers demand, producers supply, networks connect, controller balances
+
+
+What happens when a plop wants to determine game functionality based on whether or not the network can provide?
+Or
+What happens when a plop wants to pull from the network during the month due to increased consumption?
+Or
+A chain of actions, house needs more water, pulls water network into deficit, water pump needs more electricity, pulls electric grid into deficit, electric grid needs more electricity, pulls funding into deficit.
+
+
+Should be fine with monthly calculations. Design buildings to store enough resources for the month to fit within production ability if you wish to do 'during month' calculations.
