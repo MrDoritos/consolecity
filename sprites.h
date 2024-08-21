@@ -42,6 +42,10 @@ struct sprite {
 		adv::write(x, y, ch, co);
 	}
 
+	void draw(sizei area, sizei atlas, bool hflip = false, bool vflip = false) {
+		draw(area.x, area.y, area.width, area.height, atlas.x, atlas.y, atlas.width, atlas.height, hflip, vflip);
+	}
+
 	void draw(int scrX0 /*screen offset x*/, int scrY0 /*screen offset y*/, int scrW /*draw width on screen*/, int scrH /*draw height on screen*/, int atl0, int atl1, int atl2, int atl3, bool hflip = false, bool vflip = false) {
 		//Default is drawing texture from the atlas. ignoring transparent and retaining scale
 		int *textureAtlas = &atlas[0];

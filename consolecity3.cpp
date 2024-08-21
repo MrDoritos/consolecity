@@ -513,8 +513,7 @@ struct tile : public tileBase {
 	}
 	
 	void render(tileEvent e) override {
-		//tex.draw
-		draw(e, getRenderArea(e));
+		tex.draw(getRenderArea(e));
 	}
 
 	void copyState(tilePartial *tile) override {
@@ -528,62 +527,25 @@ struct tile : public tileBase {
 	plop *getPlop(tileEvent e) override {
 		return nullptr;
 	}
-
-	virtual void draw(tileEvent e, sizef area) {
-		tex.draw(area);
-	}
 	
 	void updateNeighbors(tileEvent e) {
-		int x = e.size.x;
-		int y = e.size.y;
-		tileEvent neighbors[4];
+		tileComplete neighbors[4];
 		getNeighbors(e, neighbors);
-		neighbors[0].parent->onUpdateEvent(neighbors[0]);
-		neighbors[1].parent->onUpdateEvent(neighbors[1]);
-		neighbors[2].parent->onUpdateEvent(neighbors[2]);
-		neighbors[3].parent->onUpdateEvent(neighbors[3]);
-		//tiles::WATER_PIPE->onUpdateEvent(neighbors[0]);
-		//tiles::WATER_PIPE->onUpdateEvent(neighbors[1]);
-		//tiles::WATER_PIPE->onUpdateEvent(neighbors[2]);
-		//tiles::WATER_PIPE->onUpdateEvent(neighbors[3]);
+		for (int i = 0; i < 4; i++)
+			if (neighbors[i].parent != nullptr)
+				neighbors[i].parent->onUpdateEvent(neighbors[i]);
 	}
 };
 
 struct tileable : public tile {	
 	tileable(simple_connecting_sprite tex, bool add = false) :tile(add),tex_connecting(tex) {}
 
-	virtual void connectToNeighbors(tileEvent e) {
-		bool con[4];
-		getConnections(e, &con[0]);
-		for (int i = 0; i < 4; i++)
-			e.partial->setConnection(con[i] << i);
-	}
-
-	void getConnections(tileEvent e, bool *con) override {
-		for (int i = 0; i < 4; i++) {
-			con[i] = connectingCondition(e, 1 << i);
-		}
-	}
-	
-	virtual bool connectingCondition(tileEvent e, int direction) {
-		return e.partial->hasConnection(direction);
-	}
-	
-	//int connectingTextureAtlas[4];
 	simple_connecting_sprite tex_connecting;
 	
-	void onPlaceEvent(tileEvent e) override {
-		connectToNeighbors(e);
-	}
-	
-	void onUpdateEvent(tileEvent e) override {
-		connectToNeighbors(e);
-	}
-	
-	void draw(tileEvent e, sizef area) override {
+	void render(tileEvent e) override {
 		bool con[4];
 		getConnections(e, &con[0]);
-		tex_connecting.draw_connections(area, &con[0]);
+		tex_connecting.draw_connections(getRenderArea(e), &con[0]);
 	}
 };
 
@@ -693,9 +655,7 @@ struct plop : public tileBase {
 	plops.instances.erase(std::remove(plops.instances.begin(), plops.instances.end(), this), plops.instances.end());
 	*/
 	plop(sprite* tex, int plop_width = 1, int plop_height = 1, bool placeable=true):
-	plop() {
-		this->tex = tex;
-
+	tex(tex),size(0,0,plop_width,plop_height) {
 		registry.addInstance(this);
 		if (placeable) {
 			registry.addPlaceable(this);
@@ -762,6 +722,10 @@ struct plop : public tileBase {
 		T *c = new T(*(ref));
 		c->id = 0;
 		return registry.addInstance(c);
+	}
+
+	bool isSameType(tileComplete tc) override {
+		return tc.plop_instance && tc.plop_instance->initial_id == initial_id;
 	}
 
 	void free() override {
@@ -842,33 +806,18 @@ struct plop : public tileBase {
 
 struct plop_connecting : public plop {
 	plop_connecting(simple_connecting_sprite* tex, bool placeable=true):plop(tex,1,1,placeable) {
-		this->scs = tex;
+
 	}
-
-	simple_connecting_sprite *scs;
-
-	tileBase *clone() override {
+	
+	tileBase *clone() {
 		return plop::clone<plop_connecting>(this);
 	}
 
-	bool isSameType(tileComplete tc) override {
-		return tc.plop_instance && tc.plop_instance->initial_id == initial_id;
-	}
-
 	void render(tileEvent e) override {
-		if (scs == nullptr || e.plop_instance == nullptr)
-			return;
-
-		sizef area = getRenderArea(e);
-		posi p = e.size;
-		scs->draw_connections(area.x,area.y,area.width,area.height,
-			tileBase::isSameType(p.north()),
-			tileBase::isSameType(p.east()),
-			tileBase::isSameType(p.south()),
-			tileBase::isSameType(p.west())
-		);
+		bool con[4];
+		e.plop_instance->getConnections(e, &con[0]);
+		((simple_connecting_sprite*)tex)->draw_connections(getRenderArea(e), &con[0]);
 	}
-
 };
 
 struct water_provider_plop : public plop {
@@ -1009,7 +958,8 @@ struct selector : public tile {
 };
 
 struct _dirt_tile : public tile {
-	void draw(tileEvent e, sizef area) override {
+	void render(tileEvent e) override {
+		sizef area = getRenderArea(e);
 		if (e.plop_instance) {
 			/*
 			if (e.parent_plop_instance->isWellWatered())
@@ -1030,69 +980,16 @@ struct _dirt_tile : public tile {
 struct _water_pipe_tile : public tileable {
 	_water_pipe_tile():tileable(water_pipe_con_tex_sprite) {}
 	
-	bool connectingCondition(tileEvent e, int direction) override {
-		if (e.partial->id == this->id)
-			return tileable::connectingCondition(e, direction);
-		return e.partial->hasConnection(direction, 2);
-	}
-	
-	void connectToNeighbors(tileEvent e) override {
-		tilePartial *tp = e.partial;
-		if (tp->id == this->id) {
-			tileable::connectToNeighbors(e);
-			return;
-		}
-		//tp->data.a[2] = 0;
-		//tp->setConnection(0, 2);
-		tp->data.a[2] &= tp->data.a[2] ^ 0x0f;
-		tileEvent neighbors[4];
-		getNeighbors(e, neighbors);
-		for (int i = 0; i < 4; i++) {
-			if (neighbors[i].partial->hasUnderground(UNDERGROUND_WATER_PIPE)) {
-				//neighbors[i]->setConnection(1 << (i + 2 % 4), 2);
-				tp->setConnection(1 << i, 2);
-			}
-		}
-	}
-	
-	void updateWater(tileEvent e) {
-		tileComplete *tc = &e;
-		int x = e.size.x, y = e.size.y;
-		return;
-		tilePartial *tp = tc->partial;
-		if (tp->hasUnderground(UNDERGROUND_WATER_PIPE)) {
-			if (waterSupply > waterDemand) {
-				for (int xx = x - 5; xx < x + 5; xx++) {
-					for (int yy = y - 5; yy < y + 5; yy++) {
-						int xxx = xx - x;
-						int yyy = yy - y;
-						if ((xxx * xxx) + (yyy * yyy) < 25) {
-							tilePartial *tp2 = getPartial(xx, yy);
-							tp2->setWater(1);
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	void onUpdateEvent(tileEvent e) override {
-		tilePartial *tp = e.partial;
-		updateWater(e);
-		tileable::onUpdateEvent(e);
+	bool isSameType(tileComplete tc) override {
+		return tc.partial->hasUnderground(UNDERGROUND_WATER_PIPE);
 	}
 	
 	void onPlaceEvent(tileEvent e) override {
-		tilePartial *tp = e.partial;
-		tp->setUnderground(UNDERGROUND_WATER_PIPE);
-			//tp->setWater(1);
-		updateWater(e);
-		tileable::onPlaceEvent(e);
+		e.partial->setUnderground(UNDERGROUND_WATER_PIPE);
 	}
 
 	void onDestroyEvent(tileEvent e) override {
 		e.partial->setUnderground(0);
-		updateNeighbors(e);
 	}
 };
 
@@ -1296,8 +1193,6 @@ void displayTileMap() {
 
 	for (int x = tileMapWidth - 1; x > - 1; x--) {
 		for (int y = 0; y < tileMapHeight; y++) {
-			//float offsetx = (((y * 0.707106f) + (x * 0.707106f)) * 0.707106f) + viewX;
-			//float offsety = (((y * 0.707106f) - (x * 0.707106f)) * 0.707106f) + viewY;
 			float offsetx = getOffsetX(x,y);
 			float offsety = getOffsetY(x,y);
 			
@@ -1309,16 +1204,10 @@ void displayTileMap() {
 			e = tileEvent(tc);
 			tilePartial *partial = tc.partial;
 
-			//if (partial->isPlop())
-			//	continue;
-
 			if (waterView) {
 				dirt_tile.render(e);
-				if (!partial->hasUnderground(UNDERGROUND_WATER_PIPE))
-					continue;
-				//getTile(partial)->draw(partial, offsetx * width, offsety * height, width, height);
-				water_pipe_tile.render(e);
-				
+				if (partial->hasUnderground(UNDERGROUND_WATER_PIPE))
+					water_pipe_tile.render(e);				
 				continue;
 			}			
 
@@ -1592,10 +1481,7 @@ int wmain() {
 			{
 				//Place
 				if (waterView) {
-					tileComplete cmp = getComplete(tileSelector.origin);
-					cmp.partial->setUnderground(UNDERGROUND_WATER_PIPE);
-					water_pipe_tile.onPlaceEvent(cmp);
-					water_pipe_tile.updateNeighbors(cmp);
+					water_pipe_tile.onPlaceEvent(getComplete(tileSelector.origin));
 					break;
 				}
 
@@ -1607,10 +1493,7 @@ int wmain() {
 			{
 				//Destroy
 				if (waterView) {
-					tileComplete cmp = getComplete(tileSelector.origin);
-					water_pipe_tile.onDestroyEvent(cmp);
-					//cmp.partial->setUnderground(0);
-					//tiles::WATER_PIPE->updateNeighbors(&cmp, selectorX, selectorY);
+					water_pipe_tile.onDestroyEvent(getComplete(tileSelector.origin));
 					break;
 				}
 

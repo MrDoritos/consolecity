@@ -39930,3 +39930,75 @@ Exit
 [1724217308] Game loop
 Closing console
 Exit
+[1724218253] Opened log
+[1724218253] Initialized color table
+[1724218253] Loaded texture
+[1724218253] Converted texture
+[1724218253] Set advanced console up
+[1724218253] Game init
+[1724218253] Game loop
+Closing console
+Exit
+[1724218436] Opened log
+[1724218436] Initialized color table
+[1724218436] Loaded texture
+[1724218436] Converted texture
+[1724218436] Set advanced console up
+[1724218436] Game init
+[1724218436] Game loop
+Closing console
+Exit
+[1724218600] Opened log
+[1724218600] Initialized color table
+[1724218600] Loaded texture
+[1724218600] Converted texture
+[1724218600] Set advanced console up
+[1724218600] Game init
+[1724218600] Game loop
+Closing console
+Exit
+[1724218633] Opened log
+[1724218633] Initialized color table
+[1724218633] Loaded texture
+[1724218633] Converted texture
+[1724218633] Set advanced console up
+[1724218633] Game init
+[1724218633] Game loop
+Closing console
+Exit
+[1724218672] Opened log
+[1724218672] Initialized color table
+[1724218672] Loaded texture
+[1724218672] Converted texture
+[1724218672] Set advanced console up
+[1724218672] Game init
+[1724218672] Game loop
+Closing console
+Exit
+[1724220004] Opened log
+[1724220004] Initialized color table
+[1724220004] Loaded texture
+[1724220004] Converted texture
+[1724220004] Set advanced console up
+[1724220004] Game init
+[1724220004] Game loop
+Closing console
+Exit
+[1724220323] Opened log
+[1724220323] Initialized color table
+[1724220323] Loaded texture
+[1724220324] Converted texture
+[1724220324] Set advanced console up
+[1724220324] Game init
+[1724220324] Game loop
+Closing console
+Exit
+[1724220421] Opened log
+[1724220421] Initialized color table
+[1724220421] Loaded texture
+[1724220421] Converted texture
+[1724220421] Set advanced console up
+[1724220421] Game init
+[1724220421] Game loop
+Closing console
+Exit
