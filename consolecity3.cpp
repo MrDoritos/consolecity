@@ -190,6 +190,7 @@ struct tileComplete {
 		:size(size) {
 		this->parent = parent;
 		this->partial = partial;
+		this->plop_instance = nullptr;
 	}
 
 	bool coordsEquals(tileComplete b) {
@@ -288,8 +289,9 @@ struct tileEvent : public tileComplete {
 };
 
 struct tileEventHandler {
-	virtual void handle(tileEvent e) {
-		fprintf(logFile, "Handling events: %i pos: %i %i\n", e.events, e.size.x, e.size.y);
+	virtual void handle(tileEvent e, bool log=false) {
+		if (log)
+			fprintf(logFile, "Handling events: %i pos: %i %i\n", e.events, e.size.x, e.size.y);
 		if (e.events & PLACE)
 			onPlaceEvent(e);
 		if (e.events & DESTROY)
@@ -343,7 +345,7 @@ struct instance_registry {
 
 	std::vector<tileBase*> instances;
 	std::vector<tileBase*> placeable;
-} registry;
+} registry; //registry of game tiles and plops
 
 struct _game {
 	std::vector<tileComplete> getTiles(sizei size);
@@ -358,6 +360,8 @@ struct tileBase : public tileEventHandler {
 	int id;
 	virtual void render(tileEvent e) = 0;
 	virtual sizef getRenderArea(tileEvent e) {
+		e.size.width = 1;
+		e.size.height = 1;
 		posf pos = getOffsetXY(posf{(float)e.size.x,(float)e.size.y});
 		posf siz = posf{getWidth()*e.size.width,getHeight()*e.size.height};
 		return {pos.x * siz.x, pos.y * siz.y, siz.x, siz.y};
@@ -387,6 +391,25 @@ struct tileBase : public tileEventHandler {
 	*/
 	virtual tileBase *clone() {
 		return this;
+	}
+	virtual bool isSameType(tileComplete tc) {
+		return tc.parent == this;
+	}
+	bool isSameType(posi p) {
+		return isSameType(getComplete(p));
+	}
+	virtual void getConnections(tileEvent e, bool *con) {
+		tileComplete neighbors[4];
+		getNeighbors(e, neighbors);
+		for (int i = 0; i < 4; i++) {
+			con[i] = isSameType(neighbors[i]);
+		}
+	}
+	virtual void getNeighbors(tileEvent e, tileComplete *neighbors) {
+		neighbors[0] = getComplete(e.size.north());//NORTH
+		neighbors[1] = getComplete(e.size.east());//EAST
+		neighbors[2] = getComplete(e.size.south());//SOUTH
+		neighbors[3] = getComplete(e.size.west());//WEST
 	}
 	virtual void free() {
 		return;
@@ -494,6 +517,10 @@ struct tile : public tileBase {
 		draw(e, getRenderArea(e));
 	}
 
+	void copyState(tilePartial *tile) override {
+		tile->id = id;
+	}
+
 	networkProvider *getNetworkProvider(tileEvent e) override {
 		return &no_provider;
 	}
@@ -504,14 +531,6 @@ struct tile : public tileBase {
 
 	virtual void draw(tileEvent e, sizef area) {
 		tex.draw(area);
-	}
-	
-	void getNeighbors(tileEvent e, tileEvent *neighbors) {
-		int x = e.size.x, y = e.size.y;
-		neighbors[0] = getComplete(NORTH_F);//NORTH
-		neighbors[1] = getComplete(EAST_F);//EAST
-		neighbors[2] = getComplete(WEST_F);//WEST
-		neighbors[3] = getComplete(SOUTH_F);//SOUTH
 	}
 	
 	void updateNeighbors(tileEvent e) {
@@ -540,7 +559,7 @@ struct tileable : public tile {
 			e.partial->setConnection(con[i] << i);
 	}
 
-	virtual void getConnections(tileEvent e, bool *con) {
+	void getConnections(tileEvent e, bool *con) override {
 		for (int i = 0; i < 4; i++) {
 			con[i] = connectingCondition(e, 1 << i);
 		}
@@ -682,11 +701,13 @@ struct plop : public tileBase {
 			registry.addPlaceable(this);
 		}
 
-		size = sizei(plop_width, plop_height);
+		initial_id = id;
+
+		size = sizei(0, 0, plop_width, plop_height);
 	}
 
 	plop() {
-		size = sizei(1,1);
+		size = sizei(0,0,1,1);
 		tex = nullptr;
 	}
 
@@ -696,12 +717,16 @@ struct plop : public tileBase {
 	}
 
 	void render(tileEvent e) override {
+		//tex->draw(getRenderArea(e));
 		if (tex == nullptr || e.plop_instance == nullptr)
 			return;
 
-		if (!(e.size == e.plop_instance->size)) //if not base tile
-			if (!(e.flags & FORCE))
-				return;
+		//if (!(e.size == e.plop_instance->size)) //if not base tile
+		//	if (!(e.flags & FORCE))
+		//		return;
+		if (e.size.x != e.plop_instance->size.x
+			|| e.size.y != e.plop_instance->size.y)
+			return;
 
 		tex->draw(getRenderArea(e));
 	}	
@@ -710,6 +735,10 @@ struct plop : public tileBase {
 		tilePartial tp = tileBase::getDefaultState();
 		tp.setPlopId(id);
 		return tp;
+	}
+
+	void copyState(tilePartial *tile) override {
+		tile->setPlopId(id);
 	}
 
 	bool operator==(int i) {
@@ -725,14 +754,19 @@ struct plop : public tileBase {
 	}
 
 	tileBase *clone() override {
-		plop *c = new plop(*this);
+		return clone<plop>(this);
+	}
+
+	template<typename T>
+	tileBase *clone(T *ref) {
+		T *c = new T(*(ref));
 		c->id = 0;
 		return registry.addInstance(c);
 	}
 
 	void free() override {
-		if (!stale(getComplete(size)))
-			delete this;
+		//if (!stale(getComplete(size)))
+		delete this;
 	}
 
 	void setSize(tileEvent e) override {
@@ -799,6 +833,7 @@ struct plop : public tileBase {
 	int population;
 	*/
 
+	int initial_id;
 	sizei size;
 	sprite *tex;
 	plop_properties *prop;
@@ -806,15 +841,18 @@ struct plop : public tileBase {
 };
 
 struct plop_connecting : public plop {
-	plop_connecting(simple_connecting_sprite* tex, bool placeable=false):plop(tex,placeable) {
+	plop_connecting(simple_connecting_sprite* tex, bool placeable=true):plop(tex,1,1,placeable) {
 		this->scs = tex;
 	}
 
 	simple_connecting_sprite *scs;
 
-	bool testPlop(posi p) {
-		tileComplete tc = getComplete(p.x,p.y);
-		return tc.plop_instance == this;
+	tileBase *clone() override {
+		return plop::clone<plop_connecting>(this);
+	}
+
+	bool isSameType(tileComplete tc) override {
+		return tc.plop_instance && tc.plop_instance->initial_id == initial_id;
 	}
 
 	void render(tileEvent e) override {
@@ -823,12 +861,11 @@ struct plop_connecting : public plop {
 
 		sizef area = getRenderArea(e);
 		posi p = e.size;
-		
 		scs->draw_connections(area.x,area.y,area.width,area.height,
-			testPlop(p.add(0,-1)),
-			testPlop(p.add(1, 0)),
-			testPlop(p.add(-1,0)),
-			testPlop(p.add(0,1))
+			tileBase::isSameType(p.north()),
+			tileBase::isSameType(p.east()),
+			tileBase::isSameType(p.south()),
+			tileBase::isSameType(p.west())
 		);
 	}
 
@@ -898,82 +935,6 @@ tileComplete getComplete(posi p) {
 	return getComplete(p.x,p.y);
 }
 
-std::vector<tileComplete> _game::getTiles(sizei size) {
-	std::vector<tileComplete> tiles;
-
-	if (size.width == 1 && size.height == 1) {
-		tiles.push_back(getComplete(size));
-		return tiles;
-	}
-
-	for (int x = size.x; x < size.x + size.width; x++) {
-		for (int y = size.y; y < size.y + size.height; y++) {
-			tiles.push_back(getComplete(x,y));
-		}
-	}
-
-	return tiles;
-}
-
-void _game::fireEvent(sizei size, int event) {
-	fireEvent(getComplete(size), event);
-}
-
-void _game::fireEvent(tileEvent e, int event) {
-	fireEvent(e.with(event));
-}
-
-void _game::fireEvent(tileEvent e) {
-	//Send events here
-
-	//To plop (single instance over many tiles)
-	if (e.plop_instance && !e.plop_instance->stale(e)) {
-		e.plop_instance->handle(e);
-	}
-	
-	if (e.parent && !e.parent->stale(e) && e.size.width == 1 && e.size.height == 1) {
-		e.parent->handle(e);
-		return;
-	}
-
-	//To tile (many instances over many tiles)
-	for (tileComplete tc : getTiles(e.size)) {
-		if (tc.parent && !tc.parent->stale(tc))
-			//Duplicate flags and events and fire
-			tc.parent->handle(e.clone(tc));
-	}
-}
-
-void _game::destroy(sizei size) {
-	//size could be a single plop or a group of tiles, or a group of plops
-	fireEvent(size, DESTROY);
-
-	for (tileComplete tc : getTiles(size)) {
-		if (tc.parent != nullptr)
-			tc.parent->free();
-	}
-}
-
-void _game::place(sizei size, tileBase *base) {
-	/*
-		As the game engine we can alter game
-		states in ways other functions shouldn't
-	*/
-	fireEvent(size, DESTROY);
-
-	for (tileComplete tc : getTiles(size)) {
-		//free it
-		if (tc.parent != nullptr)
-			tc.parent->free();
-
-		//set new
-		tc.parent = base;
-		base->copyState(tc.partial);
-	}
-
-	fireEvent(size, PLACE);
-}
-
 struct selector : public tile {	
 	selector():selected(nullptr, &state, sizei(0,0,1,1)) {
 		selectedId = 0;
@@ -990,7 +951,7 @@ struct selector : public tile {
 
 	void set(int i) {
 		selectedId = i;
-		if (selectedId > registry.getPlaceableCount())
+		if (selectedId > registry.getPlaceableCount() - 1)
 			selectedId = 0;
 		if (selectedId < 0)
 			selectedId = registry.getPlaceableCount() - 1;
@@ -999,6 +960,7 @@ struct selector : public tile {
 			selected.parent->free();
 
 		selected.parent = registry.getPlaceable(selectedId)->clone();
+		selected.plop_instance = selected.parent->getPlop(selected);
 		setArea(selected.parent->getSize(selected));
 	}
 
@@ -1015,7 +977,8 @@ struct selector : public tile {
 	}
 
 	void setPos(posi p) {
-		setArea(sizei{p,selected.size.x,selected.size.y});
+		origin = p;
+		setArea(sizei{p,selected.size.width,selected.size.height});
 	}
 
 	void next() {
@@ -1036,7 +999,7 @@ struct selector : public tile {
 		if (waterView) {
 			water_pipe_sprite.draw(area);
 		} else {
-			selected.parent->render(tileEvent(selected).with(FORCE));
+			selected.parent->render(selected);
 		}		
 	}
 	
@@ -1139,6 +1102,87 @@ tile grass_tile = tile(grass_sprite, true);
 _dirt_tile dirt_tile;
 selector tileSelector;
 
+std::vector<tileComplete> _game::getTiles(sizei size) {
+	std::vector<tileComplete> tiles;
+
+	if (size.width == 1 && size.height == 1) {
+		tiles.push_back(getComplete(size));
+		return tiles;
+	}
+
+	for (int x = size.x; x < size.x + size.width; x++) {
+		for (int y = size.y; y < size.y + size.height; y++) {
+			tiles.push_back(getComplete(x,y));
+		}
+	}
+
+	return tiles;
+}
+
+void _game::fireEvent(sizei size, int event) {
+	fireEvent(getComplete(size), event);
+}
+
+void _game::fireEvent(tileEvent e, int event) {
+	fireEvent(e.with(event));
+}
+
+void _game::fireEvent(tileEvent e) {
+	//Send events here
+
+	//To plop (single instance over many tiles)
+	if (e.plop_instance && !e.plop_instance->stale(e)) {
+		e.plop_instance->handle(e);
+	}
+	
+	if (e.parent && !e.parent->stale(e) && e.size.width == 1 && e.size.height == 1) {
+		e.parent->handle(e);
+		return;
+	}
+
+	//To tile (many instances over many tiles)
+	for (tileComplete tc : getTiles(e.size)) {
+		if (tc.parent && !tc.parent->stale(tc))
+			//Duplicate flags and events and fire
+			tc.parent->handle(e.clone(tc));
+	}
+}
+
+void _game::destroy(sizei size) {
+	//size could be a single plop or a group of tiles, or a group of plops
+	fireEvent(size, DESTROY);
+
+	for (tileComplete tc : getTiles(size)) {
+		if (tc.parent != nullptr)
+			tc.parent->free();
+		if (tc.plop_instance != nullptr && registry.getInstance(tc.partial->getPlopId()) != nullptr)
+			tc.plop_instance->free();
+		grass_tile.copyState(tc.partial);
+	}
+}
+
+void _game::place(sizei size, tileBase *base) {
+	/*
+		As the game engine we can alter game
+		states in ways other functions shouldn't
+	*/
+	//fireEvent(size, DESTROY);
+	destroy(size);
+
+	for (tileComplete tc : getTiles(size)) {
+		//free it
+		//if (tc.parent != nullptr)
+		//	tc.parent->free();
+
+		base->setSize(tileComplete(base, tc.partial, size));
+
+		//set new
+		base->copyState(tc.partial);
+	}
+
+	fireEvent(size, PLACE);
+}
+
 bool isInRadius(int ox, int oy, int px, int py, float r) {
 	int dx = ox - px;
 	int dy = oy - py;
@@ -1194,12 +1238,13 @@ std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria
 void init() {
 	srand(time(NULL));
 	
-	viewX = 0;
-	viewY = 0;
+	viewX = 1;
+	viewY = 2;
 	
 	tileSelector = selector();
+	tileSelector.setPos({3,3});
 
-	scale = 4;
+	scale = 10;
 	waterView = false;
 	placementMode = false;
 	infoMode = false;
@@ -1232,7 +1277,7 @@ void init() {
 
 	for (int y = 0; y < tileMapHeight; y++) {
 		for (int x = 0; x < tileMapWidth; x++) {
-			game.place({x,y}, grass_tile.clone());
+			game.place({x,y,1,1}, grass_tile.clone());
 			if (rand() % 2 == 0);
 			if (rand() % 4 == 0);
 		}
@@ -1240,7 +1285,7 @@ void init() {
 
 	game.place({0,0,tileMapWidth,tileMapHeight}, grass_tile.clone());
 
-	game.place({2,2}, water_tower_plop.clone());
+	game.place({2,2,1,1}, water_tower_plop.clone());
 }
 
 void displayTileMap() {
@@ -1261,9 +1306,9 @@ void displayTileMap() {
 				continue;
 			
 			tc = getComplete(x,y);
-			e = tc;
+			e = tileEvent(tc);
 			tilePartial *partial = tc.partial;
-			
+
 			//if (partial->isPlop())
 			//	continue;
 
@@ -1277,8 +1322,10 @@ void displayTileMap() {
 				continue;
 			}			
 
-
-			tc.parent->render(e);
+			if (tc.parent)
+				tc.parent->render(e);
+			if (tc.plop_instance)
+				tc.plop_instance->render(e);
 			/*
 			if (tc.parent->waterConsumption(&tc) > 0 && !tc.partial->hasWater()) {
 				//nowater->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
@@ -1413,12 +1460,16 @@ void display() {
 			int i = snprintf(&buf[0], 99, "%s: %f", varname, value);
 			adv::write(0,y++,&buf[0]);
 		};
-		printVar("selectorTileId", tileSelector.selectedId);
 		printVar("viewX", viewX);
 		printVar("viewY", viewY);
 		printVar("scale", scale);
+		printVar("selectorTileId", tileSelector.selectedId);
 		printVar("selectorX", tileSelector.origin.x);
 		printVar("selectorY", tileSelector.origin.y);
+		printVar("instanceX", tileSelector.selected.size.x);
+		printVar("instanceY", tileSelector.selected.size.y);
+		printVar("instanceW", tileSelector.selected.size.width);
+		printVar("instanceH", tileSelector.selected.size.height);
 		printVar("waterSupply", waterSupply);
 		printVar("waterDemand", waterDemand);
 		printVar("waterNetworks", waterNetworks);
@@ -1549,7 +1600,7 @@ int wmain() {
 				}
 
 				//Selected tile in its current state and size
-				game.place(tileSelector.selected.size, tileSelector.selected.parent);				
+				game.place(tileSelector.selected.size, tileSelector.selected.parent->clone());
 			}
 				break;
 			case 'x':
@@ -1571,7 +1622,7 @@ int wmain() {
 				tileSelector.next();
 				break;
 			case '1':
-				tileSelector.next();
+				tileSelector.prev();
 				break;
 			}			
 		}

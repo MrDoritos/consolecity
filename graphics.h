@@ -30,10 +30,10 @@ struct _pos {
     _pos<T> add(T x, T y) {
         return {this->x + x, this->y + y};
     }
-    _pos<T> north(){return add(0, -1);}
-    _pos<T> south(){return add(0, 1);}
-    _pos<T> east(){return add(1, 0);}
-    _pos<T> west(){return add(-1, 0);}
+    _pos<T> north(){return this->add(0, -1);}
+    _pos<T> south(){return this->add(0, 1);}
+    _pos<T> east(){return this->add(1, 0);}
+    _pos<T> west(){return this->add(-1, 0);}
     T x, y;
 };
 
@@ -45,17 +45,20 @@ struct _size : public _pos<T> {
         this->width = width;
         this->height = height;
     }
+
     _size(const _pos<T> &p, T width, T height): _pos<T>(p) {
         this->width = width;
         this->height = height;
     }
-    _size(T width, T height) {
-        this->width = width;
-        this->height = height;
+
+    _size(const _pos<T> &p):_pos<T>(p) {
+        width = 1;
+        height = 1;
     }
+
     _size() {
-        width = 0;
-        height = 0;
+        width = 1;
+        height = 1;
     }
     bool operator==(_size<T> &s) {
         return ((_pos<T>*)this)->operator==(s) && width == s.width && height == s.height;

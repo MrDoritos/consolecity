@@ -136,7 +136,7 @@ struct sprite_overlay : sprite {
 	sprite_overlay(sprite *base):sprite(*base) {
 		_pixTW = base->getAtlW() * base->getPixT();
 		_pixTH = base->getAtlH() * base->getPixT();
-		fprintf(stderr, "New overlay sprite: %i %i\n", _pixTW, _pixTH);
+		//fprintf(stderr, "New overlay sprite: %i %i\n", _pixTW, _pixTH);
 		canvas = new pixel[_pixTW * _pixTH];
 		set(base);
 
@@ -185,7 +185,7 @@ struct sprite_overlay : sprite {
 		int cw = getPixTW();
 		int ch = getPixTH();
 
-		fprintf(stderr, "Setting overlay sprite: %i %i\n", cw, ch);
+		//fprintf(stderr, "Setting overlay sprite: %i %i\n", cw, ch);
 
 
 		return;
@@ -262,8 +262,8 @@ struct simple_connecting_sprite : sprite {
 		bool args[] = {
 			false,true,
 			true,true,
-			false,false,		
 			true,false,
+			false,false,
 		};
 
 
