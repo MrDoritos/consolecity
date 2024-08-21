@@ -8,15 +8,15 @@
 
 struct default_tile;
 struct grass;
-struct plop_instance;
 struct plop;
 struct tile;
+struct tileBase;
+struct tileEvent;
 struct tilePartial;
 struct tileComplete;
 
 tilePartial *getPartial(int, int);
 tileComplete getComplete(int, int);
-tile *getTile(tilePartial*);
 
 #define ZONING_NONE 0
 #define ZONING_RESIDENTIAL 1
@@ -33,19 +33,6 @@ tile *getTile(tilePartial*);
 #define SOUTH_F x,y+1
 #define UNDERGROUND_WATER_PIPE 1
 #define UNDERGROUND_SUBWAY 2
-
-struct tiles {
-	static tile *tileRegistry[TILE_COUNT];
-	static int id;
-	
-	static void add(tile *tile);
-	static tile *get(int id);
-	
-	static tile *DEFAULT_TILE;
-	static tile *GRASS;
-	static tile *WATER_PIPE;
-	static tile *DIRT;
-};
 
 /*
 octet 0 : 00 - none
@@ -199,26 +186,24 @@ Struct for the complete identity of a tile instance
 */
 struct tileComplete {
 	tileComplete() {}
-	tileComplete(tile *parent, tilePartial *partial, int tileX, int tileY) {
+	tileComplete(tileBase *parent, tilePartial *partial, sizei size)
+		:size(size) {
 		this->parent = parent;
 		this->partial = partial;
-		this->tileX = tileX;
-		this->tileY = tileY;
 	}
+
 	bool coordsEquals(tileComplete b) {
-		return (this->tileX == b.tileX && this->tileY == b.tileY);
+		return this->size == b.size;
 	}
+
 	bool operator==(tileComplete b) {
 		return coordsEquals(b);
 	}
 
-
-	tile *parent;
+	tileBase *parent;
 	tilePartial *partial;
-	plop *parent_plop;
-	plop_instance *parent_plop_instance;
-	int tileX;
-	int tileY;
+	plop *plop_instance;
+	sizei size;
 };
 
 tilePartial *tileMap = nullptr;
@@ -227,9 +212,10 @@ int tileMapWidth = 100;
 
 FILE *logFile = stderr;
 
-int selectorTileId;
-int selectorX;
-int selectorY;
+tilePartial *getPartial(int x, int y);
+tilePartial *getPartial(posi p);
+tileComplete getComplete(int x, int y);
+tileComplete getComplete(posi p);
 
 float waterSupply;
 float waterDemand;
@@ -261,34 +247,59 @@ bool infoMode;
 bool statsMode;
 bool queryMode;
 
+enum EVENT {
+	PLACE = 1, DESTROY = 2, UPDATE = 3, RANDOM = 4, NETWORK = 5
+};
+
+enum FLAG {
+	FORCE = 1
+};
+
 struct tileEvent : public tileComplete {
-	tileEvent(tileComplete tc):tileComplete(tc),size(tc.tileX,tc.tileY,1,1) {}
-	tileEvent() {}
-	sizei size;
-	enum {
-		PLACE, DESTROY, UPDATE, RANDOM, NETWORK
-	} event;
+	tileEvent(tileComplete tc):tileComplete(tc) {
+		init();
+	}
+	tileEvent() {
+		init();
+	}
+
+	void init() {
+		events = 0;
+		flags = 0;
+	}
+
+	tileEvent with(int event, int flags) {
+		tileEvent copy = *this;
+		copy.events |= event;
+		copy.flags |= flags;
+		return copy;
+	}
+
+	tileEvent with(int event) {
+		return with(event, 0);
+	}
+
+	tileEvent clone(tileEvent tc) {
+		return tc.with(events,flags);
+	}
+
+	int events;
+	int flags;
 };
 
 struct tileEventHandler {
 	virtual void handle(tileEvent e) {
-		switch (e.event) {
-			case tileEvent::PLACE:
-				onPlaceEvent(e);
-				break;
-			case tileEvent::DESTROY:
-				onDestroyEvent(e);
-				break;
-			case tileEvent::UPDATE:
-				onUpdateEvent(e);
-				break;
-			case tileEvent::RANDOM:
-				onRandomEvent(e);
-				break;
-			case tileEvent::NETWORK:
-				onNetworkEvent(e);
-				break;
-		}
+		fprintf(logFile, "Handling events: %i pos: %i %i\n", e.events, e.size.x, e.size.y);
+		if (e.events & PLACE)
+			onPlaceEvent(e);
+		if (e.events & DESTROY)
+			onDestroyEvent(e);
+		if (e.events & UPDATE)
+			onUpdateEvent(e);
+		if (e.events & RANDOM)
+			onRandomEvent(e);
+		if (e.events & NETWORK)
+			onNetworkEvent(e);
 		onEvent(e);
 	}
 	virtual void onEvent(tileEvent e) {}
@@ -305,15 +316,159 @@ struct networkProvider {
 
 networkProvider no_provider;
 
+struct tileBase;
+
+struct instance_registry {
+	instance_registry() {
+		id = 1;
+	}
+
+	int nextId() {
+		return id++;
+	}
+
+	tileBase *addInstance(tileBase *t);
+
+	tileBase *getInstance(int id);
+
+	tileBase *addPlaceable(tileBase *t);
+
+	tileBase *getPlaceable(int id);
+
+	int getPlaceableCount() {
+		return placeable.size();
+	}
+
+	int id;
+
+	std::vector<tileBase*> instances;
+	std::vector<tileBase*> placeable;
+} registry;
+
+struct _game {
+	std::vector<tileComplete> getTiles(sizei size);
+	void destroy(sizei size);
+	void place(sizei size, tileBase *base);
+	void fireEvent(tileEvent e);
+	void fireEvent(tileEvent e, int event);
+	void fireEvent(sizei size, int event);
+} game; //singleton for the game
+
 struct tileBase : public tileEventHandler {
 	int id;
 	virtual void render(tileEvent e) = 0;
-	virtual sizef getRenderArea(tileEvent e) = 0;
-	virtual tilePartial getDefaultState() = 0;
-	virtual void copyState(tilePartial *tile) = 0;
-	virtual networkProvider *getNetworkProvider(tileEvent e) = 0;
-	virtual plop *getPlop(tileEvent e) = 0;
+	virtual sizef getRenderArea(tileEvent e) {
+		posf pos = getOffsetXY(posf{(float)e.size.x,(float)e.size.y});
+		posf siz = posf{getWidth()*e.size.width,getHeight()*e.size.height};
+		return {pos.x * siz.x, pos.y * siz.y, siz.x, siz.y};
+	}
+	virtual sizei getSize(tileEvent e) {
+		return e.size;
+	}
+	/*
+		tiles do not need their size set,
+		they do not even know their size
+	*/
+	virtual void setSize(tileEvent e) {}
+	virtual tilePartial getDefaultState() {
+		tilePartial partial;
+		partial.id = id;
+		return partial;
+	}
+	/*
+		Return this or return copy as new memory
+
+		How to determine whether or not to be cloned?
+
+		Plops return new memory with id as 0
+		Tiles return this, no change in id
+
+		Performs register if needed
+	*/
+	virtual tileBase *clone() {
+		return this;
+	}
+	virtual void free() {
+		return;
+	}
+	virtual void copyState(tilePartial *tile) {
+		*tile = getDefaultState();
+	}
+	virtual networkProvider *getNetworkProvider(tileEvent e) {
+		return nullptr;
+	}
+	virtual plop *getPlop(tileEvent e) {
+		if (e.partial->isPlop() && e.partial->getPlopId() == id)
+			return (plop*)registry.getInstance(e.partial->getPlopId());
+		return nullptr;
+	}	
+	virtual std::vector<tileComplete> getTiles(tileEvent e) {
+		return game.getTiles(e.size);
+	}
+	virtual bool stale(tileEvent e) {
+		//Check availability of this
+		if (!this)
+			return true;
+
+		//We don't know if we are a plop or a tile
+
+		plop *plop = getPlop(e);
+
+		//Check plop availability first
+		//Getting nullptr through getPlop is quick
+		if (plop != nullptr) {
+			/*
+				If we are here, 
+					isPlop is true in partial
+					getPlopId from partial is our id
+					registry has plop
+			*/
+			if (e.plop_instance != plop)
+				return true;
+		}
+
+		//Was not unset
+		if (e.partial->isPlop())
+			return true;
+
+		//If don't even have parent, we are nothing
+		if (e.parent != this)
+			return true;
+
+		//Check tile availability
+		if (e.partial->id != id)
+			return true;
+
+		return false;
+	}
 };
+
+tileBase *instance_registry::addInstance(tileBase *t) {
+	if (getInstance(t->id) != nullptr && t->id != 0) {
+		fprintf(logFile, "Instance already exists: %i\n", t->id);
+		return t;
+	}
+	t->id = nextId();
+	instances.push_back(t);
+	return t;
+}
+
+tileBase *instance_registry::getInstance(int id) {
+	for (auto _t : instances) {
+		if (_t->id == id)
+			return _t;
+	}
+	return nullptr;
+}
+
+tileBase *instance_registry::addPlaceable(tileBase *t) {
+	placeable.push_back(t);
+	return t;
+}
+
+tileBase *instance_registry::getPlaceable(int id) {
+	return placeable[id];
+}
 
 struct tile : public tileBase {
 	//int id;
@@ -322,9 +477,9 @@ struct tile : public tileBase {
 	tile(bool add = false) : tile(sprite(0,0,1,1),add) {}
 	
 	tile(sprite tex, bool add = false) : tex(tex) {
-		id = 0;
+		registry.addInstance(this);
 		if (add)
-			tiles::add(this);
+			registry.addPlaceable(this);
 	}
 
 	tile(int t0, int t1, int t2, int t3, bool skip = false)
@@ -334,25 +489,9 @@ struct tile : public tileBase {
 		tex.setAtlas({a,b,c-a,d-b});
 	}
 	
-	tilePartial getDefaultState() override {
-		tilePartial partial;
-		partial.id = id;
-		return partial;
-	}
-
-	sizef getRenderArea(tileEvent e) override {
-		posf pos = getOffsetXY(posf{(float)e.size.x,(float)e.size.y});
-		posf siz = posf{getWidth(),getHeight()};
-		return {pos.x * siz.x, pos.y * siz.y, siz.x, siz.y};
-	}
-	
 	void render(tileEvent e) override {
 		//tex.draw
 		draw(e, getRenderArea(e));
-	}
-
-	void copyState(tilePartial *tile) override {
-		*tile = getDefaultState();
 	}
 
 	networkProvider *getNetworkProvider(tileEvent e) override {
@@ -384,10 +523,10 @@ struct tile : public tileBase {
 		neighbors[1].parent->onUpdateEvent(neighbors[1]);
 		neighbors[2].parent->onUpdateEvent(neighbors[2]);
 		neighbors[3].parent->onUpdateEvent(neighbors[3]);
-		tiles::WATER_PIPE->onUpdateEvent(neighbors[0]);
-		tiles::WATER_PIPE->onUpdateEvent(neighbors[1]);
-		tiles::WATER_PIPE->onUpdateEvent(neighbors[2]);
-		tiles::WATER_PIPE->onUpdateEvent(neighbors[3]);
+		//tiles::WATER_PIPE->onUpdateEvent(neighbors[0]);
+		//tiles::WATER_PIPE->onUpdateEvent(neighbors[1]);
+		//tiles::WATER_PIPE->onUpdateEvent(neighbors[2]);
+		//tiles::WATER_PIPE->onUpdateEvent(neighbors[3]);
 	}
 };
 
@@ -429,31 +568,6 @@ struct tileable : public tile {
 	}
 };
 
-int tiles::id = 0;
-
-struct plop_registry {
-	plop_registry() {
-		id = 1;
-	}
-
-	int nextId() {
-		return id++;
-	}
-
-	plop_instance* registerPlop(plop_instance * p);
-	plop_instance* getInstance(int id);
-	plop* getPlaceable(int index);
-	int getPlaceableCount() {
-		return placeable.size();
-
-	}
-
-	int id;
-	std::vector<plop_instance*> instances;
-	std::vector<plop*> placeable;
-};
-
-plop_registry plops;
 typedef float net_t;
 
 struct plop_network_value {
@@ -525,7 +639,7 @@ struct plop_network_value {
 	net_t max;
 };
 
-struct plop_network_static : plop_network_value {
+struct plop_network_static : public plop_network_value {
 	plop_network_static(net_t min, net_t max, net_t value) : plop_network_value(min, max, value) {
 	}
 
@@ -542,7 +656,6 @@ struct plop_properties {
 	float efficiency; //0-1
 	float funding;
 	float monthlyCost;
-	int width, height;
 
 	plop_network_value *water = 0;
 	plop_network_value *power = 0;
@@ -553,48 +666,91 @@ struct plop_properties {
 	plop_network_value *traffic = 0;
 	plop_network_value *wealth = 0;
 };
+/*
+Now the instance
+*/
+struct plop : public tileBase {
+	/*
+	plops.instances.erase(std::remove(plops.instances.begin(), plops.instances.end(), this), plops.instances.end());
+	*/
+	plop(sprite* tex, int plop_width = 1, int plop_height = 1, bool placeable=true):
+	plop() {
+		this->tex = tex;
 
-struct plop_instance {
-	plop_instance(plop *p, int ox, int oy, int sx, int sy) {
-		base_plop = p;
-		sizeX = sx;
-		sizeY = sy;
-		originX = ox;
-		originY = oy;
+		registry.addInstance(this);
+		if (placeable) {
+			registry.addPlaceable(this);
+		}
 
-		water = 0;
-		power = 0;
+		size = sizei(plop_width, plop_height);
 	}
 
-	plop_instance() {
-
+	plop() {
+		size = sizei(1,1);
+		tex = nullptr;
 	}
 
-	virtual plop_properties* createProperties() {
-		plop_properties *pp = new plop_properties();
-		pp->water = new plop_network_value(0, 100, 0);
-		return pp;
+	~plop() {
+		registry.instances.erase(std::remove(registry.instances.begin(), registry.instances.end(), this), registry.instances.end());
+		registry.placeable.erase(std::remove(registry.placeable.begin(), registry.placeable.end(), this), registry.placeable.end());
 	}
 
-	virtual float maxWater(); //references plop, returns max water usage for this plop
+	void render(tileEvent e) override {
+		if (tex == nullptr || e.plop_instance == nullptr)
+			return;
 
-	virtual float waterUsage() { //returns actual water usage/supply based on state
-		return maxWater();
+		if (!(e.size == e.plop_instance->size)) //if not base tile
+			if (!(e.flags & FORCE))
+				return;
+
+		tex->draw(getRenderArea(e));
+	}	
+
+	tilePartial getDefaultState() override {
+		tilePartial tp = tileBase::getDefaultState();
+		tp.setPlopId(id);
+		return tp;
 	}
 
-	virtual bool waterSupply() { //returns true if this plop supplies water
-		return waterUsage() > 0;
+	bool operator==(int i) {
+		return id == i;
 	}
 
-	virtual bool isWellWatered() { //returns true if this plop has enough water
-		if (waterSupply())
-			return true;
-		return water >= abs(waterUsage());
+	plop *getPlop(tileEvent e) override {
+		return this;
 	}
 
-	virtual void render();
+	sizei getSize(tileEvent e) override {
+		return size;
+	}
 
-	virtual void onPlace() {
+	tileBase *clone() override {
+		plop *c = new plop(*this);
+		c->id = 0;
+		return registry.addInstance(c);
+	}
+
+	void free() override {
+		if (!stale(getComplete(size)))
+			delete this;
+	}
+
+	void setSize(tileEvent e) override {
+		size = e.size;
+	}
+
+	virtual bool isPlaceable(tileEvent e) {
+		fprintf(logFile, "isPlaceable(tileEvent e) not yet implemented\n");
+		for (auto tile : getTiles(e)) {
+			if (tile.partial->isPlop())
+				return false;
+		}
+		return true;
+	}
+
+	virtual void place(tileEvent e) {
+		fprintf(logFile, "place(tileEvent e) not yet implemented\n");
+		/*
 		fprintf(logFile, "Placed plop: %i, ", id);
 		for (auto tile : getTiles()) {
 			tile.partial->setPlopId(id);
@@ -603,12 +759,15 @@ struct plop_instance {
 		if (waterSupply()) {
 			//getPartial(originX, originY)->setUnderground(UNDERGROUND_WATER_PIPE);
 			tileComplete tc = getComplete(originX, originY);
-			tiles::WATER_PIPE->onPlaceEvent(tc);
+			//tiles::WATER_PIPE->onPlaceEvent(tc);
 		}
 		fprintf(logFile, "\n");
+		*/
 	}
 
-	virtual void onDestroy() {
+	virtual void destroy(tileEvent e) {
+		fprintf(logFile, "destroy(tileEvent e) not yet implemented\n");
+		/*
 		fprintf(logFile, "Destroyed plop: %i, ", id);
 		for (auto tile : getTiles()) {
 			tile.partial->setPlopId(0);
@@ -616,33 +775,10 @@ struct plop_instance {
 			fprintf(logFile, "[%i %i] ", tile.tileX, tile.tileY);
 		}
 		fprintf(logFile, "\n");
+		*/
 	}
 
-	~plop_instance() {
-		plops.instances.erase(std::remove(plops.instances.begin(), plops.instances.end(), this), plops.instances.end());
-
-	}
-
-	bool operator==(int i) {
-		return id == i;
-	}
-
-	std::vector<tileComplete> getTiles() {
-		std::vector<tileComplete> tiles;
-		for (int x = originX; x < originX + sizeX; x++) {
-			for (int y = originY; y < originY + sizeY; y++) {
-				tiles.push_back(getComplete(x,y));
-			}
-		}
-		return tiles;
-	}
-
-	plop *base_plop;
-	plop_properties *properties;
-
-	int sizeX, sizeY, originX, originY;
-	int id;
-
+	/*
 	//always part of the plop, not the tile
 	//some of these are examples for brainstorming
 	float education;
@@ -661,231 +797,77 @@ struct plop_instance {
 
 	int capacity;
 	int population;
-};
+	*/
 
-/*
-Whatever the plop type is, this struct is responsible for generating a plop_instance
-*/
-struct plop {
-	plop(sprite* tex, int plop_width = 1, int plop_height = 1, bool placeable=true):plop() {
-		this->tex = tex;
-		if (placeable) {
-			plops.placeable.push_back(this);
-		}
-		this->width = plop_width;
-		this->height = plop_height;
-
-		//default_instance = createInstance();
-	}
-
-	plop() {
-		width = 1;
-		height = 1;
-
-		//default_instance = createInstance();
-
-		tex = nullptr;
-		water = 0;
-	}
-
-	virtual void render(plop_instance * instance) {
-		if (tex == nullptr || instance == nullptr)
-			return;
-
-		float width = getWidth();
-		float height = getHeight();
-			
-		float x = getOffsetX(instance->originX, instance->originY) * width;
-		float y = getOffsetY(instance->originX, instance->originY) * height;
-
-		tex->draw(x,y,width,height);
-	}	
-
-	virtual plop_instance* createInstance() {
-		return createInstance(0,0,width,height);
-	}
-
-	virtual plop_instance* createInstance(int ox, int oy, int sx, int sy) {
-		plop_instance *pi = new plop_instance(this, ox, oy, sx, sy);
-		pi->properties = pi->createProperties();
-		return pi;
-	}
-
-	virtual plop_instance* registerNewInstance(int ox, int oy, int sx, int sy) {
-		return plops.registerPlop(createInstance(ox, oy, sx, sy));
-	}
-
-	virtual plop_instance* getDefaultInstance() {
-		return createInstance();
-	}
-
-/*
-	virtual void getDefaultInstance(plop_instance * to_fill) {
-		to_fill->base_plop = this;
-		to_fill->sizeX = width;
-		to_fill->sizeY = height;
-	}
-
-	virtual plop_instance* getDefaultInstance() {
-		return default_instance;
-	}
-*/
-
-	virtual bool isPlaceable(tileComplete *tc) {
-		return !tc->partial->isPlop();
-	}
-
-	virtual void place(tileComplete *tc) {
-		tc->partial->setPlopId(plops.nextId());
-	}
-
-	virtual void onDestroy() {}
-
-	virtual void onPlace() {}
-
-	float water;
-	int width;
-	int height;
+	sizei size;
 	sprite *tex;
-	//plop_instance *default_instance;
+	plop_properties *prop;
+	networkProvider *net;
 };
 
 struct plop_connecting : public plop {
-	plop_connecting(simple_connecting_sprite* tex, bool placeable=true):plop(tex,placeable) {
+	plop_connecting(simple_connecting_sprite* tex, bool placeable=false):plop(tex,placeable) {
 		this->scs = tex;
 	}
 
 	simple_connecting_sprite *scs;
 
-	bool testPlop(int x, int y) {
-		tileComplete tc = getComplete(x,y);
-		if (tc.parent_plop_instance == nullptr)
-			return false;
-		if (tc.parent_plop == this)
-			return true;
-		return false;
+	bool testPlop(posi p) {
+		tileComplete tc = getComplete(p.x,p.y);
+		return tc.plop_instance == this;
 	}
 
-	void render(plop_instance * instance) override {
-		if (scs == nullptr || instance == nullptr)
+	void render(tileEvent e) override {
+		if (scs == nullptr || e.plop_instance == nullptr)
 			return;
 
+		sizef area = getRenderArea(e);
+		posi p = e.size;
 		
-		float width = getWidth();
-		float height = getHeight();
-			
-		float x = getOffsetX(instance->originX, instance->originY) * width;
-		float y = getOffsetY(instance->originX, instance->originY) * height;
-		
-		scs->draw_connections(x,y,width,height,
-			testPlop(instance->originX, instance->originY - 1),
-			testPlop(instance->originX + 1, instance->originY),
-			testPlop(instance->originX - 1, instance->originY),
-			testPlop(instance->originX, instance->originY + 1)
+		scs->draw_connections(area.x,area.y,area.width,area.height,
+			testPlop(p.add(0,-1)),
+			testPlop(p.add(1, 0)),
+			testPlop(p.add(-1,0)),
+			testPlop(p.add(0,1))
 		);
-		/*
-		tex->draw(x,y,width,height);
-		*/
 	}
 
 };
 
 struct water_provider_plop : public plop {
-	water_provider_plop(sprite *tex, net_t water_creation, int plop_width = 1, int plop_height = 1, bool placeable=true):plop(tex,plop_width,plop_height,placeable) {
+	water_provider_plop(sprite *tex, net_t water_creation, int plop_width = 1, int plop_height = 1, bool placeable=false):plop(tex,plop_width,plop_height,placeable) {
 		fprintf(logFile, "Water provider plop created: %f\n", water_creation);
 		this->water_creation = water_creation;
 	}
 
-	struct water_provider_plop_instance : public plop_instance {
-		water_provider_plop_instance(water_provider_plop *p, int ox, int oy, int sx, int sy):plop_instance(p, ox, oy, sx, sy) {
-			fprintf(logFile, "Water provider plop instance created\n");
-		}
-
-		plop_properties* createProperties() override {
-			fprintf(logFile, "Water provider plop instance properties created\n");
-			plop_properties *pp = plop_instance::createProperties();
-			pp->water = new plop_network_static(0, ((water_provider_plop*)base_plop)->water, ((water_provider_plop*)base_plop)->water);
-			return pp;
-		};
-	};
-
-	plop_instance* createInstance(int ox, int oy, int sx, int sy) override {
-		plop_instance *pi = new water_provider_plop_instance(this, ox, oy, sx, sy);
-		pi->properties = pi->createProperties();
-		return pi;
-	}
-
 	net_t water_creation;
-
-	virtual float maxWater() {
-		return water;
-	}
 };
 
 struct network_provider_plop : public plop {
-	network_provider_plop(sprite *tex, net_t water, net_t power, int plop_width = 1, int plop_height = 1, bool placeable=true):plop(tex,plop_width,plop_height,placeable) {
+	network_provider_plop(sprite *tex, net_t water, net_t power, int plop_width = 1, int plop_height = 1, bool placeable=false):plop(tex,plop_width,plop_height,placeable) {
 		_water = water;
 		_power = power;
-	}
-
-	plop_instance* createInstance(int ox, int oy, int sx, int sy) override {
-		plop_instance *pi = new plop_instance(this, ox, oy, sx, sy);
-		plop_properties* pp = pi->createProperties();
-		pp->water = new plop_network_value(0, _water, 0);
-		pp->power = new plop_network_value(0, _power, 0);
-		pi->properties = pp;
-		return pi;
 	}
 
 	net_t _water, _power;
 };
 
-plop_instance *plop_registry::registerPlop(plop_instance * p) {
-	p->id = nextId();
-	instances.push_back(p);
-	return p;
-}
-
-plop_instance *plop_registry::getInstance(int id) {
-	for (auto _pi : instances) {
-		if (_pi->id == id)
-			return _pi;
-	}
-	
-	return nullptr;
-}
-
-plop *plop_registry::getPlaceable(int index) {
-	return placeable[index];
-}
-
-void plop_instance::render() {
-	base_plop->render(this);
-}
-
-float plop_instance::maxWater() {
-	return base_plop->water;
-}
-
-water_provider_plop water_tower_plop(&water_tower_sprite, 1200.0f);
-water_provider_plop water_well_plop(&water_well_sprite, 500.0f);
-water_provider_plop water_pump_large_plop(&large_water_pump_sprite, 24000.0f, 2, 1);
+water_provider_plop water_tower_plop(&water_tower_sprite, 1200.0f, 1, 1, true);
+water_provider_plop water_well_plop(&water_well_sprite, 500.0f, 1, 1, true);
+water_provider_plop water_pump_large_plop(&large_water_pump_sprite, 24000.0f, 2, 1, true);
 
 plop_connecting road_plop(&road_con_tex_sprite);
 plop_connecting street_plop(&street_con_tex_sprite);
 //plop_connecting water_pipe_plop(new sprite(3,1,1,1));
 plop_connecting pool_plop(&pool_con_tex_sprite);
 
-network_provider_plop tall_building_plop(&tall_building_sprite, -800, -400, 1, 1);
+network_provider_plop tall_building_plop(&tall_building_sprite, -800, -400, 1, 1, true);
 plop building1_plop(&building1_sprite);
 plop building2_plop(&building2_sprite, 2, 1);
 plop building3_plop(&building3_sprite, 2, 2);
 
 void init_plops() {
-	water_tower_plop.water = 1200.0f;
-	water_well_plop.water = 500.0f;
-	water_pump_large_plop.water = 24000.0f;
-	pool_plop.water = -200.0f;
+	
 }
 
 tilePartial partially_garbage;
@@ -898,74 +880,181 @@ tilePartial *getPartial(int x, int y) {
 	return &tileMap[y * tileMapWidth + x];
 }
 
+tilePartial *getPartial(posi p) {
+	return getPartial(p.x,p.y);
+}
+
 tileComplete getComplete(int x, int y) {
-	tileComplete tc;
+	tileComplete tc(nullptr, nullptr, {x,y,1,1});
 	tc.partial = getPartial(x,y);
-	tc.parent = getTile(tc.partial);
-	tc.parent_plop = nullptr;
-	tc.parent_plop_instance = nullptr;
-	if (tc.partial->isPlop()) {
-		tc.parent_plop_instance = plops.getInstance(tc.partial->getPlopId());
-		tc.parent_plop = tc.parent_plop_instance->base_plop;
-	}
-	tc.tileX = x;
-	tc.tileY = y;
+	tc.parent = registry.getInstance(tc.partial->id);
+	tc.plop_instance = nullptr;
+	if (tc.partial->isPlop())
+		tc.plop_instance = (plop*)registry.getInstance(tc.partial->getPlopId());
 	return tc;
 }
 
-tileComplete *getComplete(tilePartial *tp, tile *parent, int x, int y, tileComplete *ptr) {
-	ptr->partial = tp;
-	ptr->parent = parent;
-	ptr->tileX = x;
-	ptr->tileY = y;
-	return ptr;
+tileComplete getComplete(posi p) {
+	return getComplete(p.x,p.y);
 }
 
-struct selector : public tile {
-	selector():tile(selector_sprite) {}
+std::vector<tileComplete> _game::getTiles(sizei size) {
+	std::vector<tileComplete> tiles;
+
+	if (size.width == 1 && size.height == 1) {
+		tiles.push_back(getComplete(size));
+		return tiles;
+	}
+
+	for (int x = size.x; x < size.x + size.width; x++) {
+		for (int y = size.y; y < size.y + size.height; y++) {
+			tiles.push_back(getComplete(x,y));
+		}
+	}
+
+	return tiles;
+}
+
+void _game::fireEvent(sizei size, int event) {
+	fireEvent(getComplete(size), event);
+}
+
+void _game::fireEvent(tileEvent e, int event) {
+	fireEvent(e.with(event));
+}
+
+void _game::fireEvent(tileEvent e) {
+	//Send events here
+
+	//To plop (single instance over many tiles)
+	if (e.plop_instance && !e.plop_instance->stale(e)) {
+		e.plop_instance->handle(e);
+	}
 	
+	if (e.parent && !e.parent->stale(e) && e.size.width == 1 && e.size.height == 1) {
+		e.parent->handle(e);
+		return;
+	}
+
+	//To tile (many instances over many tiles)
+	for (tileComplete tc : getTiles(e.size)) {
+		if (tc.parent && !tc.parent->stale(tc))
+			//Duplicate flags and events and fire
+			tc.parent->handle(e.clone(tc));
+	}
+}
+
+void _game::destroy(sizei size) {
+	//size could be a single plop or a group of tiles, or a group of plops
+	fireEvent(size, DESTROY);
+
+	for (tileComplete tc : getTiles(size)) {
+		if (tc.parent != nullptr)
+			tc.parent->free();
+	}
+}
+
+void _game::place(sizei size, tileBase *base) {
+	/*
+		As the game engine we can alter game
+		states in ways other functions shouldn't
+	*/
+	fireEvent(size, DESTROY);
+
+	for (tileComplete tc : getTiles(size)) {
+		//free it
+		if (tc.parent != nullptr)
+			tc.parent->free();
+
+		//set new
+		tc.parent = base;
+		base->copyState(tc.partial);
+	}
+
+	fireEvent(size, PLACE);
+}
+
+struct selector : public tile {	
+	selector():selected(nullptr, &state, sizei(0,0,1,1)) {
+		selectedId = 0;
+
+		set(selectedId);
+	}
+
 	unsigned int ticks;
-	//tile *selectedTile;
-	plop *selectedPlop;
-	plop_instance *currentPlop;
 	
-	void render(tileEvent e) override {
-		e.size.x = selectorX;
-		e.size.y = selectorY;
-		sizef area = getRenderArea(e);
+	tilePartial state;
+	tileComplete selected;
+	posi origin;
+	int selectedId;
+
+	void set(int i) {
+		selectedId = i;
+		if (selectedId > registry.getPlaceableCount())
+			selectedId = 0;
+		if (selectedId < 0)
+			selectedId = registry.getPlaceableCount() - 1;
+
+		if (selected.parent != nullptr)
+			selected.parent->free();
+
+		selected.parent = registry.getPlaceable(selectedId)->clone();
+		setArea(selected.parent->getSize(selected));
+	}
+
+	void setSize(tileEvent e) override {
+		setArea(e.size);
+	}
+
+	void setArea(sizei p) {
+		selected.size = p;
+		selected.size.x = origin.x;
+		selected.size.y = origin.y;
+		selected.parent->setSize(selected);
+		selected.parent->copyState(selected.partial);
+	}
+
+	void setPos(posi p) {
+		setArea(sizei{p,selected.size.x,selected.size.y});
+	}
+
+	void next() {
+		set(selectedId + 1);
+	}
+
+	void prev() {
+		set(selectedId - 1);
+	}
+
+	void render() {
+		sizef area = getRenderArea(selected);
+
 		if (ticks++ % 20 > 9) {
 			selector_sprite.draw(area);
 		}
+
 		if (waterView) {
 			water_pipe_sprite.draw(area);
 		} else {
-			currentPlop->originX = e.size.x;
-			currentPlop->originY = e.size.y;
-			currentPlop->render();
-		}
+			selected.parent->render(tileEvent(selected).with(FORCE));
+		}		
 	}
-} tileSelector;
-
-struct plop_tile : public tile {
-	tilePartial getPlop(plop *p) {
-		return getPlop(p->createInstance());
+	
+	void render(tileEvent e) override {
+		render();
 	}
+};
 
-	tilePartial getPlop(plop_instance *p) {
-		tilePartial tp = this->getDefaultState();
-		tp.setPlopId(p->id);
-		return tp;
-	}
-
-} plop_tile;
-
-struct dirt : public tile {
+struct _dirt_tile : public tile {
 	void draw(tileEvent e, sizef area) override {
-		if (e.parent_plop_instance) {
+		if (e.plop_instance) {
+			/*
 			if (e.parent_plop_instance->isWellWatered())
 				wet_plop_sprite.draw(area);
 			else
+			*/
 				dry_plop_sprite.draw(area);
+				
 		} else {
 			if (e.partial->hasWater())
 				wet_dirt_sprite.draw(area);
@@ -975,18 +1064,18 @@ struct dirt : public tile {
 	}
 };
 
-struct water_pipe : public tileable {
-	water_pipe():tileable(water_pipe_con_tex_sprite) {}
+struct _water_pipe_tile : public tileable {
+	_water_pipe_tile():tileable(water_pipe_con_tex_sprite) {}
 	
 	bool connectingCondition(tileEvent e, int direction) override {
-		if (e.partial->id == tiles::WATER_PIPE->id)
+		if (e.partial->id == this->id)
 			return tileable::connectingCondition(e, direction);
 		return e.partial->hasConnection(direction, 2);
 	}
 	
 	void connectToNeighbors(tileEvent e) override {
 		tilePartial *tp = e.partial;
-		if (tp->id == tiles::WATER_PIPE->id) {
+		if (tp->id == this->id) {
 			tileable::connectToNeighbors(e);
 			return;
 		}
@@ -1044,34 +1133,20 @@ struct water_pipe : public tileable {
 	}
 };
 
-tile *getTile(tilePartial *partial) {
-	return tiles::get(partial->id);
-}
-
-tile *tiles::DEFAULT_TILE = new tile(true);
-tile *tiles::GRASS = new tile(grass_sprite, true);
-tile *tiles::WATER_PIPE = new water_pipe;
-tile *tiles::DIRT = new dirt;
-
-tile *tiles::tileRegistry[TILE_COUNT];
-
-void tiles::add(tile *tile) {
-	tile->id = id++;
-	if (tile->id < TILE_COUNT)
-		tiles::tileRegistry[tile->id] = tile;
-}
-
-tile *tiles::get(int id) {
-	if (id < TILE_COUNT)
-		return tiles::tileRegistry[id];
-	else
-		return DEFAULT_TILE;
-}
+_water_pipe_tile water_pipe_tile;
+tile default_tile;
+tile grass_tile = tile(grass_sprite, true);
+_dirt_tile dirt_tile;
+selector tileSelector;
 
 bool isInRadius(int ox, int oy, int px, int py, float r) {
 	int dx = ox - px;
 	int dy = oy - py;
 	return (dx * dx) + (dy * dy) < r * r;
+}
+
+bool isInRadius(sizei size, float r) {
+	return isInRadius(size.x, size.y, size.width, size.height, r);	
 }
 
 template<typename FUNCTION>
@@ -1080,35 +1155,34 @@ void tileRadiusLoop(int x, int y, float radius, FUNCTION func) {
 		for (int yy = y - radius; yy < y + radius; yy++) {
 			if (isInRadius(xx,yy,x,y,radius))
 				func(xx,yy);
-			//func(xx,yy);
 		}
 	}
+}
+
+template<typename FUNCTION>
+void tileRadiusLoop(posi p, float radius, FUNCTION func) {
+	tileRadiusLoop(p.x, p.y, radius, func);
 }
 
 std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria)(tileComplete), std::vector<tileComplete> &network) {
 	if (std::find(network.begin(), network.end(), current) != network.end())
 		return network;
+
 	if (current.partial == nullptr)
 		return network;
 
 	network.push_back(current);
 
-	int startX = current.tileX;
-	int startY = current.tileY;
+	posi p = current.size;
 
 	tileComplete q[4] = {
-		getComplete(startX + 1, startY),
-		getComplete(startX - 1, startY),
-		getComplete(startX, startY + 1),
-		getComplete(startX, startY - 1)
+		getComplete(p.north()),
+		getComplete(p.east()),
+		getComplete(p.south()),
+		getComplete(p.west())
 	};
 
 	for (int i = 0; i < 4; i++) {
-		//if (q[i].parent_plop_instance && q[i].parent_plop == current.parent_plop) {
-		//	walk_network(q[i], meetsCriteria, network);
-		//}
-
-
 		if (meetsCriteria(q[i])) {
 			walk_network(q[i], meetsCriteria, network);
 		}
@@ -1117,58 +1191,13 @@ std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria
 	return network;
 }
 
-void place(plop_instance *pi) {
-	for (tileComplete clr : pi->getTiles()) {
-		if (clr.parent_plop_instance != nullptr) {
-			clr.parent_plop_instance->onDestroy();
-			clr.parent_plop_instance->~plop_instance();
-		}
-	}
-
-	//tileComplete cmp = getComplete(pi->originX, pi->originY);
-	//if (cmp.parent_plop_instance != nullptr) {
-	//	cmp.parent_plop_instance->onDestroy();
-	//}
-	//if (pi == nullptr)
-	//	return;
-
-	if (std::find(plops.instances.begin(), plops.instances.end(), pi) == plops.instances.end())
-		plops.registerPlop(pi);
-
-	pi->onPlace();
-	//cmp.parent->onCreate(&cmp, pi->originX, pi->originY);
-	//cmp.parent->updateNeighbors(&cmp, pi->originX, pi->originY);
-}
-
-void place(int x, int y, plop *p) {
-	place(p->createInstance(x, y, p->width, p->height));
-}
-
-void destroy(int x, int y) {
-	tileComplete tc = getComplete(x, y);
-	tilePartial *tp = tc.partial;
-	tile *t = tiles::get(tp->id);
-	if (tc.parent_plop_instance != nullptr) {
-		tc.parent_plop_instance->onDestroy();
-		tc.parent_plop_instance->~plop_instance();
-	}
-	t->onDestroyEvent(tc);
-	//*tp = t->getDefaultState();
-	//tc.parent->updateNeighbors(&tc, x, y);
-}
-
 void init() {
 	srand(time(NULL));
 	
 	viewX = 0;
 	viewY = 0;
-	selectorX = 0;
-	selectorY = 0;
-	selectorTileId = 0;
+	
 	tileSelector = selector();
-	//tileSelector.selectedTile = tiles::get(selectorTileId);
-	tileSelector.selectedPlop = plops.getPlaceable(selectorTileId);
-	tileSelector.currentPlop = tileSelector.selectedPlop->createInstance();
 
 	scale = 4;
 	waterView = false;
@@ -1201,41 +1230,17 @@ void init() {
 	
 	tileMap = new tilePartial[tileMapWidth * tileMapHeight];
 
-	for (auto _ip : plops.instances) {
-		_ip->~plop_instance();
-	}
-
 	for (int y = 0; y < tileMapHeight; y++) {
 		for (int x = 0; x < tileMapWidth; x++) {
-			*getPartial(x,y) = tiles::GRASS->getDefaultState();
-			if (rand() % 2 == 0)
-			;//	*getPartial(x,y) = tiles::ROAD->getDefaultState();
-			if (rand() % 4 == 0)
-			;//	*getPartial(x,y) = tiles::WATER_TOWER->getDefaultState();
-			
-			
+			game.place({x,y}, grass_tile.clone());
+			if (rand() % 2 == 0);
+			if (rand() % 4 == 0);
 		}
 	}
-		/*
-			*getPartial(1,3) = tiles::COMMERCIAL_ZONE->getDefaultState();
-			*getPartial(2,2) = tiles::COMMERCIAL_ZONE->getDefaultState();
-			*getPartial(2,3) = tiles::ROAD->getDefaultState();
-			*getPartial(2,4) = tiles::COMMERCIAL_ZONE->getDefaultState();
-			*getPartial(3,3) = tiles::COMMERCIAL_ZONE->getDefaultState();
-			*/
 
-	//plop_instance* np = water_tower_plop.registerNewInstance(2,2,1,1);
-	//*getPartial(2,2) = plop_tile.getPlop(np);
-	place(2,2,&water_tower_plop);
-	
-	for (int y = 0; y < tileMapHeight; y++) {
-		for (int x = 0; x < tileMapWidth; x++) {
-			tileComplete cmp = getComplete(x,y);
-			cmp.parent->onPlaceEvent(cmp);
-			//getTile(getPartial(x,y))->onCreate(getPartial(x,y), x, y);
-			//getTile(getPartial(x,y))->onUpdate(getPartial(x,y), x, y);
-		}
-	}
+	game.place({0,0,tileMapWidth,tileMapHeight}, grass_tile.clone());
+
+	game.place({2,2}, water_tower_plop.clone());
 }
 
 void displayTileMap() {
@@ -1263,11 +1268,11 @@ void displayTileMap() {
 			//	continue;
 
 			if (waterView) {
-				tiles::DIRT->render(e);
+				dirt_tile.render(e);
 				if (!partial->hasUnderground(UNDERGROUND_WATER_PIPE))
 					continue;
 				//getTile(partial)->draw(partial, offsetx * width, offsety * height, width, height);
-				tiles::WATER_PIPE->render(e);
+				water_pipe_tile.render(e);
 				
 				continue;
 			}			
@@ -1287,7 +1292,7 @@ void displayTileMap() {
 			*/
 		}
 	}
-
+	/*
 	std::vector<plop_instance*> z_sort = plops.instances;
 
 	std::sort(z_sort.begin(), z_sort.end(), [](plop_instance *a, plop_instance *b) {
@@ -1300,6 +1305,7 @@ void displayTileMap() {
 
 		_pi->render();
 	}
+	*/
 }
 //0,0
 void display() {
@@ -1332,28 +1338,14 @@ void display() {
 		float offsetx2 = getOffsetX(corners[next + 1], corners[next]);// - (xfact / 2.0f);
 		float offsety2 = getOffsetY(corners[next + 1], corners[next]);// + (yfact / 2.0f);
 		adv::line(offsetx1 * width, offsety1 * height, offsetx2 * width, offsety2 * height, '#', FWHITE|BBLACK);
-		//	adv::triangle(offset)
 		adv::write(offsetx1 * width, offsety1 * height, 'X', FRED|BBLACK);
 	}
-	//return;
-	
+
 	displayTileMap();
 	
 	if (placementMode) {
-		int width = getWidth();
-		int height = getHeight();
-		//float offsetx = (((selectorY * 0.707106f) + (selectorX * 0.707106f)) * 0.707106f) + viewX;
-		//float offsety = (((selectorY * 0.707106f) - (selectorX * 0.707106f)) * 0.707106f) + viewY;
-		float offsetx = getOffsetX(selectorX, selectorY);
-		float offsety = getOffsetY(selectorX, selectorY);
-		tileComplete cmp;
-		tileEvent e(cmp);
-		tilePartial state = tileSelector.getDefaultState();
-		//tileSelector.draw(getComplete(&state, &tileSelector, selectorX, selectorY, &cmp), offsetx * width, offsety * height, width, height);
-		tileSelector.render(e);
+		tileSelector.render();
 	}
-
-	//water_well_plop.render(water_well_plop.createInstance(0,0,0,0));
 	
 	if (statsMode) {
 		const char *text[] = {
@@ -1421,16 +1413,17 @@ void display() {
 			int i = snprintf(&buf[0], 99, "%s: %f", varname, value);
 			adv::write(0,y++,&buf[0]);
 		};
-		printVar("selectorTileId", selectorTileId);
+		printVar("selectorTileId", tileSelector.selectedId);
 		printVar("viewX", viewX);
 		printVar("viewY", viewY);
 		printVar("scale", scale);
-		printVar("selectorX", selectorX);
-		printVar("selectorY", selectorY);
+		printVar("selectorX", tileSelector.origin.x);
+		printVar("selectorY", tileSelector.origin.y);
 		printVar("waterSupply", waterSupply);
 		printVar("waterDemand", waterDemand);
 		printVar("waterNetworks", waterNetworks);
-		printVar("plopCount", plops.instances.size());
+		printVar("instanceCount", registry.instances.size());
+		printVar("placeableCount", registry.placeable.size());
 		printVar("placementMode", placementMode ? 1.0f : 0.0f);
 		printVar("waterView", waterView ? 1.0f : 0.0f);
 		printVar("infoMode", infoMode ? 1.0f : 0.0f);
@@ -1469,12 +1462,17 @@ int wmain() {
 		fprintf(stderr, "Failed to open log file\n");
 		return 1;
 	}
-	fprintf(logFile, "Opened log %li\n", time(0));
+
+	fprintf(logFile, "[%li] Opened log\n", time(0));
 
 	colormapper_init_table();
 
+	fprintf(logFile, "[%li] Initialized color table\n", time(0));
+
 	texture = stbi_load("textures.png", (int*)&textureWidth, (int*)&textureHeight, &bpp, 0);
 	
+	fprintf(logFile, "[%li] Loaded texture\n", time(0));
+
 	//convert texture to wchar_t and color_t
 	texturechco = new ch_co_t[textureWidth * textureHeight];
 	
@@ -1488,25 +1486,25 @@ int wmain() {
 		}
 	}
 
+	fprintf(logFile, "[%li] Converted texture\n", time(0));
+
 	grass_sprite_random = new random_overlay(new sprite_overlay(&grass_sprite), &street_sprite);
-	
-	//while (!adv::ready) console::sleep(10);
-	
-	#ifdef __linux__
-	//curs_set(0);
-	//adv::setDrawingMode(DRAWINGMODE_COMPARE);
-	#endif
+
+	fprintf(logFile, "[%li] Set advanced console up\n", time(0));
+
 	adv::setThreadState(false);
 	adv::setThreadSafety(false);
-	
+
+	fprintf(logFile, "[%li] Game init\n", time(0));
+
 	init();
 	
 	int key = 0;
 	
 	auto tp1 = std::chrono::system_clock::now();
 	auto tp2 = std::chrono::system_clock::now();
-	
-	//fprintf(stderr, "Entering game loop\n");
+
+	fprintf(logFile, "[%li] Game loop\n", time(0));
 
 	while (true) {
 		key = console::readKeyAsync();
@@ -1520,22 +1518,22 @@ int wmain() {
 		if (placementMode) {
 			switch (key) {
 			case 'w':
-				selectorY--;
+				tileSelector.setPos(tileSelector.origin.north());
 				viewY+= yfact * yfact;
 				viewX+= xfact * xfact;
 				break;
 			case 's':
-				selectorY++;
+				tileSelector.setPos(tileSelector.origin.south());
 				viewY-= yfact * yfact;
 				viewX-= xfact * xfact;
 				break;
 			case 'd':
-				selectorX++;
+				tileSelector.setPos(tileSelector.origin.east());
 				viewX-= xfact * xfact;
 				viewY+= yfact * yfact;
 				break;
 			case 'a':
-				selectorX--;
+				tileSelector.setPos(tileSelector.origin.west());
 				viewX+= xfact * xfact;
 				viewY-= yfact * yfact;
 				break;			
@@ -1543,66 +1541,37 @@ int wmain() {
 			{
 				//Place
 				if (waterView) {
-					//tilePartial *partial = getPartial(selectorX, selectorY);
-					tileComplete cmp = getComplete(selectorX, selectorY);
-					//if (cmp.partial == nullptr)
-						//break;
+					tileComplete cmp = getComplete(tileSelector.origin);
 					cmp.partial->setUnderground(UNDERGROUND_WATER_PIPE);
-					tiles::WATER_PIPE->onPlaceEvent(cmp);
-					tiles::WATER_PIPE->updateNeighbors(cmp);
+					water_pipe_tile.onPlaceEvent(cmp);
+					water_pipe_tile.updateNeighbors(cmp);
 					break;
 				}
 
-				place(selectorX, selectorY, tileSelector.selectedPlop);
-				//tileComplete tc = getComplete(selectorX, selectorY);
-				//tilePartial *last = tc.partial;
-				//tc.parent->onDestroy(&tc, selectorX, selectorY);
-				//*getPartial(selectorX, selectorY) = last->transferProperties(tileSelector.selectedTile->getDefaultState());
-				//*getPartial(selectorX, selectorY) = plop_tile.getPlop(tileSelector.selectedPlop->registerNewInstance(selectorX, selectorY, 1, 1));
-				//tileComplete cmp = getComplete(selectorX, selectorY);
-				//cmp.parent->onCreate(&cmp, selectorX, selectorY);
-				//cmp.parent->updateNeighbors(&cmp, selectorX, selectorY);
-				
+				//Selected tile in its current state and size
+				game.place(tileSelector.selected.size, tileSelector.selected.parent);				
 			}
 				break;
 			case 'x':
 			{
+				//Destroy
 				if (waterView) {
-					tileComplete cmp = getComplete(selectorX, selectorY);
-					//if (cmp.partial == nullptr)
-					//	break;
-					tiles::WATER_PIPE->onDestroyEvent(cmp);
+					tileComplete cmp = getComplete(tileSelector.origin);
+					water_pipe_tile.onDestroyEvent(cmp);
 					//cmp.partial->setUnderground(0);
 					//tiles::WATER_PIPE->updateNeighbors(&cmp, selectorX, selectorY);
 					break;
 				}
 
-				destroy(selectorX, selectorY);
-				//tilePartial *last = getPartial(selectorX, selectorY);
-				//*getPartial(selectorX, selectorY) = last->transferProperties(tiles::GRASS->getDefaultState());
-				//tileComplete cmp = getComplete(selectorX, selectorY);
-				//cmp.parent->updateNeighbors(&cmp, selectorX, selectorY);
+				//Destroy tile selector selected (which isn't meant for this)
+				game.destroy(tileSelector.selected.size);
 			}
-			//Destroy
 				break;
 			case '2':
-				selectorTileId++;
-				//if (selectorTileId > TILE_COUNT - 1)
-				if (selectorTileId > plops.getPlaceableCount() - 1)
-					selectorTileId = 0;
-				//tileSelector.selectedTile = tiles::get(selectorTileId);
-				tileSelector.selectedPlop = plops.getPlaceable(selectorTileId);
-				tileSelector.currentPlop = tileSelector.selectedPlop->createInstance();
+				tileSelector.next();
 				break;
 			case '1':
-				selectorTileId--;
-				if (selectorTileId < 0)
-					//selectorTileId = TILE_COUNT - 1;
-					selectorTileId = plops.getPlaceableCount() - 1;
-
-				//tileSelector.selectedTile = tiles::get(selectorTileId);
-				tileSelector.selectedPlop = plops.getPlaceable(selectorTileId);
-				tileSelector.currentPlop = tileSelector.selectedPlop->createInstance();
+				tileSelector.next();
 				break;
 			}			
 		}
@@ -1678,17 +1647,14 @@ int wmain() {
 		tp2 = std::chrono::system_clock::now();
 		std::chrono::duration<float> elapsedTime = tp2 - tp1;
 		float elapsedTimef = std::chrono::duration_cast< std::chrono::microseconds>(elapsedTime).count() / 1000.0f;
-		//std::chrono::duration<float, std::milli> elapsedTimef = t2 - t1;
 		tp1 = tp2;
 			
-		//if (elapsedTimef < frametime)
-		//	console::sleep(frametime - elapsedTimef);
-		//console::sleep(20);
 		adv::waitForReadyFrame();
+
 		{
 			char buf[50];
-			snprintf(&buf[0], 49, "%.1f fps - %.1f ms ft", (1.0f/elapsedTimef)*1000.0f, elapsedTimef);
-			adv::write(adv::width/2.0f-(strlen(&buf[0])/2.0f), 0, &buf[0]);
+			int len = snprintf(&buf[0], 49, "%.1f fps - %.1f ms ft", (1.0f/elapsedTimef)*1000.0f, elapsedTimef);
+			adv::write(getScreenOffsetX(0.5, len), 0, &buf[0]);
 		}
 		
 		adv::draw();
@@ -1707,7 +1673,8 @@ int wmain() {
 				tc.parent->onRandomEvent(tc);
 				
 				if (tc.partial->hasUnderground(UNDERGROUND_WATER_PIPE))
-					((water_pipe*)(tiles::WATER_PIPE))->updateWater(tc);
+					//((water_pipe*)(tiles::WATER_PIPE))->updateWater(tc);
+					water_pipe_tile.onUpdateEvent(tc);
 			}
 		}
 		
@@ -1779,6 +1746,7 @@ int wmain() {
 				waterDemand = 0;
 				waterSupply = 0;
 
+				/*
 				//Network summary
 				for (auto _ip : plops.instances) {
 					if (!_ip->properties || !_ip->properties->water)
@@ -1788,12 +1756,6 @@ int wmain() {
 						waterSupply += _ip->properties->water->getValue(); 
 					else
 						waterDemand += abs(_ip->properties->water->getMax());
-					/*
-					if (_ip->waterSupply())
-						waterSupply += _ip->waterUsage();
-					else
-						waterDemand += abs(_ip->waterUsage());
-					*/
 				}
 
 				//form water supply networks and distribute available water
@@ -1943,6 +1905,7 @@ int wmain() {
 					}
 
 				}
+				*/
 
 				break;
 			}

@@ -9,6 +9,10 @@ struct pixel;
 
 template<typename T>
 struct _pos {
+    _pos(const _pos<T> &p) {
+        x = p.x;
+        y = p.y;
+    }
     _pos(T x, T y) {
         this->x = x;
         this->y = y;
@@ -20,6 +24,16 @@ struct _pos {
     bool operator==(_pos<T> &p) {
         return x == p.x && y == p.y;
     }
+    _pos<T> operator+(_pos<T> &p) {
+        return {x + p.x, y + p.y};
+    }
+    _pos<T> add(T x, T y) {
+        return {this->x + x, this->y + y};
+    }
+    _pos<T> north(){return add(0, -1);}
+    _pos<T> south(){return add(0, 1);}
+    _pos<T> east(){return add(1, 0);}
+    _pos<T> west(){return add(-1, 0);}
     T x, y;
 };
 
@@ -28,6 +42,10 @@ struct _size : public _pos<T> {
     _size(T x, T y, T width, T height) {
         this->x = x;
         this->y = y;
+        this->width = width;
+        this->height = height;
+    }
+    _size(const _pos<T> &p, T width, T height): _pos<T>(p) {
         this->width = width;
         this->height = height;
     }
@@ -41,6 +59,9 @@ struct _size : public _pos<T> {
     }
     bool operator==(_size<T> &s) {
         return ((_pos<T>*)this)->operator==(s) && width == s.width && height == s.height;
+    }
+    _size<T> operator+(_size<T> &s) {
+        return {this->x + s.width, this->y + s.height, width + s.width, height + s.height};
     }
     T width, height;
 };
@@ -114,6 +135,19 @@ float getWidth() {
 
 float getHeight() {
 	return 1.0f * scale;
+}
+
+float getScreenOffset(float ratio, float length, int offset_length) {
+    int center = offset_length * ratio;
+    return center - (length / 2);   
+}
+
+float getScreenOffsetX(float ratio, float width) {
+    return getScreenOffset(ratio, width, adv::width);
+}
+
+float getScreenOffsetY(float ratio, float height) {
+    return getScreenOffset(ratio, height, adv::height);
 }
 
 pixel sampleImage(float x, float y) { 
