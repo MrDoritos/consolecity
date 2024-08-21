@@ -200,6 +200,9 @@ struct tileComplete {
 	bool operator==(tileComplete b) {
 		return coordsEquals(b);
 	}
+	bool operator<(tileComplete b) {
+		return size.x < b.size.x || size.y < b.size.y;
+	}
 
 	tileBase *parent;
 	tilePartial *partial;
@@ -249,11 +252,20 @@ bool statsMode;
 bool queryMode;
 
 enum EVENT {
-	PLACE = 1, DESTROY = 2, UPDATE = 3, RANDOM = 4, NETWORK = 5
+	PLACE = 1, DESTROY = 2, UPDATE = 4, RANDOM = 8, NETWORK = 16
 };
 
 enum FLAG {
-	FORCE = 1
+	FORCE = 1,
+	TICK = 2,
+	WATER = 4,
+	POWER = 8,
+	POLLUTION = 16,
+	CRIME = 32,
+	HEALTH = 64,
+	EDUCATION = 128,
+	TRAFFIC = 256,
+	WEALTH = 512
 };
 
 struct tileEvent : public tileComplete {
@@ -312,11 +324,141 @@ struct tileEventHandler {
 	virtual void onNetworkEvent(tileEvent e) {}
 };
 
-struct networkProvider {
+typedef float net_t;
 
+struct network_value {
+	network_value() {
+		supply = 0;
+		demand = 0;
+		stored = 0;
+	}
+	network_value(net_t network_val):network_value() {
+		if (network_val > 0) {
+			supply = network_val;
+		} else {
+			demand = network_val;
+		}
+	}
+	network_value(net_t supply, net_t demand)
+	:supply(supply),demand(demand),stored(0) {}
+
+	//Demand for network
+	virtual net_t getDemand() {
+		return demand - stored;
+	}
+	//Supply for network
+	virtual net_t getSupply() {
+		return stored;
+	}
+
+	virtual net_t give(net_t amount) {
+		net_t need = getDemand();
+		if (amount > need) {
+			amount = need;
+			stored += amount;
+		} else {
+			stored += amount;
+			amount = 0;
+		}
+		return amount;
+	}
+
+	virtual net_t take(net_t amount) {
+		net_t have = getSupply();
+		if (amount > have) {
+			amount = have;
+			stored = 0;
+		} else {
+			stored -= amount;
+		}
+		return amount;
+	}
+
+	virtual bool isSupply() {
+		return getSupply() > getDemand();
+	}
+
+	virtual bool isDeficit() {
+		return getSupply() < getDemand();
+	}
+
+	virtual bool isSaturated() {
+		return getSupply() == getDemand();
+	}
+
+	virtual void onNetworkEvent(tileEvent e) {
+		if (e.flags & TICK) {
+			give(supply);
+			take(demand);
+		}
+	}
+
+	private:
+	net_t supply;
+	net_t stored;
+	net_t demand;
 };
 
-networkProvider no_provider;
+struct network_provider {
+	float efficiency; //0-1
+	float funding;
+	float monthlyCost;
+
+	network_value *water = 0;
+	network_value *power = 0;
+	network_value *pollution = 0;
+	network_value *crime = 0;
+	network_value *health = 0;
+	network_value *education = 0;
+	network_value *traffic = 0;
+	network_value *wealth = 0;
+
+	virtual std::vector<network_value*> getList() {
+		std::vector<network_value*> values;
+		network_value *array[8] = {
+			water,power,pollution,crime,health,education,traffic,wealth
+		};
+		for (int i = 0; i < 8; i++) {
+			if (array[i] != 0)
+				values.push_back(array[i]);
+		}
+		return values;
+	}
+
+	virtual void free() {
+		for (auto value : getList())
+			if (value != nullptr)
+				delete value;
+		delete this;
+	}
+
+	virtual network_value *getNetwork(tileEvent e) {
+		if (e.flags & WATER)
+			return water;
+		if (e.flags & POWER)
+			return power;
+		if (e.flags & POLLUTION)
+			return pollution;
+		if (e.flags & CRIME)
+			return crime;
+		if (e.flags & HEALTH)
+			return health;
+		if (e.flags & EDUCATION)
+			return education;
+		if (e.flags & TRAFFIC)
+			return traffic;
+		if (e.flags & WEALTH)
+			return wealth;
+		return nullptr;
+	}
+
+	virtual void onNetworkEvent(tileEvent e) {
+		for (auto value : getList())
+			value->onNetworkEvent(e);
+	}
+};
+
+network_provider no_provider;
 
 struct tileBase;
 
@@ -352,8 +494,9 @@ struct _game {
 	void destroy(sizei size);
 	void place(sizei size, tileBase *base);
 	void fireEvent(tileEvent e);
-	void fireEvent(tileEvent e, int event);
-	void fireEvent(sizei size, int event);
+	void fireEvent(tileEvent e, int events);
+	void fireEvent(sizei size, int events);
+	void fireEvent(sizei size, int events, int flags);
 } game; //singleton for the game
 
 struct tileBase : public tileEventHandler {
@@ -417,12 +560,15 @@ struct tileBase : public tileEventHandler {
 	virtual void copyState(tilePartial *tile) {
 		*tile = getDefaultState();
 	}
-	virtual networkProvider *getNetworkProvider(tileEvent e) {
+	virtual network_provider *getNetworkProvider(tileEvent e) {
 		return nullptr;
 	}
 	virtual plop *getPlop(tileEvent e) {
 		if (e.partial->isPlop() && e.partial->getPlopId() == id)
 			return (plop*)registry.getInstance(e.partial->getPlopId());
+		return nullptr;
+	}
+	virtual plop *getPlop() {
 		return nullptr;
 	}	
 	virtual std::vector<tileComplete> getTiles(tileEvent e) {
@@ -520,7 +666,7 @@ struct tile : public tileBase {
 		tile->id = id;
 	}
 
-	networkProvider *getNetworkProvider(tileEvent e) override {
+	network_provider *getNetworkProvider(tileEvent e) override {
 		return &no_provider;
 	}
 
@@ -549,104 +695,6 @@ struct tileable : public tile {
 	}
 };
 
-typedef float net_t;
-
-struct plop_network_value {
-	plop_network_value(net_t min, net_t max, net_t value) {
-		this->value = value;
-		this->min = min;
-		this->max = max;
-	}
-
-	virtual bool isSaturated() { return abs(max) <= abs(value); }
-
-	virtual bool isDepleted() { return abs(min) >= abs(value); }
-
-	virtual bool isSupply() { return value > 0 || max > 0; }
-	
-	virtual net_t getValue() { return value; }
-
-	virtual net_t getMin() { return min; }
-
-	virtual net_t getMax() { return max; }
-
-	/*
-	Try to add value to the current value, returns the amount that was not added or subtracted
-
-
-
-	Ex:
-	Consumer
-		Max: -800
-		Value: -200
-		Min: 0
-		Tmp: 500
-		Amount: 300
-		Return: 300
-
-		Final values
-		Max: -800
-		Value: -500 
-		Min: 0
-	*/
-	virtual net_t addValue(net_t amount) {
-		net_t tmp = abs(value) + amount;
-		fprintf(logFile, "Adding value: %f %f %f %f\n", value, amount, tmp, value - tmp);
-
-		if (abs(tmp) > abs(max))
-			value = max;
-		else
-		if (abs(tmp) < abs(min))
-			value = min;
-		else {
-			value = tmp;
-			if (max < 0) {
-				value = -tmp;
-			}
-		}
-
-		return amount - (tmp + value);
-	}
-
-	virtual void setMax(net_t max) { this->max = max; }
-
-	virtual void setMin(net_t min) { this->min = min; }
-
-	virtual void setValue(net_t value) { this->value = value; }
-	
-	protected:
-	net_t value;
-	net_t min;
-	net_t max;
-};
-
-struct plop_network_static : public plop_network_value {
-	plop_network_static(net_t min, net_t max, net_t value) : plop_network_value(min, max, value) {
-	}
-
-	virtual net_t addValue(net_t amount) {
-		return 0;
-	}
-};
-
-struct plop_properties {
-	plop_properties() {
-
-	}
-
-	float efficiency; //0-1
-	float funding;
-	float monthlyCost;
-
-	plop_network_value *water = 0;
-	plop_network_value *power = 0;
-	plop_network_value *pollution = 0;
-	plop_network_value *crime = 0;
-	plop_network_value *health = 0;
-	plop_network_value *education = 0;
-	plop_network_value *traffic = 0;
-	plop_network_value *wealth = 0;
-};
 /*
 Now the instance
 */
@@ -669,6 +717,7 @@ struct plop : public tileBase {
 	plop() {
 		size = sizei(0,0,1,1);
 		tex = nullptr;
+		net = nullptr;
 	}
 
 	~plop() {
@@ -706,6 +755,10 @@ struct plop : public tileBase {
 	}
 
 	plop *getPlop(tileEvent e) override {
+		return this;
+	}
+
+	plop *getPlop() override {
 		return this;
 	}
 
@@ -776,6 +829,10 @@ struct plop : public tileBase {
 		*/
 	}
 
+	network_provider *getNetworkProvider(tileEvent e) override {
+		return net;
+	}
+
 	/*
 	//always part of the plop, not the tile
 	//some of these are examples for brainstorming
@@ -800,8 +857,7 @@ struct plop : public tileBase {
 	int initial_id;
 	sizei size;
 	sprite *tex;
-	plop_properties *prop;
-	networkProvider *net;
+	network_provider *net;
 };
 
 struct plop_connecting : public plop {
@@ -820,22 +876,27 @@ struct plop_connecting : public plop {
 	}
 };
 
-struct water_provider_plop : public plop {
-	water_provider_plop(sprite *tex, net_t water_creation, int plop_width = 1, int plop_height = 1, bool placeable=false):plop(tex,plop_width,plop_height,placeable) {
-		fprintf(logFile, "Water provider plop created: %f\n", water_creation);
-		this->water_creation = water_creation;
-	}
-
-	net_t water_creation;
-};
-
 struct network_provider_plop : public plop {
 	network_provider_plop(sprite *tex, net_t water, net_t power, int plop_width = 1, int plop_height = 1, bool placeable=false):plop(tex,plop_width,plop_height,placeable) {
-		_water = water;
-		_power = power;
+		this->net = new network_provider();
 	}
 
-	net_t _water, _power;
+	void free() override {
+		net->free();
+		delete this;
+	}
+
+	tileBase *clone() {
+		network_provider_plop* p = (network_provider_plop*)plop::clone<network_provider_plop>(this);
+		p->net = new network_provider();
+		return p;
+	}
+};
+
+struct water_provider_plop : public network_provider_plop {
+	water_provider_plop(sprite *tex, net_t water_creation, int plop_width = 1, int plop_height = 1, bool placeable=false):network_provider_plop(tex, water_creation, 0,plop_width,plop_height,placeable) {
+		fprintf(logFile, "Water provider plop created: %f\n", water_creation);
+	}
 };
 
 water_provider_plop water_tower_plop(&water_tower_sprite, 1200.0f, 1, 1, true);
@@ -882,6 +943,12 @@ tileComplete getComplete(int x, int y) {
 
 tileComplete getComplete(posi p) {
 	return getComplete(p.x,p.y);
+}
+
+tileEvent getEvent(sizei p) {
+	tileEvent e = getComplete(p);
+	e.size = p;
+	return e;
 }
 
 struct selector : public tile {	
@@ -1016,12 +1083,16 @@ std::vector<tileComplete> _game::getTiles(sizei size) {
 	return tiles;
 }
 
-void _game::fireEvent(sizei size, int event) {
-	fireEvent(getComplete(size), event);
+void _game::fireEvent(sizei size, int events) {
+	fireEvent(getEvent(size), events);
 }
 
-void _game::fireEvent(tileEvent e, int event) {
-	fireEvent(e.with(event));
+void _game::fireEvent(tileEvent e, int events) {
+	fireEvent(e.with(events));
+}
+
+void _game::fireEvent(sizei size, int events, int flags) {
+	fireEvent(getEvent(size).with(events,flags));
 }
 
 void _game::fireEvent(tileEvent e) {
@@ -1396,6 +1467,31 @@ bool isWaterNetwork(tileComplete tc) {
 	return tc.partial->hasUnderground(UNDERGROUND_WATER_PIPE);
 }
 
+network_value *getNetwork(tileEvent e, int type) {
+	network_provider *a;
+	network_value *b;
+
+	if (e.parent != nullptr) {
+		a = e.parent->getNetworkProvider(e);
+		if (a != nullptr) {
+			b = a->getNetwork(e.with(0, type));
+			if (b != nullptr)
+				return b;
+		}
+	}
+
+	if (e.plop_instance != nullptr) {
+		a = e.plop_instance->getNetworkProvider(e);
+		if (a != nullptr) {
+			b = a->getNetwork(e.with(0, type));
+			if (b != nullptr)
+				return b;
+		}
+	}
+
+	return nullptr;
+}
+
 int wmain() {	
 	logFile = fopen("log.txt", "a");
 	if (!logFile) {
@@ -1680,16 +1776,21 @@ int wmain() {
 				waterDemand = 0;
 				waterSupply = 0;
 
-				/*
 				//Network summary
-				for (auto _ip : plops.instances) {
-					if (!_ip->properties || !_ip->properties->water)
+				//Not tile based yet
+				for (auto _ib : registry.instances) {
+					if (_ib == nullptr)
+						continue;
+					plop *_ip = _ib->getPlop();
+					if (_ip == nullptr)
 						continue;
 
-					if (_ip->properties->water->isSupply())
-						waterSupply += _ip->properties->water->getValue(); 
-					else
-						waterDemand += abs(_ip->properties->water->getMax());
+					network_value* water = getNetwork(getComplete(_ip->size), WATER);
+					if (water == nullptr)
+						continue;
+
+					waterSupply += water->getSupply();
+					waterDemand += water->getDemand();
 				}
 
 				//form water supply networks and distribute available water
@@ -1698,13 +1799,12 @@ int wmain() {
 				for (int x = 0; x < tileMapWidth; x++) {
 					for (int y = 0; y < tileMapHeight; y++) {
 						tileComplete tile = getComplete(x, y);
-						plop_instance *_ip = tile.parent_plop_instance;
 
-						if (!tile.partial->hasUnderground(UNDERGROUND_WATER_PIPE))
-							continue; // No production, not a water supply, or not a water pipe
+						if (!isWaterNetwork(tile))
+							continue; // Sources don't count without network connection
 
-						//if (_ip && _ip->waterUsage() <= 0)
-						if (_ip && _ip->properties && _ip->properties->water && !_ip->properties->water->isSupply())
+						network_value *water = getNetwork(tile, WATER);
+						if (water == nullptr || water->isDeficit())
 							continue;
 
 						bool newNetwork = true;
@@ -1729,39 +1829,30 @@ int wmain() {
 					tileMap[i].setWater(false);
 				}
 
-				//reset consumer values
-				for (auto ip : plops.instances) {
-					//if (ip->waterSupply())
-					//	continue;
-					//ip->water = 0;
-					if (!ip || !ip->properties || !ip->properties->water)
-						continue;
-
-					if (ip->properties->water->isSupply())
-						continue;
-
-					ip->properties->water->setValue(0);
-				}
+				//send network signal
+				game.fireEvent({0,0,tileMapWidth,tileMapHeight}, NETWORK, WATER|TICK);
 
 				fprintf(logFile, "Water calculuation, current network count: %li, iter count: %i\n", networks.size(), waterNetworks);
 
 				//eh to test we'll set good networks with water
 				for (auto network : networks) {
-					std::set<plop_instance*> waterUsers;
-					std::set<plop_instance*> waterProviders;
+					std::vector<tileComplete> waterUsers;
+					std::vector<tileComplete> waterProviders;
 
 					//abs(tile.parent_plop_instance->waterUsage()) > 0.0f
 
 					float input = 0, output = 0;
 
-					for (auto tile : network) { //find water users
-						//if (tile.parent_plop_instance && tile.parent_plop_instance->waterSupply()) {
-						if (tile.parent_plop_instance && tile.parent_plop_instance->properties && tile.parent_plop_instance->properties->water && tile.parent_plop_instance->properties->water->isSupply()) {
-							if (waterProviders.find(tile.parent_plop_instance) != waterProviders.end())
-								continue; //if already accounted for, skip it
-							waterProviders.insert(tile.parent_plop_instance);
+					for (auto tile : network) { //find water providers
+						network_value* water = getNetwork(tile, WATER);
+						if (water == nullptr)
+							continue;
+						if (std::find(waterProviders.begin(), waterProviders.end(), tile) != waterProviders.end())
+							continue; //if already accounted for, skip it
+						if (water->isSupply()) {
+							waterProviders.push_back(tile);
 							//input += tile.parent_plop_instance->waterUsage();
-							input += tile.parent_plop_instance->properties->water->getValue();
+							input += water->getSupply();
 						}
 					}
 					
@@ -1772,17 +1863,17 @@ int wmain() {
 
 					//search radius for water users
 					for (auto tile : network) {
-						tileRadiusLoop(tile.tileX, tile.tileY, 5, [&](int x, int y) {
+						tileRadiusLoop(tile.size, 5, [&](int x, int y) {
 							tileComplete tc = getComplete(x, y);
-							if (tc.partial == nullptr)
+							network_value *water = getNetwork(tc, WATER);
+							if (water == nullptr)
 								return;
-							//if (tc.parent_plop_instance && tc.parent_plop_instance->waterUsage() < 0) {
-							if (tc.parent_plop_instance && tc.parent_plop_instance->properties && tc.parent_plop_instance->properties->water && !tc.parent_plop_instance->properties->water->isSupply()) {
-								if (waterUsers.find(tc.parent_plop_instance) != waterUsers.end())
-									return; //if already accounted for, skip it
-								waterUsers.insert(tc.parent_plop_instance);
-								//output += abs(tc.parent_plop_instance->waterUsage());
-								output += abs(tc.parent_plop_instance->properties->water->getMax());
+							if (std::find(waterUsers.begin(), waterUsers.end(), tile) != waterUsers.end())
+								return; //if already accounted for, skip it
+								
+							if (water->isDeficit()) {
+								waterUsers.push_back(tile);
+								output += water->getDemand();
 							}
 						});
 					}
@@ -1802,8 +1893,7 @@ int wmain() {
 					//blindly set water based on radius
 					for (auto tile : network) {
 						tile.partial->setWater(true);
-						//int dr = 5;
-						tileRadiusLoop(tile.tileX, tile.tileY, radius, [&](int x, int y) {
+						tileRadiusLoop(tile.size, radius, [&](int x, int y) {
 							tileComplete tc = getComplete(x, y);
 							if (tc.partial == nullptr)
 								return;
@@ -1813,11 +1903,11 @@ int wmain() {
 					}
 
 					for (auto user : waterUsers) {
-						//user->water = 0;
-						user->properties->water->setValue(0);
-						tileRadiusLoop(user->originX, user->originY, radius, [&](int x, int y) {
-							//if (user->isWellWatered() || user->waterSupply())
-							if (user->properties->water->isSaturated() || user->properties->water->isSupply()) {
+						network_value *water = getNetwork(user, WATER);
+						if (water == nullptr)
+							continue;
+						tileRadiusLoop(user.size, radius, [&](int x, int y) {
+							if (water->isSaturated() || water->isSupply()) {
 								fprintf(logFile, "Saturated or supply\n");
 								return;
 							}
@@ -1826,20 +1916,15 @@ int wmain() {
 							if (!isWaterNetwork(tc))
 								return;
 							
-							//float desiredWater = abs(user->waterUsage());
-							//if (input >= desiredWater) {
-							//	input -= desiredWater;
-							//	user->water += desiredWater;
-							//}
 							fprintf(logFile, "Calc water\n");
-							input -= user->properties->water->addValue(-input); 
+							input = water->give(input);
 						});
 
-						fprintf(logFile, "Water user %f/%f (%f)\n", user->properties->water->getValue(), user->properties->water->getMax(), input);
+						fprintf(logFile, "Water user %f/%f (%f)\n", water->getDemand(), water->getSupply(), input);
 					}
 
 				}
-				*/
+
 
 				break;
 			}
