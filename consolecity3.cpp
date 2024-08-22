@@ -532,9 +532,7 @@ struct tileBase : public tileEventHandler {
 
 		Performs register if needed
 	*/
-	virtual tileBase *clone() {
-		return this;
-	}
+	virtual tileBase *clone() = 0;
 	virtual bool isSameType(tileComplete tc) {
 		return tc.parent == this;
 	}
@@ -673,6 +671,14 @@ struct tile : public tileBase {
 	plop *getPlop(tileEvent e) override {
 		return nullptr;
 	}
+
+	plop *getPlop() override {
+		return nullptr;
+	}
+
+	tileBase *clone() override {
+		return this;
+	}
 	
 	void updateNeighbors(tileEvent e) {
 		tileComplete neighbors[4];
@@ -692,6 +698,10 @@ struct tileable : public tile {
 		bool con[4];
 		getConnections(e, &con[0]);
 		tex_connecting.draw_connections(getRenderArea(e), &con[0]);
+	}
+
+	tileBase *clone() override {
+		return this;
 	}
 };
 
@@ -889,6 +899,7 @@ struct network_provider_plop : public plop {
 	tileBase *clone() {
 		network_provider_plop* p = (network_provider_plop*)plop::clone<network_provider_plop>(this);
 		p->net = new network_provider();
+		fprintf(logFile, "clone network_provider_plop %i %p %p %p\n", id, this, registry.getInstance(id), p);
 		return p;
 	}
 };
@@ -896,6 +907,14 @@ struct network_provider_plop : public plop {
 struct water_provider_plop : public network_provider_plop {
 	water_provider_plop(sprite *tex, net_t water_creation, int plop_width = 1, int plop_height = 1, bool placeable=false):network_provider_plop(tex, water_creation, 0,plop_width,plop_height,placeable) {
 		fprintf(logFile, "Water provider plop created: %f\n", water_creation);
+	}
+
+	void free() override {
+		network_provider_plop::free();
+	}
+
+	tileBase *clone() {
+		return network_provider_plop::clone();
 	}
 };
 
@@ -1209,7 +1228,7 @@ void init() {
 	viewX = 1;
 	viewY = 2;
 	
-	tileSelector = selector();
+	new (&tileSelector)selector();
 	tileSelector.setPos({3,3});
 
 	scale = 10;
@@ -1252,8 +1271,8 @@ void init() {
 	}
 
 	game.place({0,0,tileMapWidth,tileMapHeight}, grass_tile.clone());
-
-	game.place({2,2,1,1}, water_tower_plop.clone());
+	fprintf(logFile, "grass_tile %p\n", grass_tile.clone());
+	//game.place({2,2,1,1}, water_tower_plop.clone());
 }
 
 void displayTileMap() {
@@ -1776,16 +1795,28 @@ int wmain() {
 				waterDemand = 0;
 				waterSupply = 0;
 
+				std::vector<tileBase*> frozen_instances = registry.instances;
 				//Network summary
 				//Not tile based yet
-				for (auto _ib : registry.instances) {
+				for (tileEventHandler *_teh : frozen_instances) {
+					if (_teh == nullptr)
+						continue;
+					tileBase *_ib = (tileBase*)_teh;
 					if (_ib == nullptr)
 						continue;
-					plop *_ip = _ib->getPlop();
-					if (_ip == nullptr)
+					fprintf(logFile, "Instance %i %p %p\n", _ib->id, _ib, registry.getInstance(_ib->id));
+					fflush(logFile);
+					if (_ib->getNetworkProvider(tileComplete()) == nullptr) {
+						fprintf(logFile, "No network provider %p\n", _ib);
+						fflush(logFile);
 						continue;
+					}
+					if (registry.getInstance(_ib->id)->getPlop() == nullptr)
+						continue;
+					plop *p = (plop*)_ib;
 
-					network_value* water = getNetwork(getComplete(_ip->size), WATER);
+					tileComplete tc = getComplete(p->size);
+					network_value* water = getNetwork(tc, WATER);
 					if (water == nullptr)
 						continue;
 
