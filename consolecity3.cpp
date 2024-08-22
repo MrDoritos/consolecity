@@ -7,6 +7,7 @@
 #include "sprites.h"
 
 struct default_tile;
+struct _game;
 struct grass;
 struct plop;
 struct tile;
@@ -15,18 +16,19 @@ struct tileEvent;
 struct tilePartial;
 struct tileComplete;
 
-tilePartial *getPartial(int, int);
-tileComplete getComplete(int, int);
+tilePartial *getPartial(int x, int y);
+tilePartial *getPartial(posi p);
+tileComplete getComplete(int x, int y);
+tileComplete getComplete(posi p);
 
 #define ZONING_NONE 0
 #define ZONING_RESIDENTIAL 1
 #define ZONING_COMMERCIAL 2
 #define ZONING_INDUSTRIAL 3
-#define TILE_COUNT 12
 #define NORTH 1
 #define EAST 2
-#define WEST 4
-#define SOUTH 8
+#define SOUTH 4
+#define WEST 8
 #define NORTH_F x,y-1
 #define EAST_F x+1,y
 #define WEST_F x-1,y
@@ -84,6 +86,60 @@ Clinic, hospital
 Elementary school, high school, college
 Fire station, police station
 */
+
+tilePartial *tileMap = nullptr;
+int tileMapHeight = 100;
+int tileMapWidth = 100;
+
+FILE *logFile = stderr;
+
+float waterSupply;
+float waterDemand;
+int waterNetworks;
+
+int commercialJobs;
+int commercialPopulation;
+float commercialDemand;
+int industrialJobs;
+int industrialPopulation;
+float industrialDemand;
+int residentialCapacity;
+int population;
+float residentialDemand;
+float environment;
+float health;
+float safety;
+float traffic;
+float education;
+float landvalue;
+
+int microday;
+int day;
+int month;
+
+bool placementMode;
+bool waterView;
+bool infoMode;
+bool statsMode;
+bool queryMode;
+
+enum EVENT {
+	PLACE = 1, DESTROY = 2, UPDATE = 4, RANDOM = 8, NETWORK = 16
+};
+
+enum FLAG {
+	FORCE = 1,
+	TICK = 2,
+	WATER = 4,
+	POWER = 8,
+	POLLUTION = 16,
+	CRIME = 32,
+	HEALTH = 64,
+	EDUCATION = 128,
+	TRAFFIC = 256,
+	WEALTH = 512,
+	SILENT = 1024
+};
 
 /*
 Struct for data stored within the game engine tile map
@@ -208,65 +264,6 @@ struct tileComplete {
 	tilePartial *partial;
 	plop *plop_instance;
 	sizei size;
-};
-
-tilePartial *tileMap = nullptr;
-int tileMapHeight = 100;
-int tileMapWidth = 100;
-
-FILE *logFile = stderr;
-
-tilePartial *getPartial(int x, int y);
-tilePartial *getPartial(posi p);
-tileComplete getComplete(int x, int y);
-tileComplete getComplete(posi p);
-
-float waterSupply;
-float waterDemand;
-int waterNetworks;
-
-int commercialJobs;
-int commercialPopulation;
-float commercialDemand;
-int industrialJobs;
-int industrialPopulation;
-float industrialDemand;
-int residentialCapacity;
-int population;
-float residentialDemand;
-float environment;
-float health;
-float safety;
-float traffic;
-float education;
-float landvalue;
-
-int microday;
-int day;
-int month;
-
-bool placementMode;
-bool waterView;
-bool infoMode;
-bool statsMode;
-bool queryMode;
-
-enum EVENT {
-	PLACE = 1, DESTROY = 2, UPDATE = 4, RANDOM = 8, NETWORK = 16
-};
-
-enum FLAG {
-	FORCE = 1,
-	TICK = 2,
-	WATER = 4,
-	POWER = 8,
-	POLLUTION = 16,
-	CRIME = 32,
-	HEALTH = 64,
-	EDUCATION = 128,
-	TRAFFIC = 256,
-	WEALTH = 512,
-	SILENT = 1024
 };
 
 struct tileEvent : public tileComplete {
@@ -473,7 +470,6 @@ struct network_provider {
 
 network_provider no_provider;
 
-struct tileBase;
 
 struct instance_registry {
 	instance_registry() {
@@ -503,6 +499,7 @@ struct instance_registry {
 } registry; //registry of game tiles and plops
 
 struct _game {
+	void init(sizei size);
 	std::vector<tileComplete> getTiles(sizei size);
 	void destroy(sizei size);
 	void destroy(tileEvent e);
@@ -904,17 +901,12 @@ network_provider_plop water_pump_large_plop(&large_water_pump_sprite, 24000.0f, 
 
 plop_connecting road_plop(&road_con_tex_sprite);
 plop_connecting street_plop(&street_con_tex_sprite);
-//plop_connecting water_pipe_plop(new sprite(3,1,1,1));
 plop_connecting pool_plop(&pool_con_tex_sprite);
 
 network_provider_plop tall_building_plop(&tall_building_sprite, -800, -400, 1, 1, true);
 network_provider_plop building1_plop(&building1_sprite, -400, 200, 1, 1, true);
 plop building2_plop(&building2_sprite, 2, 1);
 plop building3_plop(&building3_sprite, 2, 2);
-
-void init_plops() {
-	
-}
 
 tilePartial partially_garbage;
 
@@ -1264,7 +1256,7 @@ std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria
 	return network;
 }
 
-void init() {
+void _game::init(sizei mapsize) {
 	srand(time(NULL));
 	
 	viewX = 1;
@@ -1416,25 +1408,15 @@ void centerDisplay() {
 	viewY = selectedOffset.y + getOffsetY(off);
 
 	//posf tileOffset = {40,20};
-	posf tileOffset = {adv::width / 4.0, adv::height / 2.0};
+	posf tileOffset = {adv::width / 4.0f, adv::height / 2.0f};
+	
+	//I don't know how this works
 
 	viewX = selectedOffset.x + (tileOffset.x / scale); //5
 	viewY = selectedOffset.y + (tileOffset.y / scale); //2
 }
 
-void display() {
-	if (placementMode)
-		centerDisplay();
-	{
-		int width = getWidth();
-		int height = getHeight();
-		for (int x = 0; x < adv::width; x++) {
-			for (int y = 0; y < adv::height; y++) {
-				//adv::write(x,y,'#', FGREEN | BBLACK);
-			}
-		}
-	}
-	
+void displayEdges() {
 	//Edges of the map
 	float corners[] = {
 		0.5f,-0.5f,
@@ -1456,14 +1438,9 @@ void display() {
 		adv::line(offsetx1 * width, offsety1 * height, offsetx2 * width, offsety2 * height, '#', FWHITE|BBLACK);
 		adv::write(offsetx1 * width, offsety1 * height, 'X', FRED|BBLACK);
 	}
+}
 
-	displayTileMap();
-	
-	if (placementMode) {
-		tileSelector.render();
-	}
-	
-	if (statsMode) {
+void displayStats() {
 		const char *text[] = {
 			"Environment",
 			"Health",
@@ -1513,57 +1490,75 @@ void display() {
 		showBarChart(adv::width-3, 0, 8, residentialDemand, { L'|', BGREEN|FBLACK });
 		showBarChart(adv::width-2, 0, 8, commercialDemand, { L'|', BBLUE|FBLACK });
 		showBarChart(adv::width-1, 0, 8, industrialDemand, { L'|', BYELLOW|FBLACK });
-	}
+}
+
+void displayDate() {
+	char buf[30];
+	snprintf(&buf[0], 29, "%i/%i", month,day);
+	adv::write(adv::width-4-strlen(&buf[0]),0,&buf[0]);
+}
+
+void displayInfo() {
+	displayXY();
+	int y = 0;
+	auto printVar = [&](const char* varname, float value) {
+		char buf[100];
+		int i = snprintf(&buf[0], 99, "%s: %f", varname, value);
+		adv::write(0,y++,&buf[0]);
+	};
+	auto printSize = [&](const char* varname, sizei value) {
+		char buf[100];
+		int i = snprintf(&buf[0], 99, "%s: %i %i %i %i", varname, value.x, value.y, value.width, value.height);
+		adv::write(0,y++,&buf[0]);
+	};
+	printVar("viewX", viewX);
+	printVar("viewY", viewY);
+	printVar("scale", scale);
+	printVar("selectorTileId", tileSelector.selectedId);
+	printSize("selectorXYWH", tileSelector.selected.size);
+	printVar("waterSupply", waterSupply);
+	printVar("waterDemand", waterDemand);
+	printVar("waterNetworks", waterNetworks);
+	printVar("instanceCount", registry.instances.size());
+	printVar("placeableCount", registry.placeable.size());
+	printVar("placementMode", placementMode ? 1.0f : 0.0f);
+	printVar("waterView", waterView ? 1.0f : 0.0f);
+	printVar("infoMode", infoMode ? 1.0f : 0.0f);
+	printVar("environment", environment);
+	printVar("health", environment);
+	printVar("safety", safety);
+	printVar("traffic", traffic);
+	printVar("education", education);
+	printVar("landvalue", landvalue);
+	printVar("comPop", commercialPopulation);
+	printVar("comJob", commercialJobs);
+	printVar("comDem", commercialDemand);
+	printVar("indPop", industrialPopulation);
+	printVar("indJob", industrialJobs);
+	printVar("indDem", industrialDemand);
+	printVar("resCap", residentialCapacity);
+	printVar("resDem", residentialDemand);
+	printVar("pop", population);
+}
+
+void display() {
+	if (placementMode)
+		centerDisplay();
+
+	displayEdges();
+
+	displayTileMap();
 	
-	//day/month
-	{
-		char buf[30];
-		snprintf(&buf[0], 29, "%i/%i", month,day);
-		adv::write(adv::width-4-strlen(&buf[0]),0,&buf[0]);
-	}
+	if (placementMode)
+		tileSelector.render();
 	
-	if (infoMode) {
-		displayXY();
-		int y = 0;
-		auto printVar = [&](const char* varname, float value) {
-			char buf[100];
-			int i = snprintf(&buf[0], 99, "%s: %f", varname, value);
-			adv::write(0,y++,&buf[0]);
-		};
-		auto printSize = [&](const char* varname, sizei value) {
-			char buf[100];
-			int i = snprintf(&buf[0], 99, "%s: %i %i %i %i", varname, value.x, value.y, value.width, value.height);
-			adv::write(0,y++,&buf[0]);
-		};
-		printVar("viewX", viewX);
-		printVar("viewY", viewY);
-		printVar("scale", scale);
-		printVar("selectorTileId", tileSelector.selectedId);
-		printSize("selectorXYWH", tileSelector.selected.size);
-		printVar("waterSupply", waterSupply);
-		printVar("waterDemand", waterDemand);
-		printVar("waterNetworks", waterNetworks);
-		printVar("instanceCount", registry.instances.size());
-		printVar("placeableCount", registry.placeable.size());
-		printVar("placementMode", placementMode ? 1.0f : 0.0f);
-		printVar("waterView", waterView ? 1.0f : 0.0f);
-		printVar("infoMode", infoMode ? 1.0f : 0.0f);
-		printVar("environment", environment);
-		printVar("health", environment);
-		printVar("safety", safety);
-		printVar("traffic", traffic);
-		printVar("education", education);
-		printVar("landvalue", landvalue);
-		printVar("comPop", commercialPopulation);
-		printVar("comJob", commercialJobs);
-		printVar("comDem", commercialDemand);
-		printVar("indPop", industrialPopulation);
-		printVar("indJob", industrialJobs);
-		printVar("indDem", industrialDemand);
-		printVar("resCap", residentialCapacity);
-		printVar("resDem", residentialDemand);
-		printVar("pop", population);
-	}
+	if (statsMode)
+		displayStats();
+	
+	displayDate();
+	
+	if (infoMode) 
+		displayInfo();
 }
 
 void cleanupexit() {
@@ -1735,7 +1730,7 @@ int wmain() {
 
 	fprintf(logFile, "[%li] Game init\n", time(0));
 
-	init();
+	game.init({0,0,tileMapWidth,tileMapHeight});
 	
 	int key = 0;
 	
@@ -1867,7 +1862,7 @@ int wmain() {
 				scale = 4;
 				break;
 			case '0':
-				init();
+				game.init({0,0,tileMapWidth,tileMapHeight});
 				break;			
 			case 'u':
 				waterView = !waterView;
