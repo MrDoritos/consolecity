@@ -66,6 +66,9 @@ struct _size : public _pos<T> {
     _size<T> operator+(_size<T> &s) {
         return {this->x + s.width, this->y + s.height, width + s.width, height + s.height};
     }
+    T getArea() {
+        return width * height;
+    }
     T width, height;
 };
 

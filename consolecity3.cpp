@@ -265,7 +265,8 @@ enum FLAG {
 	HEALTH = 64,
 	EDUCATION = 128,
 	TRAFFIC = 256,
-	WEALTH = 512
+	WEALTH = 512,
+	SILENT = 1024
 };
 
 struct tileEvent : public tileComplete {
@@ -301,9 +302,9 @@ struct tileEvent : public tileComplete {
 };
 
 struct tileEventHandler {
-	virtual void handle(tileEvent e, bool log=false) {
-		if (log)
-			fprintf(logFile, "Handling events: %i pos: %i %i\n", e.events, e.size.x, e.size.y);
+	virtual void handle(tileEvent e, bool silent = false) {
+		if (~e.flags & SILENT && !silent)
+			fprintf(logFile, "Handling events: %i %i pos: %i %i\n", e.events, e.flags, e.size.x, e.size.y);
 		if (e.events & PLACE)
 			onPlaceEvent(e);
 		if (e.events & DESTROY)
@@ -331,24 +332,27 @@ struct network_value {
 		supply = 0;
 		demand = 0;
 		stored = 0;
+		consumer = false;
 	}
 	network_value(net_t network_val):network_value() {
 		if (network_val > 0) {
-			supply = network_val;
+			supply = stored = network_val;
+			consumer = false;
 		} else {
 			demand = network_val;
+			consumer = true;
 		}
 	}
 	network_value(net_t supply, net_t demand)
-	:supply(supply),demand(demand),stored(0) {}
+	:supply(supply),demand(demand),stored(0),consumer(isDeficit()) {}
 
 	//Demand for network
 	virtual net_t getDemand() {
-		return demand - stored;
+		return consumer ? demand - stored : demand; 
 	}
 	//Supply for network
 	virtual net_t getSupply() {
-		return stored;
+		return consumer ? 0 : stored;
 	}
 
 	virtual net_t give(net_t amount) {
@@ -387,6 +391,7 @@ struct network_value {
 	}
 
 	virtual void onNetworkEvent(tileEvent e) {
+		fprintf(logFile, "onNetworkEvent: %i %p \n", e.flags, this);
 		if (e.flags & TICK) {
 			give(supply);
 			take(demand);
@@ -397,6 +402,7 @@ struct network_value {
 	net_t supply;
 	net_t stored;
 	net_t demand;
+	bool consumer;
 };
 
 struct network_provider {
@@ -453,8 +459,12 @@ struct network_provider {
 	}
 
 	virtual void onNetworkEvent(tileEvent e) {
-		for (auto value : getList())
+		fprintf(logFile, "onNetworkEvent: %i %p ", e.flags, this);
+		for (auto value : getList()) {
+			fprintf(logFile, "%p ", value);
 			value->onNetworkEvent(e);
+		}
+		fprintf(logFile, "\n");
 	}
 };
 
@@ -492,7 +502,9 @@ struct instance_registry {
 struct _game {
 	std::vector<tileComplete> getTiles(sizei size);
 	void destroy(sizei size);
+	void destroy(tileEvent e);
 	void place(sizei size, tileBase *base);
+	void place(tileEvent e);
 	void fireEvent(tileEvent e);
 	void fireEvent(tileEvent e, int events);
 	void fireEvent(sizei size, int events);
@@ -560,6 +572,11 @@ struct tileBase : public tileEventHandler {
 	}
 	virtual network_provider *getNetworkProvider(tileEvent e) {
 		return nullptr;
+	}
+	void onNetworkEvent(tileEvent e) override {
+		network_provider *net = getNetworkProvider(e);
+		if (net != nullptr)
+			net->onNetworkEvent(e);
 	}
 	virtual plop *getPlop(tileEvent e) {
 		if (e.partial->isPlop() && e.partial->getPlopId() == id)
@@ -665,7 +682,8 @@ struct tile : public tileBase {
 	}
 
 	network_provider *getNetworkProvider(tileEvent e) override {
-		return &no_provider;
+		//return &no_provider;
+		return nullptr;
 	}
 
 	plop *getPlop(tileEvent e) override {
@@ -705,13 +723,7 @@ struct tileable : public tile {
 	}
 };
 
-/*
-Now the instance
-*/
 struct plop : public tileBase {
-	/*
-	plops.instances.erase(std::remove(plops.instances.begin(), plops.instances.end(), this), plops.instances.end());
-	*/
 	plop(sprite* tex, int plop_width = 1, int plop_height = 1, bool placeable=true):
 	tex(tex),size(0,0,plop_width,plop_height) {
 		registry.addInstance(this);
@@ -736,13 +748,9 @@ struct plop : public tileBase {
 	}
 
 	void render(tileEvent e) override {
-		//tex->draw(getRenderArea(e));
 		if (tex == nullptr || e.plop_instance == nullptr)
 			return;
 
-		//if (!(e.size == e.plop_instance->size)) //if not base tile
-		//	if (!(e.flags & FORCE))
-		//		return;
 		if (e.size.x != e.plop_instance->size.x
 			|| e.size.y != e.plop_instance->size.y)
 			return;
@@ -792,7 +800,6 @@ struct plop : public tileBase {
 	}
 
 	void free() override {
-		//if (!stale(getComplete(size)))
 		delete this;
 	}
 
@@ -809,60 +816,20 @@ struct plop : public tileBase {
 		return true;
 	}
 
-	virtual void place(tileEvent e) {
-		fprintf(logFile, "place(tileEvent e) not yet implemented\n");
-		/*
-		fprintf(logFile, "Placed plop: %i, ", id);
-		for (auto tile : getTiles()) {
-			tile.partial->setPlopId(id);
-			fprintf(logFile, "[%i %i] ", tile.tileX, tile.tileY);
-		}
-		if (waterSupply()) {
-			//getPartial(originX, originY)->setUnderground(UNDERGROUND_WATER_PIPE);
-			tileComplete tc = getComplete(originX, originY);
-			//tiles::WATER_PIPE->onPlaceEvent(tc);
-		}
-		fprintf(logFile, "\n");
-		*/
-	}
-
-	virtual void destroy(tileEvent e) {
-		fprintf(logFile, "destroy(tileEvent e) not yet implemented\n");
-		/*
-		fprintf(logFile, "Destroyed plop: %i, ", id);
-		for (auto tile : getTiles()) {
-			tile.partial->setPlopId(0);
-			tile.partial->setBuildingId(1);
-			fprintf(logFile, "[%i %i] ", tile.tileX, tile.tileY);
-		}
-		fprintf(logFile, "\n");
-		*/
-	}
-
 	network_provider *getNetworkProvider(tileEvent e) override {
 		return net;
 	}
 
-	/*
-	//always part of the plop, not the tile
-	//some of these are examples for brainstorming
-	float education;
-	float crime;
-	float fire;
-	float health;
-	float traffic;
-	float wealth;
+	void onNetworkEvent(tileEvent e) override {
+		fprintf(logFile, "plop::onNetworkEvent: %i %p \n", e.flags, this);
+		if (net != nullptr)
+			net->onNetworkEvent(e);
+	}
 
-	//bool watered;
-	//bool powered;
+	void onPlaceEvent(tileEvent e) override {
+		fprintf(logFile, "plop::onPlaceEvent %p %p %i %i %i\n", this, net, size.x, size.y, id);
 
-	float water;	
-	float power;
-	float pollution;
-
-	int capacity;
-	int population;
-	*/
+	}
 
 	int initial_id;
 	sizei size;
@@ -889,6 +856,9 @@ struct plop_connecting : public plop {
 struct network_provider_plop : public plop {
 	network_provider_plop(sprite *tex, net_t water, net_t power, int plop_width = 1, int plop_height = 1, bool placeable=false):plop(tex,plop_width,plop_height,placeable) {
 		this->net = new network_provider();
+		this->net->water = new network_value(_water = water);
+		this->net->power = new network_value(_power = power);		
+		fprintf(logFile, "Network provider plop created: %p %p %p %f %f\n", this->net, this->net->water, this->net->power, water, power);
 	}
 
 	void free() override {
@@ -896,25 +866,38 @@ struct network_provider_plop : public plop {
 		delete this;
 	}
 
-	tileBase *clone() {
+	void onPlaceEvent(tileEvent e) override {
+		fprintf(logFile, "network_provider_plop::onPlaceEvent %p %p %p %i %i %i\n", this, net, net->water, size.x, size.y, id);
+
+		if (net && net->water && net->water->isSupply())
+			e.partial->setUnderground(UNDERGROUND_WATER_PIPE);
+	}
+
+	network_provider *getNetworkProvider(tileEvent e) override {
+		return net;
+	}
+
+	void onNetworkEvent(tileEvent e) override {
+		fprintf(logFile, "network_provider_plop::onNetworkEvent %p %p\n", this, net);
+		plop::onNetworkEvent(e);
+	}
+
+
+	tileBase *clone() override {
 		network_provider_plop* p = (network_provider_plop*)plop::clone<network_provider_plop>(this);
 		p->net = new network_provider();
-		fprintf(logFile, "clone network_provider_plop %i %p %p %p\n", id, this, registry.getInstance(id), p);
+		p->net->water = new network_value(_water);
+		p->net->power = new network_value(_power);
+		fprintf(logFile, "clone network_provider_plop %i %p %p %p %p %p %f\n", p->id, this, registry.getInstance(p->id), p, p->net, p->net->water, p->net->water->getSupply());
 		return p;
 	}
+
+	net_t _water, _power;
 };
 
 struct water_provider_plop : public network_provider_plop {
 	water_provider_plop(sprite *tex, net_t water_creation, int plop_width = 1, int plop_height = 1, bool placeable=false):network_provider_plop(tex, water_creation, 0,plop_width,plop_height,placeable) {
 		fprintf(logFile, "Water provider plop created: %f\n", water_creation);
-	}
-
-	void free() override {
-		network_provider_plop::free();
-	}
-
-	tileBase *clone() {
-		return network_provider_plop::clone();
 	}
 };
 
@@ -1043,15 +1026,41 @@ struct selector : public tile {
 	}
 };
 
+network_value *getNetwork(tileEvent e, int type) {
+	network_provider *a;
+	network_value *b;
+
+	if (e.parent != nullptr) {
+		a = e.parent->getNetworkProvider(e);
+		if (a != nullptr) {
+			b = a->getNetwork(e.with(0, type));
+			if (b != nullptr)
+				return b;
+		}
+	}
+
+	if (e.plop_instance != nullptr) {
+		a = e.plop_instance->getNetworkProvider(e);
+		if (a != nullptr) {
+			b = a->getNetwork(e.with(0, type));
+			if (~e.flags & SILENT)
+				fprintf(logFile, "getNetwork %i %i %p %p %p\n", e.size.x, e.size.y, e.parent, e.plop_instance, b);
+			if (b != nullptr)
+				return b;
+		}
+	}
+
+	return nullptr;
+}
+
 struct _dirt_tile : public tile {
 	void render(tileEvent e) override {
 		sizef area = getRenderArea(e);
 		if (e.plop_instance) {
-			/*
-			if (e.parent_plop_instance->isWellWatered())
+			network_value *water = getNetwork(e.with(0,SILENT), WATER);
+			if (water && water->isSupply())
 				wet_plop_sprite.draw(area);
 			else
-			*/
 				dry_plop_sprite.draw(area);
 				
 		} else {
@@ -1116,6 +1125,9 @@ void _game::fireEvent(sizei size, int events, int flags) {
 
 void _game::fireEvent(tileEvent e) {
 	//Send events here
+	bool loghere = (~e.flags & SILENT); //Silence is not specified
+	if (loghere) //We may call multiple times for a single operation
+		fprintf(logFile, "Firing events: [%i %i] pos: [%i %i] -> [%i %i]\n", e.events, e.flags, e.size.x, e.size.y, e.size.x + e.size.width, e.size.y + e.size.height);
 
 	//To plop (single instance over many tiles)
 	if (e.plop_instance && !e.plop_instance->stale(e)) {
@@ -1131,43 +1143,49 @@ void _game::fireEvent(tileEvent e) {
 	for (tileComplete tc : getTiles(e.size)) {
 		if (tc.parent && !tc.parent->stale(tc))
 			//Duplicate flags and events and fire
-			tc.parent->handle(e.clone(tc));
+			tc.parent->handle(e.clone(tc),true);
+
+		//Will fire multiple times for single instance!!!
+		if (tc.plop_instance)
+			tc.plop_instance->handle(e.clone(tc), false);
 	}
 }
 
-void _game::destroy(sizei size) {
+void _game::destroy(tileEvent e) {
 	//size could be a single plop or a group of tiles, or a group of plops
-	fireEvent(size, DESTROY);
+	fireEvent(e.with(DESTROY));
 
-	for (tileComplete tc : getTiles(size)) {
+	for (tileComplete tc : getTiles(e.size)) {
 		if (tc.parent != nullptr)
 			tc.parent->free();
 		if (tc.plop_instance != nullptr && registry.getInstance(tc.partial->getPlopId()) != nullptr)
 			tc.plop_instance->free();
-		grass_tile.copyState(tc.partial);
+		if (tc.partial != nullptr)
+			grass_tile.copyState(tc.partial);
+		else
+			*getPartial(tc.size) = grass_tile.getDefaultState();
 	}
 }
 
+void _game::destroy(sizei size) {
+	destroy(getEvent(size));
+}
+
 void _game::place(sizei size, tileBase *base) {
-	/*
-		As the game engine we can alter game
-		states in ways other functions shouldn't
-	*/
-	//fireEvent(size, DESTROY);
-	destroy(size);
+	tileEvent e = getEvent(size);
+	e.parent = base;
+	place(e);
+}
 
-	for (tileComplete tc : getTiles(size)) {
-		//free it
-		//if (tc.parent != nullptr)
-		//	tc.parent->free();
+void _game::place(tileEvent e) {
+	destroy(e);
 
-		base->setSize(tileComplete(base, tc.partial, size));
-
-		//set new
-		base->copyState(tc.partial);
+	for (tileComplete tc : getTiles(e.size)) {
+		e.parent->setSize(e);
+		e.parent->copyState(tc.partial);
 	}
 
-	fireEvent(size, PLACE);
+	fireEvent(e.with(PLACE));
 }
 
 bool isInRadius(int ox, int oy, int px, int py, float r) {
@@ -1180,11 +1198,19 @@ bool isInRadius(sizei size, float r) {
 	return isInRadius(size.x, size.y, size.width, size.height, r);	
 }
 
+bool isInBounds(posi p) {
+	return p.x >= 0 && p.x < tileMapWidth && p.y >= 0 && p.y < tileMapHeight;
+}
+
+bool isInBounds(sizei p) {
+	return isInBounds(posi(p.x, p.y)) && isInBounds(posi(p.x + p.width - 1, p.y + p.height - 1));
+}
+
 template<typename FUNCTION>
 void tileRadiusLoop(int x, int y, float radius, FUNCTION func) {
 	for (int xx = x - radius; xx < x + radius; xx++) {
 		for (int yy = y - radius; yy < y + radius; yy++) {
-			if (isInRadius(xx,yy,x,y,radius))
+			if (isInRadius(xx,yy,x,y,radius) && isInBounds(posi(xx,yy)))
 				func(xx,yy);
 		}
 	}
@@ -1214,7 +1240,7 @@ std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria
 	};
 
 	for (int i = 0; i < 4; i++) {
-		if (meetsCriteria(q[i])) {
+		if (isInBounds(q[i].size) && meetsCriteria(q[i])) {
 			walk_network(q[i], meetsCriteria, network);
 		}
 	}
@@ -1264,7 +1290,8 @@ void init() {
 
 	for (int y = 0; y < tileMapHeight; y++) {
 		for (int x = 0; x < tileMapWidth; x++) {
-			game.place({x,y,1,1}, grass_tile.clone());
+			tileEvent e(tileComplete(grass_tile.clone(), &partially_garbage, {x,y,1,1}));
+			game.place(e.with(0, SILENT));
 			if (rand() % 2 == 0);
 			if (rand() % 4 == 0);
 		}
@@ -1272,7 +1299,11 @@ void init() {
 
 	game.place({0,0,tileMapWidth,tileMapHeight}, grass_tile.clone());
 	fprintf(logFile, "grass_tile %p\n", grass_tile.clone());
-	//game.place({2,2,1,1}, water_tower_plop.clone());
+	game.place({2,2,1,1}, water_tower_plop.clone());
+	game.place({3,2,1,1}, water_tower_plop.clone());
+	game.place({4,2,1,1}, water_tower_plop.clone());
+	game.place({5,2,1,1}, water_tower_plop.clone());
+	
 }
 
 void displayTileMap() {
@@ -1484,31 +1515,6 @@ void cleanupexit() {
 
 bool isWaterNetwork(tileComplete tc) {
 	return tc.partial->hasUnderground(UNDERGROUND_WATER_PIPE);
-}
-
-network_value *getNetwork(tileEvent e, int type) {
-	network_provider *a;
-	network_value *b;
-
-	if (e.parent != nullptr) {
-		a = e.parent->getNetworkProvider(e);
-		if (a != nullptr) {
-			b = a->getNetwork(e.with(0, type));
-			if (b != nullptr)
-				return b;
-		}
-	}
-
-	if (e.plop_instance != nullptr) {
-		a = e.plop_instance->getNetworkProvider(e);
-		if (a != nullptr) {
-			b = a->getNetwork(e.with(0, type));
-			if (b != nullptr)
-				return b;
-		}
-	}
-
-	return nullptr;
 }
 
 int wmain() {	
@@ -1734,6 +1740,7 @@ int wmain() {
 			if (day > 31) {
 				month++;
 				day = 1;
+				fprintf(logFile, "Month %i\n", month);
 			}
 		}
 		
@@ -1804,21 +1811,20 @@ int wmain() {
 					tileBase *_ib = (tileBase*)_teh;
 					if (_ib == nullptr)
 						continue;
-					fprintf(logFile, "Instance %i %p %p\n", _ib->id, _ib, registry.getInstance(_ib->id));
-					fflush(logFile);
-					if (_ib->getNetworkProvider(tileComplete()) == nullptr) {
-						fprintf(logFile, "No network provider %p\n", _ib);
-						fflush(logFile);
-						continue;
-					}
+					//fprintf(logFile, "Instance %i %p %p\n", _ib->id, _ib, registry.getInstance(_ib->id));
+					//fflush(logFile);
 					if (registry.getInstance(_ib->id)->getPlop() == nullptr)
 						continue;
 					plop *p = (plop*)_ib;
 
 					tileComplete tc = getComplete(p->size);
 					network_value* water = getNetwork(tc, WATER);
-					if (water == nullptr)
+					if (water == nullptr) {
+						//fprintf(logFile, "No water provider %i [%i %i] [%i %i]\n", p->id, tc.size.x, tc.size.y, p->size.x, p->size.y);
 						continue;
+					}
+
+					fprintf(logFile, "Water provider %i [%i %i] [%i %i] %f %f\n", p->id, tc.size.x, tc.size.y, p->size.x, p->size.y, water->getSupply(), water->getDemand());
 
 					waterSupply += water->getSupply();
 					waterDemand += water->getDemand();
@@ -1829,12 +1835,12 @@ int wmain() {
 				//for (auto _ip : plops.instances) {
 				for (int x = 0; x < tileMapWidth; x++) {
 					for (int y = 0; y < tileMapHeight; y++) {
-						tileComplete tile = getComplete(x, y);
+						tileEvent tile = getComplete(x, y);
 
 						if (!isWaterNetwork(tile))
 							continue; // Sources don't count without network connection
 
-						network_value *water = getNetwork(tile, WATER);
+						network_value *water = getNetwork(tile.with(0, SILENT), WATER);
 						if (water == nullptr || water->isDeficit())
 							continue;
 
@@ -1874,8 +1880,8 @@ int wmain() {
 
 					float input = 0, output = 0;
 
-					for (auto tile : network) { //find water providers
-						network_value* water = getNetwork(tile, WATER);
+					for (tileEvent tile : network) { //find water providers
+						network_value* water = getNetwork(tile.with(0, SILENT), WATER);
 						if (water == nullptr)
 							continue;
 						if (std::find(waterProviders.begin(), waterProviders.end(), tile) != waterProviders.end())
@@ -1895,8 +1901,8 @@ int wmain() {
 					//search radius for water users
 					for (auto tile : network) {
 						tileRadiusLoop(tile.size, 5, [&](int x, int y) {
-							tileComplete tc = getComplete(x, y);
-							network_value *water = getNetwork(tc, WATER);
+							tileEvent tc = getComplete(x, y);
+							network_value *water = getNetwork(tc.with(0, SILENT), WATER);
 							if (water == nullptr)
 								return;
 							if (std::find(waterUsers.begin(), waterUsers.end(), tile) != waterUsers.end())
