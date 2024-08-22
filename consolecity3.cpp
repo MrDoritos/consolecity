@@ -339,12 +339,13 @@ struct network_value {
 			supply = stored = network_val;
 			consumer = false;
 		} else {
-			demand = network_val;
+			demand = -network_val;
+			stored = 0;
 			consumer = true;
 		}
 	}
 	network_value(net_t supply, net_t demand)
-	:supply(supply),demand(demand),stored(0),consumer(isDeficit()) {}
+	:supply(supply),demand(demand),stored(0),consumer(isDemand()) {}
 
 	//Demand for network
 	virtual net_t getDemand() {
@@ -379,11 +380,11 @@ struct network_value {
 	}
 
 	virtual bool isSupply() {
-		return getSupply() > getDemand();
+		return !consumer;
 	}
 
-	virtual bool isDeficit() {
-		return getSupply() < getDemand();
+	virtual bool isDemand() {
+		return consumer;
 	}
 
 	virtual bool isSaturated() {
@@ -391,10 +392,12 @@ struct network_value {
 	}
 
 	virtual void onNetworkEvent(tileEvent e) {
-		fprintf(logFile, "onNetworkEvent: %i %p \n", e.flags, this);
+		fprintf(logFile, "onNetworkEvent: %i %p %f %f %f %s\n", e.flags, this, supply, demand, stored, consumer ? "consumer" : "producer");
 		if (e.flags & TICK) {
-			give(supply);
-			take(demand);
+			if (consumer)
+				stored = stored - demand < 0 ? 0 : stored - demand;
+			else
+				stored = supply;
 		}
 	}
 
@@ -459,12 +462,12 @@ struct network_provider {
 	}
 
 	virtual void onNetworkEvent(tileEvent e) {
-		fprintf(logFile, "onNetworkEvent: %i %p ", e.flags, this);
-		for (auto value : getList()) {
-			fprintf(logFile, "%p ", value);
+		//fprintf(logFile, "onNetworkEvent: %i %p ", e.flags, this);
+		for (network_value *value : getList()) {
+			//fprintf(logFile, "%p ", value);
 			value->onNetworkEvent(e);
 		}
-		fprintf(logFile, "\n");
+		//fprintf(logFile, "\n");
 	}
 };
 
@@ -821,7 +824,7 @@ struct plop : public tileBase {
 	}
 
 	void onNetworkEvent(tileEvent e) override {
-		fprintf(logFile, "plop::onNetworkEvent: %i %p \n", e.flags, this);
+		//fprintf(logFile, "plop::onNetworkEvent: %i %p \n", e.flags, this);
 		if (net != nullptr)
 			net->onNetworkEvent(e);
 	}
@@ -858,7 +861,7 @@ struct network_provider_plop : public plop {
 		this->net = new network_provider();
 		this->net->water = new network_value(_water = water);
 		this->net->power = new network_value(_power = power);		
-		fprintf(logFile, "Network provider plop created: %p %p %p %f %f\n", this->net, this->net->water, this->net->power, water, power);
+		//fprintf(logFile, "Network provider plop created: %p %p %p %f %f\n", this->net, this->net->water, this->net->power, water, power);
 	}
 
 	void free() override {
@@ -878,7 +881,7 @@ struct network_provider_plop : public plop {
 	}
 
 	void onNetworkEvent(tileEvent e) override {
-		fprintf(logFile, "network_provider_plop::onNetworkEvent %p %p\n", this, net);
+		//fprintf(logFile, "network_provider_plop::onNetworkEvent %p %p\n", this, net);
 		plop::onNetworkEvent(e);
 	}
 
@@ -888,22 +891,16 @@ struct network_provider_plop : public plop {
 		p->net = new network_provider();
 		p->net->water = new network_value(_water);
 		p->net->power = new network_value(_power);
-		fprintf(logFile, "clone network_provider_plop %i %p %p %p %p %p %f\n", p->id, this, registry.getInstance(p->id), p, p->net, p->net->water, p->net->water->getSupply());
+		//fprintf(logFile, "clone network_provider_plop %i %p %p %p %p %p %f\n", p->id, this, registry.getInstance(p->id), p, p->net, p->net->water, p->net->water->getSupply());
 		return p;
 	}
 
 	net_t _water, _power;
 };
 
-struct water_provider_plop : public network_provider_plop {
-	water_provider_plop(sprite *tex, net_t water_creation, int plop_width = 1, int plop_height = 1, bool placeable=false):network_provider_plop(tex, water_creation, 0,plop_width,plop_height,placeable) {
-		fprintf(logFile, "Water provider plop created: %f\n", water_creation);
-	}
-};
-
-water_provider_plop water_tower_plop(&water_tower_sprite, 1200.0f, 1, 1, true);
-water_provider_plop water_well_plop(&water_well_sprite, 500.0f, 1, 1, true);
-water_provider_plop water_pump_large_plop(&large_water_pump_sprite, 24000.0f, 2, 1, true);
+network_provider_plop water_tower_plop(&water_tower_sprite, 1200.0f, -100.0f, 1, 1, true);
+network_provider_plop water_well_plop(&water_well_sprite, 500.0f, -50.0f, 1, 1, true);
+network_provider_plop water_pump_large_plop(&large_water_pump_sprite, 24000.0f, -400.0f, 2, 1, true);
 
 plop_connecting road_plop(&road_con_tex_sprite);
 plop_connecting street_plop(&street_con_tex_sprite);
@@ -911,7 +908,7 @@ plop_connecting street_plop(&street_con_tex_sprite);
 plop_connecting pool_plop(&pool_con_tex_sprite);
 
 network_provider_plop tall_building_plop(&tall_building_sprite, -800, -400, 1, 1, true);
-plop building1_plop(&building1_sprite);
+network_provider_plop building1_plop(&building1_sprite, -400, 200, 1, 1, true);
 plop building2_plop(&building2_sprite, 2, 1);
 plop building3_plop(&building3_sprite, 2, 2);
 
@@ -953,6 +950,15 @@ tileEvent getEvent(sizei p) {
 	return e;
 }
 
+template<typename FUNCTION>
+void areaLoop(sizei size, FUNCTION func) {
+	for (int x = size.x; x < size.x + size.width; x++) {
+		for (int y = size.y; y < size.y + size.height; y++) {
+			func(x,y);
+		}
+	}
+}
+
 struct selector : public tile {	
 	selector():selected(nullptr, &state, sizei(0,0,1,1)) {
 		selectedId = 0;
@@ -964,7 +970,6 @@ struct selector : public tile {
 	
 	tilePartial state;
 	tileComplete selected;
-	posi origin;
 	int selectedId;
 
 	void set(int i) {
@@ -988,14 +993,11 @@ struct selector : public tile {
 
 	void setArea(sizei p) {
 		selected.size = p;
-		selected.size.x = origin.x;
-		selected.size.y = origin.y;
 		selected.parent->setSize(selected);
 		selected.parent->copyState(selected.partial);
 	}
 
 	void setPos(posi p) {
-		origin = p;
 		setArea(sizei{p,selected.size.width,selected.size.height});
 	}
 
@@ -1011,13 +1013,22 @@ struct selector : public tile {
 		sizef area = getRenderArea(selected);
 
 		if (ticks++ % 20 > 9) {
-			selector_sprite.draw(area);
+			//selector_sprite.draw(area);
+			areaLoop(selected.size, [&](int x, int y) {
+				selector_sprite.draw(getRenderArea(getEvent(sizei{x,y,1,1})));
+			});
 		}
 
 		if (waterView) {
-			water_pipe_sprite.draw(area);
+			areaLoop(selected.size, [&](int x, int y) {
+				water_pipe_sprite.draw(getRenderArea(getEvent(sizei{x,y,1,1})));
+			});
+			//water_pipe_sprite.draw(area);
 		} else {
-			selected.parent->render(selected);
+			areaLoop(selected.size, [&](int x, int y) {
+				selected.parent->render(selected);
+			});
+			//selected.parent->render(selected);
 		}		
 	}
 	
@@ -1158,8 +1169,11 @@ void _game::destroy(tileEvent e) {
 	for (tileComplete tc : getTiles(e.size)) {
 		if (tc.parent != nullptr)
 			tc.parent->free();
-		if (tc.plop_instance != nullptr && registry.getInstance(tc.partial->getPlopId()) != nullptr)
+		if (tc.plop_instance != nullptr && registry.getInstance(tc.partial->getPlopId()) != nullptr) {
+			for (tileComplete p : tc.plop_instance->getTiles(tc))
+				tc.partial->setPlopId(0);
 			tc.plop_instance->free();
+		}
 		if (tc.partial != nullptr)
 			grass_tile.copyState(tc.partial);
 		else
@@ -1179,6 +1193,8 @@ void _game::place(sizei size, tileBase *base) {
 
 void _game::place(tileEvent e) {
 	destroy(e);
+
+	e.plop_instance = nullptr;
 
 	for (tileComplete tc : getTiles(e.size)) {
 		e.parent->setSize(e);
@@ -1365,7 +1381,50 @@ void displayTileMap() {
 	*/
 }
 //0,0
+void displayXY() {
+	posf p = {getScreenOffsetX(0.2,0),getScreenOffsetY(0.5,0)};
+	//posf _x = {1,0}, _y = {0,1};
+	posf x = getOffsetXY({4,0}).add(-viewX, -viewY);
+	posf y = getOffsetXY({0,4}).add(-viewX, -viewY);
+	x.x *= getCharacterYoverX();
+	y.x *= getCharacterYoverX();
+
+	adv::line(p.x,p.y,p.x + x.x,p.y + x.y,'X',FRED|BBLACK);
+	adv::line(p.x,p.y,p.x + y.x,p.y + y.y,'Y',FGREEN|BBLACK);
+}
+
+void centerDisplay() {
+	sizei selected = tileSelector.selected.size;
+	posi selectedCenter = selected.center(); //tilespace
+	int area = selected.area();
+	viewX = 0;
+	viewY = 0;
+	posf map = {(float)-selectedCenter.x, (float)-selectedCenter.y}; //tilespace
+	posf selectedOffset = getOffsetXY(map); //screenspace before scaling
+	posf off = {(scale / 4 * getCharacterYoverX()), scale / 4}; //screenspace
+
+			//tilespace        tilespace
+	off.x = selectedCenter.x - (selected.x / scale * 2);
+	off.y = selectedCenter.y - (selected.y / scale);
+
+	off.x = 2; //tilespace
+	off.y = 5;
+
+	//viewX and viewY are in screenspace, before scaling
+
+	viewX = selectedOffset.x + getOffsetX(off);
+	viewY = selectedOffset.y + getOffsetY(off);
+
+	//posf tileOffset = {40,20};
+	posf tileOffset = {adv::width / 4.0, adv::height / 2.0};
+
+	viewX = selectedOffset.x + (tileOffset.x / scale); //5
+	viewY = selectedOffset.y + (tileOffset.y / scale); //2
+}
+
 void display() {
+	if (placementMode)
+		centerDisplay();
 	{
 		int width = getWidth();
 		int height = getHeight();
@@ -1464,22 +1523,23 @@ void display() {
 	}
 	
 	if (infoMode) {
+		displayXY();
 		int y = 0;
 		auto printVar = [&](const char* varname, float value) {
 			char buf[100];
 			int i = snprintf(&buf[0], 99, "%s: %f", varname, value);
 			adv::write(0,y++,&buf[0]);
 		};
+		auto printSize = [&](const char* varname, sizei value) {
+			char buf[100];
+			int i = snprintf(&buf[0], 99, "%s: %i %i %i %i", varname, value.x, value.y, value.width, value.height);
+			adv::write(0,y++,&buf[0]);
+		};
 		printVar("viewX", viewX);
 		printVar("viewY", viewY);
 		printVar("scale", scale);
 		printVar("selectorTileId", tileSelector.selectedId);
-		printVar("selectorX", tileSelector.origin.x);
-		printVar("selectorY", tileSelector.origin.y);
-		printVar("instanceX", tileSelector.selected.size.x);
-		printVar("instanceY", tileSelector.selected.size.y);
-		printVar("instanceW", tileSelector.selected.size.width);
-		printVar("instanceH", tileSelector.selected.size.height);
+		printSize("selectorXYWH", tileSelector.selected.size);
 		printVar("waterSupply", waterSupply);
 		printVar("waterDemand", waterDemand);
 		printVar("waterNetworks", waterNetworks);
@@ -1515,6 +1575,123 @@ void cleanupexit() {
 
 bool isWaterNetwork(tileComplete tc) {
 	return tc.partial->hasUnderground(UNDERGROUND_WATER_PIPE);
+}
+
+struct network_summary {
+	net_t supply = 0, demand = 0, used = 0;
+	int networks = 0;
+};
+
+template<typename FUNCTION>
+network_summary balanceNetworks(FLAG type, FUNCTION func) {
+	std::vector<tileComplete> sparse;
+	sizei map = {0,0,tileMapWidth,tileMapHeight};
+	network_summary sm;
+
+	//Values are changing
+	game.fireEvent(map, NETWORK, type|TICK);
+
+	//Take network tiles
+	areaLoop(map, [&](int x, int y) {
+		tileEvent e = getComplete(x,y);
+		network_value *v = getNetwork(e.with(0,SILENT), type);
+		if (v == nullptr)
+			return;
+		if (v->isSupply()) {
+			if (std::find(sparse.begin(), sparse.end(), e) != sparse.end())
+				return;
+			sparse.push_back(e);
+			fprintf(logFile, "Network piece: %i %i %f %f\n", x, y, v->getSupply(), v->getDemand());
+		}
+	});
+
+	std::vector<std::vector<tileComplete>> networks;
+
+	//Walk present networks
+	for (tileComplete tc : sparse) {
+		bool newNetwork = true;
+		
+		for (auto network : networks) {
+			if (std::find(network.begin(), network.end(), tc) != network.end()) {
+				newNetwork = false;
+				break;
+			}
+		}
+
+		if (newNetwork) {
+			std::vector<tileComplete> network;
+			walk_network(tc, func, network);
+			networks.push_back(network);
+			sm.networks++;
+		}
+	}
+
+	//Balance networks
+	for (auto network : networks) {
+		std::vector<tileComplete> consumers, providers;
+		net_t input = 0, output = 0;
+
+		for (tileEvent e : network) {
+			tileRadiusLoop(e.size, 5, [&](int x, int y) {
+				tileEvent e2 = getComplete(x,y);
+				network_value *consum = getNetwork(e2.with(0, SILENT), type);
+
+				if (consum && consum->isDemand())
+					if (std::find(consumers.begin(), consumers.end(), e2) == consumers.end()) {
+						output += consum->getDemand();
+						consumers.push_back(e2);
+					}
+			});
+
+			network_value *net = getNetwork(e.with(0, SILENT), type);
+
+			if (net && net->isSupply())
+				if (std::find(providers.begin(), providers.end(), e) == providers.end()) {
+					input += net->getSupply();
+					providers.push_back(e);
+				}
+		}
+
+		if (providers.empty())
+			continue;
+
+		fprintf(logFile, "This network: %li %li %f %f\n", providers.size(), consumers.size(), input, output);
+
+		sm.demand += output;
+		sm.supply += input;
+
+		net_t ratio = input / output;
+		if (ratio == 0 || ratio < 0 || output < 0.1)
+			continue;
+		float maxRadius = 5.0f;
+		float radius = ratio * maxRadius;
+		if (radius < 0)
+			radius = 0;
+		if (radius > maxRadius)
+			radius = maxRadius;
+
+		for (tileEvent e : providers) {
+			network_value *net = getNetwork(e.with(0, SILENT), type);
+			if (net && net->isSupply())
+				net->take(ratio > 1 ? net->getSupply() : net->getSupply() / ratio);
+
+		}
+
+		for (tileEvent e : consumers) {
+			network_value *net = getNetwork(e.with(0, SILENT), type);
+			if (net && net->isDemand()) 
+				input -= net->give(input);
+		}
+
+		sm.used = sm.supply - input;
+	}
+
+	fprintf(logFile, "Balanced\n");
+
+	//Values are changing
+	//game.fireEvent(map, NETWORK, type|TICK);
+
+	return sm;
 }
 
 int wmain() {	
@@ -1577,32 +1754,49 @@ int wmain() {
 		adv::clear();
 		
 		if (placementMode) {
+			sizei area = tileSelector.selected.size;
 			switch (key) {
 			case 'w':
-				tileSelector.setPos(tileSelector.origin.north());
+				tileSelector.setPos(tileSelector.selected.size.north());
 				viewY+= yfact * yfact;
 				viewX+= xfact * xfact;
 				break;
 			case 's':
-				tileSelector.setPos(tileSelector.origin.south());
+				tileSelector.setPos(tileSelector.selected.size.south());
 				viewY-= yfact * yfact;
 				viewX-= xfact * xfact;
 				break;
 			case 'd':
-				tileSelector.setPos(tileSelector.origin.east());
+				tileSelector.setPos(tileSelector.selected.size.east());
 				viewX-= xfact * xfact;
 				viewY+= yfact * yfact;
 				break;
 			case 'a':
-				tileSelector.setPos(tileSelector.origin.west());
+				tileSelector.setPos(tileSelector.selected.size.west());
 				viewX+= xfact * xfact;
 				viewY-= yfact * yfact;
 				break;			
+			case 'W':				
+				if (tileSelector.selected.size.height > 1)
+					tileSelector.setArea(area.add(sizei(0,0,0,-1)));
+				else 
+					tileSelector.setArea(area.add(sizei(0,1,0,-1)));
+				break;
+			case 'S':
+				tileSelector.setArea(area.add(sizei(0,0,0,1)));
+				break;
+			case 'D':
+				tileSelector.setArea(area.add(sizei(0,0,1,0)));
+				break;
+			case 'A':
+				if (tileSelector.selected.size.width > 1)
+					tileSelector.setArea(area.add(sizei(0,0,-1,0)));
+				break;
 			case 'z':
 			{
 				//Place
 				if (waterView) {
-					water_pipe_tile.onPlaceEvent(getComplete(tileSelector.origin));
+					water_pipe_tile.onPlaceEvent(getComplete(tileSelector.selected.size));
 					break;
 				}
 
@@ -1614,7 +1808,7 @@ int wmain() {
 			{
 				//Destroy
 				if (waterView) {
-					water_pipe_tile.onDestroyEvent(getComplete(tileSelector.origin));
+					water_pipe_tile.onDestroyEvent(getComplete(tileSelector.selected.size));
 					break;
 				}
 
@@ -1797,7 +1991,18 @@ int wmain() {
 				break;
 			}
 			
-			case 3: { //water calculations
+			case 3: {
+				network_summary sm =
+				balanceNetworks(WATER, isWaterNetwork);
+
+				waterSupply = sm.supply;
+				waterDemand = sm.demand;
+				waterNetworks = sm.networks;
+
+				break;
+			}
+
+			case -1: { //water calculations
 				waterNetworks = 0;
 				waterDemand = 0;
 				waterSupply = 0;
@@ -1841,7 +2046,7 @@ int wmain() {
 							continue; // Sources don't count without network connection
 
 						network_value *water = getNetwork(tile.with(0, SILENT), WATER);
-						if (water == nullptr || water->isDeficit())
+						if (water == nullptr || water->isDemand())
 							continue;
 
 						bool newNetwork = true;
@@ -1908,7 +2113,7 @@ int wmain() {
 							if (std::find(waterUsers.begin(), waterUsers.end(), tile) != waterUsers.end())
 								return; //if already accounted for, skip it
 								
-							if (water->isDeficit()) {
+							if (water->isDemand()) {
 								waterUsers.push_back(tile);
 								output += water->getDemand();
 							}

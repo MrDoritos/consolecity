@@ -34,6 +34,9 @@ struct _pos {
     _pos<T> south(){return this->add(0, 1);}
     _pos<T> east(){return this->add(1, 0);}
     _pos<T> west(){return this->add(-1, 0);}
+    T dist(_pos<T> p) {
+        return sqrt(pow(p.x - x, 2) + pow(p.y - y, 2));
+    }
     T x, y;
 };
 
@@ -60,13 +63,19 @@ struct _size : public _pos<T> {
         width = 1;
         height = 1;
     }
+    _pos<T> center() {
+        return {this->x + width / 2, this->y + height / 2};
+    }
     bool operator==(_size<T> &s) {
         return ((_pos<T>*)this)->operator==(s) && width == s.width && height == s.height;
     }
-    _size<T> operator+(_size<T> &s) {
-        return {this->x + s.width, this->y + s.height, width + s.width, height + s.height};
+    _size<T> add(_size<T> s) {
+        return {this->x + s.x, this->y + s.y, width + s.width, height + s.height};
     }
-    T getArea() {
+    _size<T> operator+(_size<T> s) {
+        return add(s);
+    }
+    T area() {
         return width * height;
     }
     T width, height;
@@ -135,8 +144,12 @@ posf getOffsetXY(posf p) {
     return posf(getOffsetX(p), getOffsetY(p));
 }
 
+float getCharacterYoverX() {
+    return 2.0f;
+}
+
 float getWidth() {
-	return 2.0f * scale;
+	return getCharacterYoverX() * scale;
 }
 
 float getHeight() {
