@@ -28,12 +28,19 @@ struct adv_target : draw_target {
 	}
 };
 
+cpix empty_cpix() {
+	cpix r;
+	r.ch = 'X';
+	r.co = FBLACK|BRED;
+	return r;
+}
+
 /*
 From 0-1 of a sample
 */
 struct sample_source {
 	virtual pixel sampleImage(float x, float y) { return pixel(0, 0, 0); }
-	virtual cpix presampledImage(float x, float y) { return cpix(); }
+	virtual cpix presampledImage(float x, float y) { return empty_cpix(); }
 };
 
 /*
@@ -50,10 +57,29 @@ Load image with pixel dimensions
 */
 struct pixel_image : image {
 	ubyte *textureData;
+	cpix *presampledData;
 	int bpp;
+
+	pixel_image() {
+		textureData = nullptr;
+		presampledData = nullptr;
+		bpp = 0;
+	}
 
 	~pixel_image() {
 		stbi_image_free(textureData);
+	}
+
+	cpix presampledImage(float x, float y) override {
+		if (!presampledData)
+			return empty_cpix();
+
+		posi dim = getDim();
+
+		int imX = x * dim.x;
+		int imY = y * dim.y;
+
+		return presampledData[imY * dim.x + imX];
 	}
 
 	pixel sampleImage(float x, float y) override {
@@ -75,6 +101,29 @@ struct pixel_image : image {
 		return pix;
 	}
 
+	void presample() {
+		posi dim = getDim();
+		int size = dim.x * dim.y;
+
+		if (presampledData)
+			delete[] presampledData;
+
+		presampledData = new cpix[size];
+
+		for (int i = 0; i < size; i++) {
+			int offset = i * bpp;
+			pixel pix;
+			pix.r = textureData[offset + 0];
+			pix.g = textureData[offset + 1];
+			pix.b = textureData[offset + 2];
+			if (bpp == 4)
+				pix.a = textureData[offset + 3];
+			cpix *target = &presampledData[i];
+			getDitherColored(pix.r, pix.g, pix.b, &target->ch, &target->co);
+			target->a = pix.a;
+		}
+	}
+
 	void load(const char* path) {
 		int x, y, n;
 		textureData = stbi_load(path, &x, &y, &n, 0);
@@ -85,6 +134,8 @@ struct pixel_image : image {
 		dimensions.x = x;
 		dimensions.y = y;
 		bpp = n;
+
+		presample();
 	}
 };
 
@@ -106,7 +157,26 @@ Image with pixel dimensions and reference to atlas
 */
 struct atlas_fragment : image {
 	atlas *sourceAtlas;
-	sizei atlasArea;
+	sizei atlasPixelArea;
+	sizei atlasSpriteArea;
+	
+	posf mapToAtlas(posf p) {
+		posf r;
+		r.x = atlasPixelArea.x + p.x * atlasPixelArea.width;
+		r.y = atlasPixelArea.y + p.y * atlasPixelArea.height;
+		r.x /= sourceAtlas->getWidth();
+		r.y /= sourceAtlas->getHeight();
+		return r;
+	}
+
+	pixel sampleImage(float x, float y) override {
+		posf atl = mapToAtlas(posf(x, y));
+		return sourceAtlas->sampleImage(atl.x, atl.y);
+	}
+	cpix presampledImage(float x, float y) override {
+		posf atl = mapToAtlas(posf(x, y));
+		return sourceAtlas->presampledImage(atl.x, atl.y);
+	}
 };
 
 atlas_fragment atlas::fragment(sizei sprite_units) {
@@ -120,148 +190,94 @@ atlas_fragment atlas::fragment(sizei sprite_units) {
 	pixel_units.height = sprite_units.height * spriteSize;
 
 	frag.dimensions = pixel_units.length();
-	frag.atlasArea = pixel_units;
+	frag.atlasPixelArea = pixel_units;
+	frag.atlasSpriteArea = sprite_units;
 
 	return frag;
 }
 
 atlas mainAtlas(16);
+adv_target mainTarget;
 
-struct sprite {
-	sprite() {
-		sourceAtlas = &mainAtlas;
-	}
-
+struct sprite : atlas_fragment {
 	sprite(int x, int y) 
 	:sprite(x,y,1,1) {}
 
 	sprite(int x, int y, int w, int h)
-	:sprite() {
+	:atlas_fragment(mainAtlas.fragment(sizei(x, y, w, h))),
+	 target(&mainTarget) {
 		setAtlas(sizei(x, y, w, h));
 	}
 
-	//int atlas[4];
-	sizei atlasArea;
-	atlas *sourceAtlas;
+	draw_target *target;
 
-	virtual void setAtlas(sizei area) {	atlasArea = area; }
+	virtual void setAtlas(sizei area) {	atlasSpriteArea = area; }
+	virtual int getPixT() { return sourceAtlas->spriteSize; }
+	virtual int getPixTW() { return sourceAtlas->getWidth(); }
+	virtual int getPixTH() { return sourceAtlas->getHeight(); }
+	virtual int getAtlW() {	return atlasSpriteArea.width; }
+	virtual int getAtlH() { return atlasSpriteArea.height; }
+	virtual int getAtlX0() { return atlasSpriteArea.x; }
+	virtual int getAtlY0() { return atlasSpriteArea.y; }
+	virtual int getAtlX1() { return atlasSpriteArea.x + atlasSpriteArea.width; }
+	virtual int getAtlY1() { return atlasSpriteArea.y + atlasSpriteArea.height; }
 
-	virtual int getAtlW() {	return atlasArea.width; }
+	/*
+	Send start screen coordinates, screen width and height per sprite unit
+	*/
+	virtual void draw(sizei screen, sizei atlasXYWH, bool hflip = false, bool vflip = false) {
+		sizei atlas = atlasSpriteArea;
+		
+		posi scrdim = target->getDim();
+		sizei scrLimit = {0, 0, scrdim.x, scrdim.y};
 
-	virtual int getAtlH() { return atlasArea.height; }
+		posi origin = screen.start();
+		int yOffset = screen.height * (atlas.height - 1);
+		sizei area = {origin.x, 
+					  origin.y, 
+					  screen.width * atlas.width, 
+					  screen.height * atlas.height};
 
-	virtual int getPixT() { return textureSize; }
+		//target->draw(origin, empty_cpix());
 
-	virtual int getPixTW() { return textureWidth; }
+		for (int x = 0; x < area.width; x++) {
+			for (int y = 0; y < area.height; y++) {
+				posi scr = area.start().add(x,y-yOffset);
 
-	virtual int getPixTH() { return textureHeight; }
-
-	virtual pixel sampleSprite(float x, float y) { return sampleImage(x, y); }
-
-	virtual cpix sampleSpriteCHCO(float x, float y) { return sampleImageCHCO(x, y); }
-
-	virtual void drawPixel(int x, int y, pixel pix) {
-		wchar_t ch;
-		color_t co;
-		getDitherColored(pix.r, pix.g, pix.b, &ch, &co);
-		adv::write(x, y, ch, co);
-	}
-
-	void draw(sizei area, sizei atlas, bool hflip = false, bool vflip = false) {
-		draw(area.x, area.y, area.width, area.height, atlas.x, atlas.y, atlas.width, atlas.height, hflip, vflip);
-	}
-
-	void draw(int scrX0 /*screen offset x*/, int scrY0 /*screen offset y*/, int scrW /*draw width on screen*/, int scrH /*draw height on screen*/, int atl0, int atl1, int atl2, int atl3, bool hflip = false, bool vflip = false) {
-		//Default is drawing texture from the atlas. ignoring transparent and retaining scale
-		int atlW = getAtlW(); // number of images
-		int atlH = getAtlH(); // number of images
-
-		int scrX1 = scrX0 + scrW; // max x for draw
-		int scrY1 = scrY0 + scrH; // max y for draw
-		int maxW = adv::width; // max screen width
-		int maxH = adv::height; // max screen height
-
-		int pixT = getPixT();//textureSize; // each texture size in pixels
-		int pixTW = getPixTW();//textureWidth; // total atlas texture width
-		int pixTH = getPixTH();//textureHeight; // total atlas texture height
-
-		int pixX0 = atl0 * pixT; 
-		int pixY0 = atl1 * pixT;
-		int pixX1 = atl2 * pixT;
-		int pixY1 = atl3 * pixT;		
-
-		int pixAtlW = atlW * pixT; // total atlas texture width
-		int pixAtlH = atlH * pixT; // total atlas texture height
-
-		float fAtlX0 = pixX0 / pixTW;
-		float fAtlY0 = pixY0 / pixTH;
-		float fAtlX1 = pixX1 / pixTW;
-		float fAtlY1 = pixY1 / pixTH;
-
-		int maxIterW = scrW * atlW;
-		int maxIterH = scrH * atlH;
-
-		for (int x = 0; x < maxIterW; x++) { // 0 - screen pixels per current atlas texture X index
-			for (int y = 0; y < maxIterH; y++) { // 0 - screen pixels per current atlas texture Y index
-
-				float xsmpf = float(x) / maxIterW; // fraction of screen
-				float ysmpf = float(y) / maxIterH;
-
-				int scrX = scrX0 + x; // current screen pixel X
-				int scrY = scrY0 + y - ((atlH - 1) * scrH); // current screen pixel Y with atlas height offset, why do we do this?
-
-				int xsmp = x;
-				int ysmp = y;
-
-				if (hflip) {
-					xsmp = (scrW * (atlW) - 1) - x;
-					xsmpf = .999999 - xsmpf;
-				}
-				if (vflip) {
-					ysmp = scrH * atlH - y;
-					ysmpf = .999999 - ysmpf;
-				}
-
-				//bounds check for screen
-				if (scrX >= maxW || scrY >= maxH)
-					continue;
-				if (scrX < 0 || scrY < 0)
+				if (!scrLimit.contains(scr))
 					continue;
 
-				//using x/ysmpf instead
-				//sampler takes fraction of atlas
-				float xf = pixX0;
-				float yf = pixY0;
-				xf += xsmpf * pixAtlW;
-				yf += ysmpf * pixAtlH;
-				xf /= pixTW;
-				yf /= pixTH;
+				float xf = float(x) / area.width;
+				float yf = float(y) / area.height;
 
-				//float xf = (pixX0 + (float(xsmp) / scrW) * pixT) / pixTW;
-				//float yf = (pixY0 + (float(ysmp) / scrH) * pixT) / pixTH;
+				if (hflip)
+					xf = .99999 - xf;
+				if (vflip)
+					yf = .99999 - yf;
 
-				pixel pix = sampleSprite(xf, yf);
-				if (pix.a < 255)
+				cpix chco = presampledImage(xf, yf);
+				if (chco.a < 255)
 					continue;
 
-				cpix chco = sampleSpriteCHCO(xf, yf);
-				
-				adv::write(scrX, scrY, chco.ch, chco.co);
+				target->draw(scr, chco);
 			}
 		}
 	}
 
-	void draw(sizef area) {
-		draw(area.x, area.y, area.width, area.height);
+	void draw(sizef area, sizei atlas, bool hflip = false, bool vflip = false) {
+		draw(area.x, area.y, area.width, area.height, atlas.x, atlas.y, atlas.width, atlas.height, hflip, vflip);
 	}
 
-	virtual int getAtlX0() { return atlasArea.x; }
-	virtual int getAtlY0() { return atlasArea.y; }
-	virtual int getAtlX1() { return atlasArea.x + atlasArea.width; }
-	virtual int getAtlY1() { return atlasArea.y + atlasArea.height; }
+	void draw(sizef area) {
+		draw(area, atlasSpriteArea);
+	}
 
-	virtual void draw(int scrX0, int scrY0, int scrW, int scrH) {
-		draw(scrX0, scrY0, scrW, scrH, getAtlX0(), getAtlY0(), getAtlX1(), getAtlY1());	
+	void draw(int scrX0, int scrY0, int scrW, int scrH) {
+		draw(sizei{scrX0, scrY0, scrW, scrH}, atlasSpriteArea);	
+	}	
+
+	void draw(int scrX0, int scrY0, int scrW, int scrH, int atl0, int atl1, int atl2, int atl3, bool hflip = false, bool vflip = false) {
+		draw(sizei{scrX0, scrY0, scrW, scrH}, sizei{atl0, atl1, atl2, atl3}, hflip, vflip);
 	}
 };
 
@@ -287,21 +303,21 @@ struct sprite_overlay : sprite {
 	int getPixTW() override { return _pixTW; }
 	int getPixTH() override { return _pixTH; }
 
-	pixel sampleSprite(float x, float y) override {
+	pixel sampleImage(float x, float y) override {
 		//return pixel(12,190,50);
 		int imX = x * _pixTW;
 		int imY = y * _pixTH;
 		return canvas[imY * _pixTW + imX];
 	}
 
-	cpix sampleSpriteCHCO(float x, float y) override {
+	cpix presampledImage(float x, float y) override {
 		int imX = x * _pixTW;
 		int imY = y * _pixTH;
 		cpix chco;
 		
 		float r = getPixT() / getPixTW();
 
-		pixel pix = sampleSprite(x, y);
+		pixel pix = sampleImage(x, y);
 
 		getDitherColored(pix.r, pix.g, pix.b, &chco.ch, &chco.co);
 		chco.a = pix.a;
@@ -350,7 +366,7 @@ struct sprite_overlay : sprite {
 				float sxf = (spxf0 + (xf * (spxf1 - spxf0)));
 				float syf = (spyf0 + (yf * (spyf1 - spyf0)));
 
-				pixel pix = sp->sampleSprite(sxf, syf); 
+				pixel pix = sp->sampleImage(sxf, syf); 
 				//pixel pix = sprite.sampleSprite(sp, sxf, syf);
 				
 				//sum pixel using alpha

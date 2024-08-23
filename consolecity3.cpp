@@ -974,7 +974,13 @@ struct selector : public tile {
 
 		selected.parent = registry.getPlaceable(selectedId)->clone();
 		selected.plop_instance = selected.parent->getPlop(selected);
-		setArea(selected.parent->getSize(selected));
+		setLength(selected.parent->getSize(selected));
+
+	}
+
+	void setLength(sizei p) {
+		selected.size.width = p.width;
+		selected.size.height = p.height;
 	}
 
 	void setSize(tileEvent e) override {
@@ -1003,7 +1009,7 @@ struct selector : public tile {
 		sizef area = getRenderArea(selected);
 
 		if (ticks++ % 20 > 9) {
-			//selector_sprite.draw(area);
+			selector_sprite.draw(area);
 			game.tileAreaLoop(selected.size, [&](posi p) {
 				selector_sprite.draw(getRenderArea(getEvent(p.with(1,1))));
 			});
@@ -1793,25 +1799,9 @@ int wmain() {
 
 	fprintf(logFile, "[%li] Initialized color table\n", time(0));
 
-	texture = stbi_load("textures.png", (int*)&textureWidth, (int*)&textureHeight, &bpp, 0);
 	mainAtlas.load("textures.png");
 	
 	fprintf(logFile, "[%li] Loaded texture\n", time(0));
-
-	//convert texture to wchar_t and color_t
-	texturechco = new cpix[textureWidth * textureHeight];
-	
-	for (int x = 0; x < textureWidth; x++) {
-		for (int y = 0; y < textureHeight; y++) {
-			pixel pix = sampleImage(float(x) / textureWidth, float(y) / textureHeight);
-			cpix chco;
-			chco.a = pix.a;
-			getDitherColored(pix.r, pix.g, pix.b, &chco.ch, &chco.co);
-			texturechco[int(y * textureWidth) + int(x)] = chco;
-		}
-	}
-
-	fprintf(logFile, "[%li] Converted texture\n", time(0));
 
 	grass_sprite_random = new random_overlay(new sprite_overlay(&grass_sprite), &street_sprite);
 
