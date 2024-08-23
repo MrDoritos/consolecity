@@ -5,6 +5,7 @@ struct dimension {
 	virtual int getWidth() { return 0; }
 	virtual int getHeight() { return 0; }
 	virtual posi getDim() { return {getWidth(), getHeight()}; }
+	virtual sizei getSize() { return {0,0,getWidth(), getHeight()}; }
 };
 
 /*
@@ -238,21 +239,8 @@ struct sprite : atlas_fragment {
 		posi scrdim = target->getDim();
 		sizei scrLimit = {0, 0, scrdim.x, scrdim.y};
 
-		/*
-		New origin for drawing
-		*/
-		//posi origin = screen.start().add(0, screen.height);
 		posi origin = screen.start();
 
-
-		int yOffset = screen.height * (atlas.height - 1);
-
-		//float swfora = float(screen.width) / atlas.width;
-
-		//sizei area = {origin.x, 
-		//			  origin.y, 
-		//			  int(swfora * atlas.width), 
-		//			  int(swfora * 0.5f * atlas.height)};
 		sizei area = {
 			origin.x, 
 			origin.y, 
@@ -471,6 +459,7 @@ sprite pool_con_sprite(5,3,1,1);
 sprite dry_pool_sprite(6,3,1,1);
 sprite dry_pool_con_sprite(7,3,1,1);
 
+sprite sand_sprite(4,2,1,1);
 sprite grass_sprite(1,1,1,1);
 sprite *grass_sprite_random;
 sprite dry_dirt_sprite(2,1,1,1);
@@ -491,6 +480,7 @@ sprite tall_building_sprite(5,0,1,3);
 sprite building1_sprite(2,3,1,1);
 sprite building2_sprite(0,5,2,2);
 sprite building3_sprite(3,4,2,3);
+sprite building4_sprite(4,0,1,2);
 
 simple_connecting_sprite road_con_tex_sprite(&road_sprite, &road_con_sprite);
 simple_connecting_sprite street_con_tex_sprite(&street_sprite, &street_con_sprite);

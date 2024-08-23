@@ -119,8 +119,19 @@ struct _size : public _pos<T> {
     POS2<T2> cast() {
         return {this->x, this->y, width, height};
     }
+    template<template<typename> typename POS2, typename T2>
+    static _size<T> cast(POS2<T2> p) {
+        return {(T)p.x, (T)p.y, (T)p.width, (T)p.height};
+    }
     bool contains(_pos<T> p) {
         return p.x >= this->x && p.x < this->x + width && p.y >= this->y && p.y < this->y + height;
+    }
+    bool overlaps(_size<T> s) {
+        return 
+            contains(s.start()) ||
+            contains(s.left()) ||
+            contains(s.right()) ||
+            contains(s.end());
     }
     bool contains(_size<T> s) {
         return 
@@ -138,6 +149,12 @@ struct _size : public _pos<T> {
     }
     _pos<T> end() {
         return this->start().add(length());
+    }
+    _pos<T> left() {
+        return this->start().add(width, 0);
+    }
+    _pos<T> right() {
+        return this->start().add(0, height);
     }
     T distsq() {
         return this->start().distsq(length());

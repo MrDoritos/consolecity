@@ -574,12 +574,9 @@ struct tileBase : public tileEventHandler {
 	Return screenspace coordinates for the XYWH of size
 	Not related to sprite size
 	Includes XY transformation
-	"Incorrectly" starts y from top, currently y is flipped in the sprite
-	->Give y from bottom now
+	Gives y from bottom now
 	*/
-	sizef getRenderArea(sizei size) {
-		//size.width = 1;
-		//size.height = 1;
+	static sizef getRenderArea(sizei size) {
 		posf aspect = posf{getWidth(),getHeight()};
 		posf origin = getOffsetXY(posf{(float)size.x,(float)size.y});
 		posf length = posf{(float)size.width,(float)size.height};
@@ -591,7 +588,6 @@ struct tileBase : public tileEventHandler {
 						   length.x * aspect.x, //good
 						   length.y * aspect.y};//just length
 		
-		//renderbox.y += renderbox.height;
 		renderbox.y = ystart * aspect.y;
 		renderbox.width = aspect.x;
 		renderbox.height = aspect.y;
@@ -726,7 +722,22 @@ struct tile : public tileBase {
 	}
 	
 	void render(tileEvent e) override {
-		tex.draw(getRenderArea(e));
+		int v = (e.size.x << 2) | 134;
+		v |= (e.size.y << 16) | (v & 0xc0ffee);
+		bool hflip = false;
+		bool vflip = false;
+		switch (v % 3) {
+			case 0:
+				hflip = true;
+				break;
+			case 1:
+				vflip = true;
+				break;
+			case 2:
+				break;
+		}
+		tex.draw(getRenderArea(e), sizei(), hflip, vflip);
+
 	}
 
 	void copyState(tilePartial *tile) override {
@@ -807,6 +818,12 @@ struct plop : public tileBase {
 		registry.placeable.erase(std::remove(registry.placeable.begin(), registry.placeable.end(), this), registry.placeable.end());
 	}
 
+	sizef getRenderArea(tileEvent e) override {
+		if (e.plop_instance)
+			return tileBase::getRenderArea(e.plop_instance->size);
+		return tileBase::getRenderArea(e.size);
+	}
+
 	void render(tileEvent e) override {
 		if (tex == nullptr || e.plop_instance == nullptr)
 			return;
@@ -819,7 +836,7 @@ struct plop : public tileBase {
 		if (!(rendererPos == renderingPos))
 			return;
 
-		tex->draw(getRenderArea(size));
+		tex->draw(tileBase::getRenderArea(size));
 	}	
 
 	tilePartial getDefaultState() override {
@@ -975,6 +992,7 @@ network_provider_plop tall_building_plop(&tall_building_sprite, -800, -400, 1, 1
 network_provider_plop building1_plop(&building1_sprite, -400, 200, 1, 1, true);
 plop building2_plop(&building2_sprite, 2, 1);
 plop building3_plop(&building3_sprite, 2, 2);
+plop building4_plop(&building4_sprite, 1, 1);
 
 tilePartial partially_garbage;
 
@@ -1010,6 +1028,7 @@ struct selector : public tile {
 	void setLength(sizei p) {
 		selected.size.width = p.width;
 		selected.size.height = p.height;
+		setArea(selected.size);
 	}
 
 	void setSize(tileEvent e) override {
@@ -1050,9 +1069,21 @@ struct selector : public tile {
 			});
 			//water_pipe_sprite.draw(area);
 		} else {
+			sizei oldSize = selected.parent->getSize(selected);
+			if (selected.plop_instance != nullptr) {
+				oldSize = selected.plop_instance->size;
+				oldSize = registry.getInstance(selected.plop_instance->initial_id)->getSize(selected);
+
+			}
 			game.tileAreaLoop(selected.size, [&](posi p) {
-				selected.parent->render(selected);
+				tileComplete tc = selected;
+				sizei tmp = p.with(oldSize.width, oldSize.height);
+				tc.size = tmp;
+				if (tmp.x % oldSize.width == 0 && tmp.y % oldSize.height == 0)
+					selected.parent->setSize(tc);
+				selected.parent->render(tc);
 			});
+			selected.parent->setSize(selected);
 			//selected.parent->render(selected);
 		}		
 	}
@@ -1127,6 +1158,8 @@ struct _water_pipe_tile : public tileable {
 _water_pipe_tile water_pipe_tile;
 tile default_tile;
 tile grass_tile = tile(grass_sprite, true);
+tile sand_tile = tile(sand_sprite, true);
+tile water_tile = tile(wet_plop_sprite, true);
 _dirt_tile dirt_tile;
 selector tileSelector;
 
@@ -1504,6 +1537,9 @@ void _game::init(sizei mapsize) {
 	if (tileMap)
 		delete [] tileMap;
 	
+	mapSize = mapsize;
+	tileMapWidth = mapSize.width;
+	tileMapHeight = mapSize.height;
 	tileMap = new tilePartial[tileMapWidth * tileMapHeight];
 
 	for (int y = 0; y < tileMapHeight; y++) {
@@ -1564,16 +1600,19 @@ tileEvent getEvent(sizei p) {
 void displayTileMap() {
 	float width = getWidth();
 	float height = getHeight();
+
+	sizei screen = mainTarget.getSize();
+	sizei map = game.getMapSize();
+
 	tileComplete tc;
 	tileEvent e;
 
-	for (int x = tileMapWidth - 1; x > - 1; x--) {
-		for (int y = 0; y < tileMapHeight; y++) {
-			float offsetx = getOffsetX(x,y);
-			float offsety = getOffsetY(x,y);
-			
-			//Check if in view (TO-DO)
-			if (offsetx * width + width < 0 || offsety * height + height < 0 || offsetx * width + width - width > adv::width || offsety * height + height - height > adv::height)
+	for (int x = map.width - 1; x > - 1; x--) {
+		for (int y = 0; y < map.height; y++) {			
+			sizef renderArea = tileBase::getRenderArea({x,y,1,1});
+			renderArea.height = renderArea.height - renderArea.y;
+
+			if (!screen.overlaps(sizei::cast(renderArea)))
 				continue;
 			
 			tc = getComplete(x,y);
