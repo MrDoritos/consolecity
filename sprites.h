@@ -1,39 +1,154 @@
 #pragma once
 #include "graphics.h"
 
-struct atlas {
-	atlas(posi dim, int spriteSize) {
-		this->dimensions = dim;
-		this->spriteSize = spriteSize;
-	}
-
-	posi dimensions;
-	int spriteSize;
+struct dimension {
+	virtual int getWidth() { return 0; }
+	virtual int getHeight() { return 0; }
+	virtual posi getDim() { return {getWidth(), getHeight()}; }
 };
 
+/*
+Simple target for drawing
+*/
+struct draw_target : dimension {
+	virtual void draw(posi p, pixel pix) {}
+	virtual void draw(posi p, cpix pix) {}
+};
+
+struct adv_target : draw_target {
+	int getWidth() override { return adv::width; }
+	int getHeight() override { return adv::height; }
+	void draw(posi p, pixel pix) override {
+		cpix c;
+		getDitherColored(pix.r, pix.g, pix.b, &c.ch, &c.co);
+		adv::write(p.x, p.y, c.ch, c.co);
+	}
+	void draw(posi p, cpix pix) override {
+		adv::write(p.x, p.y, pix.ch, pix.co);
+	}
+};
+
+/*
+From 0-1 of a sample
+*/
+struct sample_source {
+	virtual pixel sampleImage(float x, float y) { return pixel(0, 0, 0); }
+	virtual cpix presampledImage(float x, float y) { return cpix(); }
+};
+
+/*
+Add pixel dimensions to a sample
+*/
+struct image : sample_source, dimension {
+	posi dimensions;
+	int getWidth() override { return dimensions.x; }
+	int getHeight() override { return dimensions.y; }
+};
+
+/*
+Load image with pixel dimensions
+*/
+struct pixel_image : image {
+	ubyte *textureData;
+	int bpp;
+
+	~pixel_image() {
+		stbi_image_free(textureData);
+	}
+
+	pixel sampleImage(float x, float y) override {
+		posi dim = getDim();
+
+		int imX = x * dim.x;
+		int imY = y * dim.y;
+
+		int offset = imY * (dim.x * bpp) + (imX * bpp);
+
+		pixel pix;
+		pix.r = textureData[offset + 0];
+		pix.g = textureData[offset + 1];
+		pix.b = textureData[offset + 2];
+
+		if (bpp == 4)
+			pix.a = textureData[offset + 3];
+
+		return pix;
+	}
+
+	void load(const char* path) {
+		int x, y, n;
+		textureData = stbi_load(path, &x, &y, &n, 0);
+
+		if (!textureData)
+			adv::error("Error loading image");
+
+		dimensions.x = x;
+		dimensions.y = y;
+		bpp = n;
+	}
+};
+
+struct atlas_fragment;
+
+/*
+Factory for atlas_fragments
+*/
+struct atlas : pixel_image {
+	int spriteSize;
+	atlas(int spriteSize) {
+		this->spriteSize = spriteSize;
+	}
+	atlas_fragment fragment(sizei sprite_units);
+};
+
+/*
+Image with pixel dimensions and reference to atlas
+*/
+struct atlas_fragment : image {
+	atlas *sourceAtlas;
+	sizei atlasArea;
+};
+
+atlas_fragment atlas::fragment(sizei sprite_units) {
+	atlas_fragment frag;
+	sizei pixel_units;
+	frag.sourceAtlas = this;
+
+	pixel_units.x = sprite_units.x * spriteSize;
+	pixel_units.y = sprite_units.y * spriteSize;
+	pixel_units.width = sprite_units.width * spriteSize;
+	pixel_units.height = sprite_units.height * spriteSize;
+
+	frag.dimensions = pixel_units.length();
+	frag.atlasArea = pixel_units;
+
+	return frag;
+}
+
+atlas mainAtlas(16);
+
 struct sprite {
+	sprite() {
+		sourceAtlas = &mainAtlas;
+	}
+
 	sprite(int x, int y) 
-	:sprite(x,y,1,1) {
-	}
-	sprite(int x, int y, int w, int h) {
-		atlas[0] = x;
-		atlas[1] = y;
-		atlas[2] = x + w;
-		atlas[3] = y + h;
+	:sprite(x,y,1,1) {}
+
+	sprite(int x, int y, int w, int h)
+	:sprite() {
+		setAtlas(sizei(x, y, w, h));
 	}
 
-	int atlas[4];
+	//int atlas[4];
+	sizei atlasArea;
+	atlas *sourceAtlas;
 
-	virtual void setAtlas(sizei atlas) {
-		this->atlas[0] = atlas.x;
-		this->atlas[1] = atlas.y;
-		this->atlas[2] = atlas.x + atlas.width;
-		this->atlas[3] = atlas.y + atlas.height;
-	}
+	virtual void setAtlas(sizei area) {	atlasArea = area; }
 
-	virtual int getAtlW() {	return atlas[2] - atlas[0];	}
+	virtual int getAtlW() {	return atlasArea.width; }
 
-	virtual int getAtlH() { return atlas[3] - atlas[1];	}
+	virtual int getAtlH() { return atlasArea.height; }
 
 	virtual int getPixT() { return textureSize; }
 
@@ -58,7 +173,6 @@ struct sprite {
 
 	void draw(int scrX0 /*screen offset x*/, int scrY0 /*screen offset y*/, int scrW /*draw width on screen*/, int scrH /*draw height on screen*/, int atl0, int atl1, int atl2, int atl3, bool hflip = false, bool vflip = false) {
 		//Default is drawing texture from the atlas. ignoring transparent and retaining scale
-		int *textureAtlas = &atlas[0];
 		int atlW = getAtlW(); // number of images
 		int atlH = getAtlH(); // number of images
 
@@ -141,8 +255,13 @@ struct sprite {
 		draw(area.x, area.y, area.width, area.height);
 	}
 
+	virtual int getAtlX0() { return atlasArea.x; }
+	virtual int getAtlY0() { return atlasArea.y; }
+	virtual int getAtlX1() { return atlasArea.x + atlasArea.width; }
+	virtual int getAtlY1() { return atlasArea.y + atlasArea.height; }
+
 	virtual void draw(int scrX0, int scrY0, int scrW, int scrH) {
-		draw(scrX0, scrY0, scrW, scrH, atlas[0], atlas[1], atlas[2], atlas[3]);
+		draw(scrX0, scrY0, scrW, scrH, getAtlX0(), getAtlY0(), getAtlX1(), getAtlY1());	
 	}
 };
 
@@ -191,10 +310,10 @@ struct sprite_overlay : sprite {
 	}
 
 	void set(sprite *sp) {
-		float spxf0 = (sp->atlas[0] * sp->getPixT()) / float(textureWidth);
-		float spyf0 = (sp->atlas[1] * sp->getPixT()) / float(textureHeight);
-		float spxf1 = (sp->atlas[2] * sp->getPixT()) / float(textureWidth);
-		float spyf1 = (sp->atlas[3] * sp->getPixT()) / float(textureHeight);
+		float spxf0 = (sp->getAtlX0() * sp->getPixT()) / float(textureWidth);
+		float spyf0 = (sp->getAtlY0() * sp->getPixT()) / float(textureHeight);
+		float spxf1 = (sp->getAtlX1() * sp->getPixT()) / float(textureWidth);
+		float spyf1 = (sp->getAtlY1() * sp->getPixT()) / float(textureHeight);
 
 		int cw = getPixTW();
 		int ch = getPixTH();
@@ -218,10 +337,10 @@ struct sprite_overlay : sprite {
 	}
 
 	void add(sprite *sp) {
-		float spxf0 = (sp->atlas[0] * sp->getPixT() / float(sp->getPixTW()));
-		float spyf0 = (sp->atlas[1] * sp->getPixT() / float(sp->getPixTH()));
-		float spxf1 = (sp->atlas[2] * sp->getPixT() / float(sp->getPixTW()));
-		float spyf1 = (sp->atlas[3] * sp->getPixT() / float(sp->getPixTH()));
+		float spxf0 = (sp->getAtlX0() * sp->getPixT() / float(sp->getPixTW()));
+		float spyf0 = (sp->getAtlX1() * sp->getPixT() / float(sp->getPixTH()));
+		float spxf1 = (sp->getAtlY0() * sp->getPixT() / float(sp->getPixTW()));
+		float spyf1 = (sp->getAtlY1() * sp->getPixT() / float(sp->getPixTH()));
 
 		for (int x = 0; x < getPixTW(); x++) {
 			for (int y = 0; y < getPixTH(); y++) {
@@ -283,7 +402,7 @@ struct simple_connecting_sprite : sprite {
 
 		for (int i = 0; i < 4; i++) {
 			if (con[i])
-				over->draw(scrX0, scrY0, scrW, scrH, over->atlas[0], over->atlas[1], over->atlas[2], over->atlas[3], args[i * 2], args[i * 2 + 1]);
+				over->draw(scrX0, scrY0, scrW, scrH, over->getAtlX0(), over->getAtlY0(), over->getAtlX1(), over->getAtlY1(), args[i * 2], args[i * 2 + 1]);
 		}
 	}
 

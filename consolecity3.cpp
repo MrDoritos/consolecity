@@ -1794,6 +1794,7 @@ int wmain() {
 	fprintf(logFile, "[%li] Initialized color table\n", time(0));
 
 	texture = stbi_load("textures.png", (int*)&textureWidth, (int*)&textureHeight, &bpp, 0);
+	mainAtlas.load("textures.png");
 	
 	fprintf(logFile, "[%li] Loaded texture\n", time(0));
 
