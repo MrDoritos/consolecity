@@ -127,6 +127,7 @@ bool waterView;
 bool infoMode;
 bool statsMode;
 bool queryMode;
+bool plopsOnly;
 
 #pragma endregion
 
@@ -569,12 +570,36 @@ network_provider no_provider;
 struct tileBase : public tileEventHandler {
 	int id;
 	virtual void render(tileEvent e) = 0;
+	/*
+	Return screenspace coordinates for the XYWH of size
+	Not related to sprite size
+	Includes XY transformation
+	"Incorrectly" starts y from top, currently y is flipped in the sprite
+	->Give y from bottom now
+	*/
+	sizef getRenderArea(sizei size) {
+		//size.width = 1;
+		//size.height = 1;
+		posf aspect = posf{getWidth(),getHeight()};
+		posf origin = getOffsetXY(posf{(float)size.x,(float)size.y});
+		posf length = posf{(float)size.width,(float)size.height};
+		float ystart = getOffsetY(size.x - 1, size.y + size.height);
+		posf end = getOffsetXY(origin.add(length));
+
+		sizef renderbox = {origin.x * aspect.x, //good
+						   origin.y * aspect.y, //top
+						   length.x * aspect.x, //good
+						   length.y * aspect.y};//just length
+		
+		//renderbox.y += renderbox.height;
+		renderbox.y = ystart * aspect.y;
+		renderbox.width = aspect.x;
+		renderbox.height = aspect.y;
+
+		return renderbox;
+	}
 	virtual sizef getRenderArea(tileEvent e) {
-		e.size.width = 1;
-		e.size.height = 1;
-		posf pos = getOffsetXY(posf{(float)e.size.x,(float)e.size.y});
-		posf siz = posf{getWidth()*e.size.width,getHeight()*e.size.height};
-		return {pos.x * siz.x, pos.y * siz.y, siz.x, siz.y};
+		return getRenderArea(e.size.with(1,1));
 	}
 	virtual sizei getSize(tileEvent e) {
 		return e.size;
@@ -786,11 +811,15 @@ struct plop : public tileBase {
 		if (tex == nullptr || e.plop_instance == nullptr)
 			return;
 
-		if (e.size.x != e.plop_instance->size.x
-			|| e.size.y != e.plop_instance->size.y)
+		posi rendererPos = e.size;
+		sizei plopPos = e.plop_instance->size;
+		posi renderingPos = plopPos;
+		renderingPos.y = plopPos.end().y - 1;
+
+		if (!(rendererPos == renderingPos))
 			return;
 
-		tex->draw(getRenderArea(e));
+		tex->draw(getRenderArea(size));
 	}	
 
 	tilePartial getDefaultState() override {
@@ -1450,6 +1479,7 @@ void _game::init(sizei mapsize) {
 	placementMode = false;
 	infoMode = false;
 	statsMode = false;
+	plopsOnly = false;
 	
 	waterSupply = 0;
 	waterDemand = 0;
@@ -1491,7 +1521,8 @@ void _game::init(sizei mapsize) {
 	game.place({3,2,1,1}, water_tower_plop.clone());
 	game.place({4,2,1,1}, water_tower_plop.clone());
 	game.place({5,2,1,1}, water_tower_plop.clone());
-	
+	game.place({2,4,2,2}, building3_plop.clone());
+	game.place({4,4,2,1}, building2_plop.clone());
 }
 
 tilePartial *getPartial(int x, int y) {
@@ -1556,10 +1587,13 @@ void displayTileMap() {
 				continue;
 			}			
 
-			if (tc.parent)
+			if (tc.parent && !plopsOnly)
 				tc.parent->render(e);
-			if (tc.plop_instance)
+			if (tc.plop_instance) {
+				//if (plopsOnly && tc.parent)
+				//	tc.parent->render(e);
 				tc.plop_instance->render(e);
+			}
 			/*
 			if (tc.parent->waterConsumption(&tc) > 0 && !tc.partial->hasWater()) {
 				//nowater->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
@@ -1961,6 +1995,9 @@ int wmain() {
 				break;
 			case 'j':
 				statsMode = !statsMode;
+				break;
+			case 'l':
+				plopsOnly = !plopsOnly;
 				break;
 			case 'k':
 				month++;

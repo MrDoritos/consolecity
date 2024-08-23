@@ -28,6 +28,13 @@ struct adv_target : draw_target {
 	}
 };
 
+cpix get_cpix(wchar_t ch, color_t co) {
+	cpix r;
+	r.ch = ch;
+	r.co = co;
+	return r;
+}
+
 cpix empty_cpix() {
 	cpix r;
 	r.ch = 'X';
@@ -234,14 +241,24 @@ struct sprite : atlas_fragment {
 		/*
 		New origin for drawing
 		*/
-		posi origin = screen.start().add(0, screen.height);
+		//posi origin = screen.start().add(0, screen.height);
+		posi origin = screen.start();
 
 
 		int yOffset = screen.height * (atlas.height - 1);
-		sizei area = {origin.x, 
-					  origin.y, 
-					  screen.width * atlas.width, 
-					  screen.height * atlas.height};
+
+		//float swfora = float(screen.width) / atlas.width;
+
+		//sizei area = {origin.x, 
+		//			  origin.y, 
+		//			  int(swfora * atlas.width), 
+		//			  int(swfora * 0.5f * atlas.height)};
+		sizei area = {
+			origin.x, 
+			origin.y, 
+			screen.width * atlas.width, 
+			screen.height * atlas.height
+		};
 
 		for (int x = 0; x < area.width; x++) {
 			for (int y = 0; y < area.height; y++) {
@@ -267,7 +284,14 @@ struct sprite : atlas_fragment {
 			}
 		}
 
-		target->draw(origin, empty_cpix());
+		/*
+		target->draw(screen.start(), get_cpix('S', FBLACK|BRED));
+		target->draw(screen.end().sub(0, screen.height * 2), get_cpix('S', FBLACK|BBLUE));
+		target->draw(area.start(), get_cpix('A', FBLACK|BRED));
+		target->draw(area.end().sub(0, area.height * 2), get_cpix('A', FBLACK|BGREEN));
+
+		target->draw(origin, get_cpix('O', FBLACK|BWHITE));
+		*/
 	}
 
 	void draw(sizef area, sizei atlas, bool hflip = false, bool vflip = false) {
