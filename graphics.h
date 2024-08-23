@@ -156,14 +156,6 @@ typedef _cc<wchar_t, color_t, color_t> cpix;
 typedef unsigned char ubyte;
 typedef _pixel<ubyte> pixel;
 
-cpix *texturechco;
-
-unsigned char *texture;
-int textureHeight;
-int textureWidth;
-int bpp;
-
-int textureSize = 16;
 float frametime = 33.333f;
 float xfact = 0.7071067812f; //0.5f;
 float yfact = 0.7071067812f; //0.5f;
@@ -234,26 +226,4 @@ float getScreenOffsetX(float ratio, float width) {
 
 float getScreenOffsetY(float ratio, float height) {
     return getScreenOffset(ratio, height, adv::height);
-}
-
-pixel sampleImage(float x, float y) { 
-	int imX = x * textureWidth;
-	int imY = y * textureHeight;
-	
-	pixel pix;
-	pix.r = texture[imY * (textureWidth * bpp) + (imX * bpp) + 0];
-	pix.g = texture[imY * (textureWidth * bpp) + (imX * bpp) + 1];
-	pix.b = texture[imY * (textureWidth * bpp) + (imX * bpp) + 2];
-	
-	if (bpp == 4)
-		pix.a = texture[imY * (textureWidth * bpp) + (imX * bpp) + 3];
-	
-	return pix;
-}
-
-cpix sampleImageCHCO(float x, float y) {
-	int imX = x * textureWidth;
-	int imY = y * textureHeight;
-	cpix chco = texturechco[imY * textureWidth + imX];
-	return chco;
 }

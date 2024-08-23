@@ -231,18 +231,22 @@ struct sprite : atlas_fragment {
 		posi scrdim = target->getDim();
 		sizei scrLimit = {0, 0, scrdim.x, scrdim.y};
 
-		posi origin = screen.start();
+		/*
+		New origin for drawing
+		*/
+		posi origin = screen.start().add(0, screen.height);
+
+
 		int yOffset = screen.height * (atlas.height - 1);
 		sizei area = {origin.x, 
 					  origin.y, 
 					  screen.width * atlas.width, 
 					  screen.height * atlas.height};
 
-		//target->draw(origin, empty_cpix());
-
 		for (int x = 0; x < area.width; x++) {
 			for (int y = 0; y < area.height; y++) {
-				posi scr = area.start().add(x,y-yOffset);
+				//posi scr = area.start().add(x,y-yOffset);
+				posi scr = area.start().add(x,-y);
 
 				if (!scrLimit.contains(scr))
 					continue;
@@ -252,7 +256,7 @@ struct sprite : atlas_fragment {
 
 				if (hflip)
 					xf = .99999 - xf;
-				if (vflip)
+				if (!vflip)
 					yf = .99999 - yf;
 
 				cpix chco = presampledImage(xf, yf);
@@ -262,6 +266,8 @@ struct sprite : atlas_fragment {
 				target->draw(scr, chco);
 			}
 		}
+
+		target->draw(origin, empty_cpix());
 	}
 
 	void draw(sizef area, sizei atlas, bool hflip = false, bool vflip = false) {
@@ -326,10 +332,10 @@ struct sprite_overlay : sprite {
 	}
 
 	void set(sprite *sp) {
-		float spxf0 = (sp->getAtlX0() * sp->getPixT()) / float(textureWidth);
-		float spyf0 = (sp->getAtlY0() * sp->getPixT()) / float(textureHeight);
-		float spxf1 = (sp->getAtlX1() * sp->getPixT()) / float(textureWidth);
-		float spyf1 = (sp->getAtlY1() * sp->getPixT()) / float(textureHeight);
+		float spxf0 = (sp->getAtlX0() * sp->getPixT()) / float(sp->sourceAtlas->getWidth());
+		float spyf0 = (sp->getAtlY0() * sp->getPixT()) / float(sp->sourceAtlas->getHeight());
+		float spxf1 = (sp->getAtlX1() * sp->getPixT()) / float(sp->sourceAtlas->getWidth());
+		float spyf1 = (sp->getAtlY1() * sp->getPixT()) / float(sp->sourceAtlas->getHeight());
 
 		int cw = getPixTW();
 		int ch = getPixTH();
