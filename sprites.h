@@ -1,6 +1,16 @@
 #pragma once
 #include "graphics.h"
 
+struct atlas {
+	atlas(posi dim, int spriteSize) {
+		this->dimensions = dim;
+		this->spriteSize = spriteSize;
+	}
+
+	posi dimensions;
+	int spriteSize;
+};
+
 struct sprite {
 	sprite(int x, int y) 
 	:sprite(x,y,1,1) {
@@ -33,7 +43,7 @@ struct sprite {
 
 	virtual pixel sampleSprite(float x, float y) { return sampleImage(x, y); }
 
-	virtual ch_co_t sampleSpriteCHCO(float x, float y) { return sampleImageCHCO(x, y); }
+	virtual cpix sampleSpriteCHCO(float x, float y) { return sampleImageCHCO(x, y); }
 
 	virtual void drawPixel(int x, int y, pixel pix) {
 		wchar_t ch;
@@ -120,7 +130,7 @@ struct sprite {
 				if (pix.a < 255)
 					continue;
 
-				ch_co_t chco = sampleSpriteCHCO(xf, yf);
+				cpix chco = sampleSpriteCHCO(xf, yf);
 				
 				adv::write(scrX, scrY, chco.ch, chco.co);
 			}
@@ -165,10 +175,10 @@ struct sprite_overlay : sprite {
 		return canvas[imY * _pixTW + imX];
 	}
 
-	ch_co_t sampleSpriteCHCO(float x, float y) override {
+	cpix sampleSpriteCHCO(float x, float y) override {
 		int imX = x * _pixTW;
 		int imY = y * _pixTH;
-		ch_co_t chco;
+		cpix chco;
 		
 		float r = getPixT() / getPixTW();
 

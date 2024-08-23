@@ -6,6 +6,10 @@
 #include "graphics.h"
 #include "sprites.h"
 
+#pragma region //Forward declarations, defines, and typedefs
+
+typedef float net_t;
+
 struct default_tile;
 struct _game;
 struct grass;
@@ -20,6 +24,7 @@ tilePartial *getPartial(int x, int y);
 tilePartial *getPartial(posi p);
 tileComplete getComplete(int x, int y);
 tileComplete getComplete(posi p);
+tileEvent getEvent(sizei p);
 
 #define ZONING_NONE 0
 #define ZONING_RESIDENTIAL 1
@@ -123,6 +128,10 @@ bool infoMode;
 bool statsMode;
 bool queryMode;
 
+#pragma endregion
+
+#pragma region //Enums
+
 enum EVENT {
 	PLACE = 1, DESTROY = 2, UPDATE = 4, RANDOM = 8, NETWORK = 16
 };
@@ -141,6 +150,9 @@ enum FLAG {
 	SILENT = 1024
 };
 
+#pragma endregion
+
+#pragma region //Function parameters or basic structs
 /*
 Struct for data stored within the game engine tile map
 */
@@ -298,6 +310,92 @@ struct tileEvent : public tileComplete {
 	int flags;
 };
 
+struct network_summary {
+	net_t supply = 0, demand = 0, used = 0;
+	int networks = 0;
+};
+
+#pragma endregion Parameters
+
+#pragma region //Global objects with mostly forward declared functions
+
+/*
+Static, and maybe generic, functions for the game
+*/
+struct util {
+	template<template<typename> typename POS, typename T1, typename FUNCTION>
+	static void areaLoop(POS<T1> size, FUNCTION func);
+	template<template<typename> typename POS, typename T1, typename T2,typename FUNCTION>
+	static void radiusLoop(POS<T1> p, T2 radius, FUNCTION func);
+	//void radiusLoop(posi p, float radius, FUNCTION func);
+};
+
+/*
+Global instance registry
+*/
+struct instance_registry {
+	instance_registry() {
+		id = 1;
+	}
+
+	int nextId() {
+		return id++;
+	}
+
+	tileBase *addInstance(tileBase *t);
+
+	tileBase *getInstance(int id);
+
+	tileBase *addPlaceable(tileBase *t);
+
+	tileBase *getPlaceable(int id);
+
+	int getPlaceableCount() {
+		return placeable.size();
+	}
+
+	int id;
+
+	std::vector<tileBase*> instances;
+	std::vector<tileBase*> placeable;
+} registry; //registry of game tiles and plops
+
+/*
+Functions that require a game instance
+*/
+struct _game {
+	sizei mapSize;
+	sizei getMapSize() { return mapSize; }
+
+	void init(sizei size);
+	std::vector<tileComplete> getTiles(sizei size);
+	void destroy(sizei size);
+	void destroy(tileEvent e);
+	void place(sizei size, tileBase *base);
+	void place(tileEvent e);
+	void fireEvent(tileEvent e);
+	void fireEvent(tileEvent e, int events);
+	void fireEvent(sizei size, int events);
+	void fireEvent(sizei size, int events, int flags);
+
+	bool isInRadius(int ox, int oy, int px, int py, float r);
+	bool isInRadius(sizei size, float r);
+	bool isInBounds(posi p);
+	bool isInBounds(sizei p);
+
+	template<typename FUNCTION, typename Tradius>
+	void tileRadiusLoop(posi p, Tradius radius, FUNCTION func);
+	template<typename FUNCTION, typename Tradius>
+	void tileRadiusLoop(int x, int y, Tradius radius, FUNCTION func);
+	template<typename FUNCTION>
+	void tileAreaLoop(sizei size, FUNCTION func);
+
+} game; //singleton for the game
+
+#pragma endregion
+
+#pragma region //Game objects
+
 struct tileEventHandler {
 	virtual void handle(tileEvent e, bool silent = false) {
 		if (~e.flags & SILENT && !silent)
@@ -321,8 +419,6 @@ struct tileEventHandler {
 	virtual void onRandomEvent(tileEvent e) {}
 	virtual void onNetworkEvent(tileEvent e) {}
 };
-
-typedef float net_t;
 
 struct network_value {
 	network_value() {
@@ -470,47 +566,6 @@ struct network_provider {
 
 network_provider no_provider;
 
-
-struct instance_registry {
-	instance_registry() {
-		id = 1;
-	}
-
-	int nextId() {
-		return id++;
-	}
-
-	tileBase *addInstance(tileBase *t);
-
-	tileBase *getInstance(int id);
-
-	tileBase *addPlaceable(tileBase *t);
-
-	tileBase *getPlaceable(int id);
-
-	int getPlaceableCount() {
-		return placeable.size();
-	}
-
-	int id;
-
-	std::vector<tileBase*> instances;
-	std::vector<tileBase*> placeable;
-} registry; //registry of game tiles and plops
-
-struct _game {
-	void init(sizei size);
-	std::vector<tileComplete> getTiles(sizei size);
-	void destroy(sizei size);
-	void destroy(tileEvent e);
-	void place(sizei size, tileBase *base);
-	void place(tileEvent e);
-	void fireEvent(tileEvent e);
-	void fireEvent(tileEvent e, int events);
-	void fireEvent(sizei size, int events);
-	void fireEvent(sizei size, int events, int flags);
-} game; //singleton for the game
-
 struct tileBase : public tileEventHandler {
 	int id;
 	virtual void render(tileEvent e) = 0;
@@ -545,6 +600,8 @@ struct tileBase : public tileEventHandler {
 		Performs register if needed
 	*/
 	virtual tileBase *clone() = 0;
+	virtual bool isSingleton() = 0;
+	virtual void free() = 0;
 	virtual bool isSameType(tileComplete tc) {
 		return tc.parent == this;
 	}
@@ -563,9 +620,6 @@ struct tileBase : public tileEventHandler {
 		neighbors[1] = getComplete(e.size.east());//EAST
 		neighbors[2] = getComplete(e.size.south());//SOUTH
 		neighbors[3] = getComplete(e.size.west());//WEST
-	}
-	virtual void free() {
-		return;
 	}
 	virtual void copyState(tilePartial *tile) {
 		*tile = getDefaultState();
@@ -627,33 +681,6 @@ struct tileBase : public tileEventHandler {
 	}
 };
 
-tileBase *instance_registry::addInstance(tileBase *t) {
-	if (getInstance(t->id) != nullptr && t->id != 0) {
-		fprintf(logFile, "Instance already exists: %i\n", t->id);
-		return t;
-	}
-	t->id = nextId();
-	instances.push_back(t);
-	return t;
-}
-
-tileBase *instance_registry::getInstance(int id) {
-	for (auto _t : instances) {
-		if (_t->id == id)
-			return _t;
-	}
-	return nullptr;
-}
-
-tileBase *instance_registry::addPlaceable(tileBase *t) {
-	placeable.push_back(t);
-	return t;
-}
-
-tileBase *instance_registry::getPlaceable(int id) {
-	return placeable[id];
-}
-
 struct tile : public tileBase {
 	//int id;
 	sprite tex;
@@ -698,6 +725,14 @@ struct tile : public tileBase {
 		return this;
 	}
 	
+	void free() override {
+		return;
+	}
+
+	bool isSingleton() override {
+		return true;
+	}
+
 	void updateNeighbors(tileEvent e) {
 		tileComplete neighbors[4];
 		getNeighbors(e, neighbors);
@@ -782,6 +817,10 @@ struct plop : public tileBase {
 
 	sizei getSize(tileEvent e) override {
 		return size;
+	}
+
+	bool isSingleton() override {
+		return false;
 	}
 
 	tileBase *clone() override {
@@ -910,47 +949,6 @@ plop building3_plop(&building3_sprite, 2, 2);
 
 tilePartial partially_garbage;
 
-tilePartial *getPartial(int x, int y) {
-	if (x >= tileMapWidth || x < 0 || y >= tileMapHeight || y < 0) {
-		fprintf(logFile, "Out of bounds: %i %i\n", x, y);
-		return &(partially_garbage = tilePartial());//&tiles::DEFAULT_TILE->defaultState;
-	}
-	return &tileMap[y * tileMapWidth + x];
-}
-
-tilePartial *getPartial(posi p) {
-	return getPartial(p.x,p.y);
-}
-
-tileComplete getComplete(int x, int y) {
-	tileComplete tc(nullptr, nullptr, {x,y,1,1});
-	tc.partial = getPartial(x,y);
-	tc.parent = registry.getInstance(tc.partial->id);
-	tc.plop_instance = nullptr;
-	if (tc.partial->isPlop())
-		tc.plop_instance = (plop*)registry.getInstance(tc.partial->getPlopId());
-	return tc;
-}
-
-tileComplete getComplete(posi p) {
-	return getComplete(p.x,p.y);
-}
-
-tileEvent getEvent(sizei p) {
-	tileEvent e = getComplete(p);
-	e.size = p;
-	return e;
-}
-
-template<typename FUNCTION>
-void areaLoop(sizei size, FUNCTION func) {
-	for (int x = size.x; x < size.x + size.width; x++) {
-		for (int y = size.y; y < size.y + size.height; y++) {
-			func(x,y);
-		}
-	}
-}
-
 struct selector : public tile {	
 	selector():selected(nullptr, &state, sizei(0,0,1,1)) {
 		selectedId = 0;
@@ -1006,18 +1004,18 @@ struct selector : public tile {
 
 		if (ticks++ % 20 > 9) {
 			//selector_sprite.draw(area);
-			areaLoop(selected.size, [&](int x, int y) {
-				selector_sprite.draw(getRenderArea(getEvent(sizei{x,y,1,1})));
+			game.tileAreaLoop(selected.size, [&](posi p) {
+				selector_sprite.draw(getRenderArea(getEvent(p.with(1,1))));
 			});
 		}
 
 		if (waterView) {
-			areaLoop(selected.size, [&](int x, int y) {
-				water_pipe_sprite.draw(getRenderArea(getEvent(sizei{x,y,1,1})));
+			game.tileAreaLoop(selected.size, [&](posi p) {
+				water_pipe_sprite.draw(getRenderArea(getEvent(p.with(1,1))));
 			});
 			//water_pipe_sprite.draw(area);
 		} else {
-			areaLoop(selected.size, [&](int x, int y) {
+			game.tileAreaLoop(selected.size, [&](posi p) {
 				selected.parent->render(selected);
 			});
 			//selected.parent->render(selected);
@@ -1096,6 +1094,215 @@ tile default_tile;
 tile grass_tile = tile(grass_sprite, true);
 _dirt_tile dirt_tile;
 selector tileSelector;
+
+#pragma endregion
+
+#pragma region //Functions not forward declared
+
+std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria)(tileComplete), std::vector<tileComplete> &network) {
+	if (std::find(network.begin(), network.end(), current) != network.end())
+		return network;
+
+	if (current.partial == nullptr)
+		return network;
+
+	network.push_back(current);
+
+	posi p = current.size;
+
+	tileComplete q[4] = {
+		getComplete(p.north()),
+		getComplete(p.east()),
+		getComplete(p.south()),
+		getComplete(p.west())
+	};
+
+	for (int i = 0; i < 4; i++) {
+		if (game.isInBounds(q[i].size) && meetsCriteria(q[i])) {
+			walk_network(q[i], meetsCriteria, network);
+		}
+	}
+
+	return network;
+}
+
+bool isWaterNetwork(tileComplete tc) {
+	return tc.partial->hasUnderground(UNDERGROUND_WATER_PIPE);
+}
+
+template<typename FUNCTION>
+network_summary balanceNetworks(FLAG type, FUNCTION func) {
+	std::vector<tileComplete> sparse;
+	sizei map = game.getMapSize();
+	network_summary sm;
+
+	//Values are changing
+	game.fireEvent(map, NETWORK, type|TICK);
+
+	//Take network tiles
+	game.tileAreaLoop(map, [&](posi p) {
+		tileEvent e = getComplete(p);
+		network_value *v = getNetwork(e.with(0,SILENT), type);
+		if (v == nullptr)
+			return;
+		if (v->isSupply()) {
+			if (std::find(sparse.begin(), sparse.end(), e) != sparse.end())
+				return;
+			sparse.push_back(e);
+			fprintf(logFile, "Network piece: %i %i %f %f\n", p.x, p.y, v->getSupply(), v->getDemand());
+		}
+	});
+
+	std::vector<std::vector<tileComplete>> networks;
+
+	//Walk present networks
+	for (tileComplete tc : sparse) {
+		bool newNetwork = true;
+		
+		for (auto network : networks) {
+			if (std::find(network.begin(), network.end(), tc) != network.end()) {
+				newNetwork = false;
+				break;
+			}
+		}
+
+		if (newNetwork) {
+			std::vector<tileComplete> network;
+			walk_network(tc, func, network);
+			networks.push_back(network);
+			sm.networks++;
+		}
+	}
+
+	//Balance networks
+	for (auto network : networks) {
+		std::vector<tileComplete> consumers, providers;
+		net_t input = 0, output = 0;
+
+		for (tileEvent e : network) {
+			game.tileRadiusLoop(e.size, 5, [&](posi p) {
+				tileEvent e2 = getComplete(p);
+				network_value *consum = getNetwork(e2.with(0, SILENT), type);
+
+				if (consum && consum->isDemand())
+					if (std::find(consumers.begin(), consumers.end(), e2) == consumers.end()) {
+						output += consum->getDemand();
+						consumers.push_back(e2);
+					}
+			});
+
+			network_value *net = getNetwork(e.with(0, SILENT), type);
+
+			if (net && net->isSupply())
+				if (std::find(providers.begin(), providers.end(), e) == providers.end()) {
+					input += net->getSupply();
+					providers.push_back(e);
+				}
+		}
+
+		if (providers.empty())
+			continue;
+
+		fprintf(logFile, "This network: %li %li %f %f\n", providers.size(), consumers.size(), input, output);
+
+		sm.demand += output;
+		sm.supply += input;
+
+		net_t ratio = input / output;
+		if (ratio == 0 || ratio < 0 || output < 0.1)
+			continue;
+		float maxRadius = 5.0f;
+		float radius = ratio * maxRadius;
+		if (radius < 0)
+			radius = 0;
+		if (radius > maxRadius)
+			radius = maxRadius;
+
+		for (tileEvent e : providers) {
+			network_value *net = getNetwork(e.with(0, SILENT), type);
+			if (net && net->isSupply())
+				net->take(ratio > 1 ? net->getSupply() : net->getSupply() / ratio);
+
+		}
+
+		for (tileEvent e : consumers) {
+			network_value *net = getNetwork(e.with(0, SILENT), type);
+			if (net && net->isDemand()) 
+				input -= net->give(input);
+		}
+
+		sm.used = sm.supply - input;
+	}
+
+	fprintf(logFile, "Balanced\n");
+
+	//Values are changing
+	//game.fireEvent(map, NETWORK, type|TICK);
+
+	return sm;
+}
+
+#pragma endregion
+
+#pragma region //Function implementations that are forward declared
+
+template<template<typename> typename POS, typename T1, typename FUNCTION>
+void util::areaLoop(POS<T1> size, FUNCTION func) {
+	for (int x = size.x; x < size.x + size.width; x++) {
+		for (int y = size.y; y < size.y + size.height; y++) {
+			POS<T1> target(x,y);
+			func(target);
+		}
+	}
+}
+
+template<template<typename> typename POS, typename T1, typename T2,typename FUNCTION>
+void util::radiusLoop(POS<T1> p, T2 radius, FUNCTION func) {
+	for (T1 x = p.x - radius; x < p.x + radius; x++) {
+		for (T1 y = p.y - radius; y < p.y + radius; y++) {
+			POS<T1> target(x,y);
+			if (p.distsq(target) < radius * radius)
+				func(target);
+		}
+	}
+}
+
+bool _game::isInRadius(int ox, int oy, int px, int py, float r) {
+	return isInRadius({ox,oy,px,py}, r);
+}
+
+bool _game::isInRadius(sizei size, float r) {
+	return size.distsq() < r * r;
+}
+
+bool _game::isInBounds(posi p) {
+	return isInBounds(p.with(1,1));
+}
+
+bool _game::isInBounds(sizei p) {
+	return getMapSize().contains(p);
+}
+
+template<typename FUNCTION, typename Tradius>
+void _game::tileRadiusLoop(posi p, Tradius radius, FUNCTION func) {
+	util::radiusLoop(p, radius, [&](posi target) {
+		if (isInBounds(target))
+			func(target);
+	});
+}
+
+template<typename FUNCTION, typename Tradius>
+void _game::tileRadiusLoop(int x, int y, Tradius radius, FUNCTION func) {
+	tileRadiusLoop(posi(x,y), radius, func);
+}
+
+template<typename FUNCTION>
+void _game::tileAreaLoop(sizei size, FUNCTION func) {
+	util::areaLoop(size, [&](posi p) {
+		if (isInBounds(p))
+			func(p);
+	});
+}
 
 std::vector<tileComplete> _game::getTiles(sizei size) {
 	std::vector<tileComplete> tiles;
@@ -1196,64 +1403,31 @@ void _game::place(tileEvent e) {
 	fireEvent(e.with(PLACE));
 }
 
-bool isInRadius(int ox, int oy, int px, int py, float r) {
-	int dx = ox - px;
-	int dy = oy - py;
-	return (dx * dx) + (dy * dy) < r * r;
-}
-
-bool isInRadius(sizei size, float r) {
-	return isInRadius(size.x, size.y, size.width, size.height, r);	
-}
-
-bool isInBounds(posi p) {
-	return p.x >= 0 && p.x < tileMapWidth && p.y >= 0 && p.y < tileMapHeight;
-}
-
-bool isInBounds(sizei p) {
-	return isInBounds(posi(p.x, p.y)) && isInBounds(posi(p.x + p.width - 1, p.y + p.height - 1));
-}
-
-template<typename FUNCTION>
-void tileRadiusLoop(int x, int y, float radius, FUNCTION func) {
-	for (int xx = x - radius; xx < x + radius; xx++) {
-		for (int yy = y - radius; yy < y + radius; yy++) {
-			if (isInRadius(xx,yy,x,y,radius) && isInBounds(posi(xx,yy)))
-				func(xx,yy);
-		}
+tileBase *instance_registry::addInstance(tileBase *t) {
+	if (getInstance(t->id) != nullptr && t->id != 0) {
+		fprintf(logFile, "Instance already exists: %i\n", t->id);
+		return t;
 	}
+	t->id = nextId();
+	instances.push_back(t);
+	return t;
 }
 
-template<typename FUNCTION>
-void tileRadiusLoop(posi p, float radius, FUNCTION func) {
-	tileRadiusLoop(p.x, p.y, radius, func);
-}
-
-std::vector<tileComplete> walk_network(tileComplete current, bool(*meetsCriteria)(tileComplete), std::vector<tileComplete> &network) {
-	if (std::find(network.begin(), network.end(), current) != network.end())
-		return network;
-
-	if (current.partial == nullptr)
-		return network;
-
-	network.push_back(current);
-
-	posi p = current.size;
-
-	tileComplete q[4] = {
-		getComplete(p.north()),
-		getComplete(p.east()),
-		getComplete(p.south()),
-		getComplete(p.west())
-	};
-
-	for (int i = 0; i < 4; i++) {
-		if (isInBounds(q[i].size) && meetsCriteria(q[i])) {
-			walk_network(q[i], meetsCriteria, network);
-		}
+tileBase *instance_registry::getInstance(int id) {
+	for (auto _t : instances) {
+		if (_t->id == id)
+			return _t;
 	}
+	return nullptr;
+}
 
-	return network;
+tileBase *instance_registry::addPlaceable(tileBase *t) {
+	placeable.push_back(t);
+	return t;
+}
+
+tileBase *instance_registry::getPlaceable(int id) {
+	return placeable[id];
 }
 
 void _game::init(sizei mapsize) {
@@ -1289,7 +1463,7 @@ void _game::init(sizei mapsize) {
 	education = 0.5f;
 	landvalue = 0.5f;
 	
-	init_plops();
+	//init_plops();
 
 	if (tileMap)
 		delete [] tileMap;
@@ -1313,6 +1487,42 @@ void _game::init(sizei mapsize) {
 	game.place({5,2,1,1}, water_tower_plop.clone());
 	
 }
+
+tilePartial *getPartial(int x, int y) {
+	if (x >= tileMapWidth || x < 0 || y >= tileMapHeight || y < 0) {
+		fprintf(logFile, "Out of bounds: %i %i\n", x, y);
+		return &(partially_garbage = tilePartial());//&tiles::DEFAULT_TILE->defaultState;
+	}
+	return &tileMap[y * tileMapWidth + x];
+}
+
+tilePartial *getPartial(posi p) {
+	return getPartial(p.x,p.y);
+}
+
+tileComplete getComplete(int x, int y) {
+	tileComplete tc(nullptr, nullptr, {x,y,1,1});
+	tc.partial = getPartial(x,y);
+	tc.parent = registry.getInstance(tc.partial->id);
+	tc.plop_instance = nullptr;
+	if (tc.partial->isPlop())
+		tc.plop_instance = (plop*)registry.getInstance(tc.partial->getPlopId());
+	return tc;
+}
+
+tileComplete getComplete(posi p) {
+	return getComplete(p.x,p.y);
+}
+
+tileEvent getEvent(sizei p) {
+	tileEvent e = getComplete(p);
+	e.size = p;
+	return e;
+}
+
+#pragma endregion
+
+#pragma region //Display functions
 
 void displayTileMap() {
 	float width = getWidth();
@@ -1477,7 +1687,7 @@ void displayStats() {
 		}
 		
 		//RCI
-		auto showBarChart = [&](int x, int y, int height, float norm, ch_co_t fillChar) {
+		auto showBarChart = [&](int x, int y, int height, float norm, cpix fillChar) {
 			adv::write(x, y, '-');
 			adv::write(x, y + height +1, '-');
 			adv::line(x,y+1,x,y+height,L'|', FWHITE|BBLACK);
@@ -1561,6 +1771,8 @@ void display() {
 		displayInfo();
 }
 
+#pragma endregion
+
 void cleanupexit() {
 	fprintf(logFile, "Closing console\n");
 	adv::_advancedConsoleDestruct();
@@ -1568,128 +1780,7 @@ void cleanupexit() {
 	exit(0);
 }
 
-bool isWaterNetwork(tileComplete tc) {
-	return tc.partial->hasUnderground(UNDERGROUND_WATER_PIPE);
-}
-
-struct network_summary {
-	net_t supply = 0, demand = 0, used = 0;
-	int networks = 0;
-};
-
-template<typename FUNCTION>
-network_summary balanceNetworks(FLAG type, FUNCTION func) {
-	std::vector<tileComplete> sparse;
-	sizei map = {0,0,tileMapWidth,tileMapHeight};
-	network_summary sm;
-
-	//Values are changing
-	game.fireEvent(map, NETWORK, type|TICK);
-
-	//Take network tiles
-	areaLoop(map, [&](int x, int y) {
-		tileEvent e = getComplete(x,y);
-		network_value *v = getNetwork(e.with(0,SILENT), type);
-		if (v == nullptr)
-			return;
-		if (v->isSupply()) {
-			if (std::find(sparse.begin(), sparse.end(), e) != sparse.end())
-				return;
-			sparse.push_back(e);
-			fprintf(logFile, "Network piece: %i %i %f %f\n", x, y, v->getSupply(), v->getDemand());
-		}
-	});
-
-	std::vector<std::vector<tileComplete>> networks;
-
-	//Walk present networks
-	for (tileComplete tc : sparse) {
-		bool newNetwork = true;
-		
-		for (auto network : networks) {
-			if (std::find(network.begin(), network.end(), tc) != network.end()) {
-				newNetwork = false;
-				break;
-			}
-		}
-
-		if (newNetwork) {
-			std::vector<tileComplete> network;
-			walk_network(tc, func, network);
-			networks.push_back(network);
-			sm.networks++;
-		}
-	}
-
-	//Balance networks
-	for (auto network : networks) {
-		std::vector<tileComplete> consumers, providers;
-		net_t input = 0, output = 0;
-
-		for (tileEvent e : network) {
-			tileRadiusLoop(e.size, 5, [&](int x, int y) {
-				tileEvent e2 = getComplete(x,y);
-				network_value *consum = getNetwork(e2.with(0, SILENT), type);
-
-				if (consum && consum->isDemand())
-					if (std::find(consumers.begin(), consumers.end(), e2) == consumers.end()) {
-						output += consum->getDemand();
-						consumers.push_back(e2);
-					}
-			});
-
-			network_value *net = getNetwork(e.with(0, SILENT), type);
-
-			if (net && net->isSupply())
-				if (std::find(providers.begin(), providers.end(), e) == providers.end()) {
-					input += net->getSupply();
-					providers.push_back(e);
-				}
-		}
-
-		if (providers.empty())
-			continue;
-
-		fprintf(logFile, "This network: %li %li %f %f\n", providers.size(), consumers.size(), input, output);
-
-		sm.demand += output;
-		sm.supply += input;
-
-		net_t ratio = input / output;
-		if (ratio == 0 || ratio < 0 || output < 0.1)
-			continue;
-		float maxRadius = 5.0f;
-		float radius = ratio * maxRadius;
-		if (radius < 0)
-			radius = 0;
-		if (radius > maxRadius)
-			radius = maxRadius;
-
-		for (tileEvent e : providers) {
-			network_value *net = getNetwork(e.with(0, SILENT), type);
-			if (net && net->isSupply())
-				net->take(ratio > 1 ? net->getSupply() : net->getSupply() / ratio);
-
-		}
-
-		for (tileEvent e : consumers) {
-			network_value *net = getNetwork(e.with(0, SILENT), type);
-			if (net && net->isDemand()) 
-				input -= net->give(input);
-		}
-
-		sm.used = sm.supply - input;
-	}
-
-	fprintf(logFile, "Balanced\n");
-
-	//Values are changing
-	//game.fireEvent(map, NETWORK, type|TICK);
-
-	return sm;
-}
-
-int wmain() {	
+int wmain() {
 	logFile = fopen("log.txt", "a");
 	if (!logFile) {
 		fprintf(stderr, "Failed to open log file\n");
@@ -1707,12 +1798,12 @@ int wmain() {
 	fprintf(logFile, "[%li] Loaded texture\n", time(0));
 
 	//convert texture to wchar_t and color_t
-	texturechco = new ch_co_t[textureWidth * textureHeight];
+	texturechco = new cpix[textureWidth * textureHeight];
 	
 	for (int x = 0; x < textureWidth; x++) {
 		for (int y = 0; y < textureHeight; y++) {
 			pixel pix = sampleImage(float(x) / textureWidth, float(y) / textureHeight);
-			ch_co_t chco;
+			cpix chco;
 			chco.a = pix.a;
 			getDitherColored(pix.r, pix.g, pix.b, &chco.ch, &chco.co);
 			texturechco[int(y * textureWidth) + int(x)] = chco;
@@ -2100,8 +2191,8 @@ int wmain() {
 
 					//search radius for water users
 					for (auto tile : network) {
-						tileRadiusLoop(tile.size, 5, [&](int x, int y) {
-							tileEvent tc = getComplete(x, y);
+						game.tileRadiusLoop(tile.size, 5, [&](posi p) {
+							tileEvent tc = getComplete(p);
 							network_value *water = getNetwork(tc.with(0, SILENT), WATER);
 							if (water == nullptr)
 								return;
@@ -2130,8 +2221,8 @@ int wmain() {
 					//blindly set water based on radius
 					for (auto tile : network) {
 						tile.partial->setWater(true);
-						tileRadiusLoop(tile.size, radius, [&](int x, int y) {
-							tileComplete tc = getComplete(x, y);
+						game.tileRadiusLoop(tile.size, radius, [&](posi p) {
+							tileComplete tc = getComplete(p);
 							if (tc.partial == nullptr)
 								return;
 
@@ -2143,13 +2234,13 @@ int wmain() {
 						network_value *water = getNetwork(user, WATER);
 						if (water == nullptr)
 							continue;
-						tileRadiusLoop(user.size, radius, [&](int x, int y) {
+						game.tileRadiusLoop(user.size, radius, [&](posi p) {
 							if (water->isSaturated() || water->isSupply()) {
 								fprintf(logFile, "Saturated or supply\n");
 								return;
 							}
 
-							tileComplete tc = getComplete(x, y);
+							tileComplete tc = getComplete(p);
 							if (!isWaterNetwork(tc))
 								return;
 							
