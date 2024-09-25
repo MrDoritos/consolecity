@@ -1,54 +1,159 @@
 #pragma once
 #include "graphics.h"
 
+struct dimension;
+struct draw_target;
+struct adv_target;
+struct buffer_target;
+struct retained_target;
+struct sample_source;
+struct image;
+struct pixel_image;
+struct atlas;
+struct atlas_fragment;
+struct sprite;
+struct sprite_overlay;
+struct random_overlay;
+struct simple_connecting_sprite;
+
 struct dimension {
 	virtual int getWidth() { return 0; }
 	virtual int getHeight() { return 0; }
 	virtual posi getDim() { return {getWidth(), getHeight()}; }
-	virtual sizei getSize() { return {0,0,getWidth(), getHeight()}; }
+	virtual sizei getSize() { return {{},getWidth(),getHeight()}; }
 };
 
 /*
 Simple target for drawing
 */
 struct draw_target : dimension {
-	virtual void draw(posi p, pixel pix) {}
-	virtual void draw(posi p, cpix pix) {}
+	virtual void draw(posi p, pixel pix) {
+		cpix c;
+		getDitherColored(pix.r, pix.g, pix.b, &c.ch, &c.co);
+		draw(p, c);
+	}
+	virtual void draw(posi p, cpix pix) {
+
+	}
+	virtual void draw(buffer_target *_in) {
+		draw(_in, {});
+	}
+	virtual void draw(buffer_target *_in, posi XY);
+	virtual bool is_retained_mode() { return false; }
 };
 
 struct adv_target : draw_target {
 	int getWidth() override { return adv::width; }
 	int getHeight() override { return adv::height; }
-	void draw(posi p, pixel pix) override {
-		cpix c;
-		getDitherColored(pix.r, pix.g, pix.b, &c.ch, &c.co);
-		adv::write(p.x, p.y, c.ch, c.co);
-	}
 	void draw(posi p, cpix pix) override {
 		adv::write(p.x, p.y, pix.ch, pix.co);
 	}
 };
 
-cpix get_cpix(wchar_t ch, color_t co) {
-	cpix r;
-	r.ch = ch;
-	r.co = co;
-	return r;
+struct buffer_target : draw_target {
+	buffer_target(sizei XYWH) {
+		this->stale = true;
+		this->size = {0,0,0,0};
+		this->buffer = nullptr;
+		allocate(XYWH);
+	}
+
+	~buffer_target() {
+		free();
+	}
+
+	void clear() {
+		for (int i = 0; i < size.area(); i++) {
+			buffer[i] = null_cpix();
+		}
+	}
+
+	void free() {
+		if (buffer)
+			delete[] buffer;
+	}
+
+	void allocate(sizei XYWH) {
+		if (size == XYWH)
+			return;
+
+		free();
+		size = XYWH;
+		buffer = new cpix[size.area()];
+		clear();
+	}
+
+	cpix *buffer;
+	sizei size;
+
+	cpix *get(posi p) {
+		return &buffer[size.get(p)];
+	}
+
+	sizei getSize() override { return size; }
+	int getWidth() override { return size.width; }
+	int getHeight() override { return size.height; }
+
+	using draw_target::draw;
+	void draw(posi p, cpix pix) override {
+		*get(p) = pix;
+	}
+
+	bool shouldUpdate() {
+		return stale;
+	}
+
+	bool stale;
+
+	virtual bool is_retained_mode() { return true; }
+};
+
+void draw_target::draw(buffer_target *_in, posi XY) {
+	sizei os = this->getSize();
+	sizei is = _in->getSize();
+	for (int x = 0; x < is.width; x++) {
+		for (int y = 0; y < is.height; y++) {
+			posi ob = XY.add(x,y);
+			posi ib = posi(x,y);
+			if (os.contains(ob)) {
+				cpix pix = *_in->get(ib);
+				if (pix.ch != 0)
+					draw(ob, pix);
+			}
+		}
+	}
 }
 
-cpix empty_cpix() {
-	cpix r;
-	r.ch = 'X';
-	r.co = FBLACK|BRED;
-	return r;
-}
+struct retained_target : buffer_target {
+	retained_target(sizei XYWH, image *img=nullptr, int state=0) : buffer_target(XYWH) {
+		this->reference_image = img;
+		this->state = state;
+	}
+
+	void clear() {
+		for (int i = 0; i < size.area(); i++) {
+			buffer[i] = null_cpix();
+		}
+	}
+
+	image *reference_image; 
+	int state;
+	bool persistent;
+	bool render;
+
+	bool shouldDelete() {
+		return !persistent && !render;
+	}
+};
+
+std::vector<retained_target*> retained_targets;
 
 /*
 From 0-1 of a sample
 */
 struct sample_source {
 	virtual pixel sampleImage(float x, float y) { return pixel(0, 0, 0); }
-	virtual cpix presampledImage(float x, float y) { return empty_cpix(); }
+	virtual cpix sampleComposed(float x, float y) { return empty_cpix(); }
 };
 
 /*
@@ -64,22 +169,41 @@ struct image : sample_source, dimension {
 Load image with pixel dimensions
 */
 struct pixel_image : image {
+	bool stbi = false;
 	ubyte *textureData;
-	cpix *presampledData;
+	cpix *composedData;
 	int bpp;
 
 	pixel_image() {
 		textureData = nullptr;
-		presampledData = nullptr;
+		composedData = nullptr;
 		bpp = 0;
+		stbi = false;
 	}
 
 	~pixel_image() {
-		stbi_image_free(textureData);
+		free_image_data();
+		free_composed_data();
 	}
 
-	cpix presampledImage(float x, float y) override {
-		if (!presampledData)
+	void free_image_data() {
+		if (textureData != nullptr) {
+			if (stbi)
+				stbi_image_free(textureData);
+			else
+				delete[] textureData;
+		}
+	}
+
+	void free_composed_data() {
+		if (composedData != nullptr) {
+			delete[] composedData;
+			composedData = nullptr;
+		}
+	}
+
+	cpix sampleComposed(float x, float y) override {
+		if (!composedData)
 			return empty_cpix();
 
 		posi dim = getDim();
@@ -87,7 +211,7 @@ struct pixel_image : image {
 		int imX = x * dim.x;
 		int imY = y * dim.y;
 
-		return presampledData[imY * dim.x + imX];
+		return composedData[imY * dim.x + imX];
 	}
 
 	pixel sampleImage(float x, float y) override {
@@ -109,14 +233,13 @@ struct pixel_image : image {
 		return pix;
 	}
 
-	void presample() {
+	void compose() {
 		posi dim = getDim();
 		int size = dim.x * dim.y;
 
-		if (presampledData)
-			delete[] presampledData;
+		free_composed_data();
 
-		presampledData = new cpix[size];
+		composedData = new cpix[size];
 
 		for (int i = 0; i < size; i++) {
 			int offset = i * bpp;
@@ -126,7 +249,7 @@ struct pixel_image : image {
 			pix.b = textureData[offset + 2];
 			if (bpp == 4)
 				pix.a = textureData[offset + 3];
-			cpix *target = &presampledData[i];
+			cpix *target = &composedData[i];
 			getDitherColored(pix.r, pix.g, pix.b, &target->ch, &target->co);
 			target->a = pix.a;
 		}
@@ -134,6 +257,9 @@ struct pixel_image : image {
 
 	void load(const char* path) {
 		int x, y, n;
+		
+		free_image_data();
+
 		textureData = stbi_load(path, &x, &y, &n, 0);
 
 		if (!textureData)
@@ -143,7 +269,44 @@ struct pixel_image : image {
 		dimensions.y = y;
 		bpp = n;
 
-		presample();
+		compose();
+	}
+
+	void blank(posi dim) {
+		free_image_data();
+
+		textureData = new ubyte[dim.x * dim.y * 4];
+		memset(textureData, 0, dim.x * dim.y * 4);
+
+		dimensions = dim;
+		bpp = 4;
+
+		compose();
+	}
+
+	void overlay(sample_source *src) {
+		if (!textureData || !src)
+			return;
+
+		posi dim = getDim();
+
+		for (int x = 0; x < dim.x; x++) {
+			for (int y = 0; y < dim.y; y++) {
+				float xf = float(x) / dim.x;
+				float yf = float(y) / dim.y;
+
+				pixel pix = src->sampleImage(xf, yf);
+				int offset = (y * dim.x + x) * bpp;
+
+				textureData[offset + 0] = pix.r;
+				textureData[offset + 1] = pix.g;
+				textureData[offset + 2] = pix.b;
+				if (bpp == 4)
+					textureData[offset + 3] = pix.a;
+			}
+		}
+
+		compose();
 	}
 };
 
@@ -181,9 +344,9 @@ struct atlas_fragment : image {
 		posf atl = mapToAtlas(posf(x, y));
 		return sourceAtlas->sampleImage(atl.x, atl.y);
 	}
-	cpix presampledImage(float x, float y) override {
+	cpix sampleComposed(float x, float y) override {
 		posf atl = mapToAtlas(posf(x, y));
-		return sourceAtlas->presampledImage(atl.x, atl.y);
+		return sourceAtlas->sampleComposed(atl.x, atl.y);
 	}
 };
 
@@ -205,35 +368,23 @@ atlas_fragment atlas::fragment(sizei sprite_units) {
 }
 
 atlas mainAtlas(16);
-adv_target mainTarget;
+draw_target *mainTarget, *immediateTarget;
 
 struct sprite : atlas_fragment {
 	sprite(int x, int y) 
 	:sprite(x,y,1,1) {}
 
 	sprite(int x, int y, int w, int h)
-	:atlas_fragment(mainAtlas.fragment(sizei(x, y, w, h))),
-	 target(&mainTarget) {
+	:atlas_fragment(mainAtlas.fragment(sizei(x, y, w, h))) {
 		setAtlas(sizei(x, y, w, h));
 	}
 
-	draw_target *target;
-
 	virtual void setAtlas(sizei area) {	atlasSpriteArea = area; }
-	virtual int getPixT() { return sourceAtlas->spriteSize; }
-	virtual int getPixTW() { return sourceAtlas->getWidth(); }
-	virtual int getPixTH() { return sourceAtlas->getHeight(); }
-	virtual int getAtlW() {	return atlasSpriteArea.width; }
-	virtual int getAtlH() { return atlasSpriteArea.height; }
-	virtual int getAtlX0() { return atlasSpriteArea.x; }
-	virtual int getAtlY0() { return atlasSpriteArea.y; }
-	virtual int getAtlX1() { return atlasSpriteArea.x + atlasSpriteArea.width; }
-	virtual int getAtlY1() { return atlasSpriteArea.y + atlasSpriteArea.height; }
 
 	/*
 	Send start screen coordinates, screen width and height per sprite unit
 	*/
-	virtual void draw(sizei screen, sizei atlasXYWH, bool hflip = false, bool vflip = false) {
+	virtual void draw(sizei screen, sizei atlasXYWH, draw_target *target, bool hflip = false, bool vflip = false) {
 		sizei atlas = atlasSpriteArea;
 		
 		posi scrdim = target->getDim();
@@ -250,7 +401,6 @@ struct sprite : atlas_fragment {
 
 		for (int x = 0; x < area.width; x++) {
 			for (int y = 0; y < area.height; y++) {
-				//posi scr = area.start().add(x,y-yOffset);
 				posi scr = area.start().add(x,-y);
 
 				if (!scrLimit.contains(scr))
@@ -264,143 +414,42 @@ struct sprite : atlas_fragment {
 				if (!vflip)
 					yf = .99999 - yf;
 
-				cpix chco = presampledImage(xf, yf);
+				cpix chco = sampleComposed(xf, yf);
 				if (chco.a < 255)
 					continue;
 
 				target->draw(scr, chco);
 			}
 		}
-
-		/*
-		target->draw(screen.start(), get_cpix('S', FBLACK|BRED));
-		target->draw(screen.end().sub(0, screen.height * 2), get_cpix('S', FBLACK|BBLUE));
-		target->draw(area.start(), get_cpix('A', FBLACK|BRED));
-		target->draw(area.end().sub(0, area.height * 2), get_cpix('A', FBLACK|BGREEN));
-
-		target->draw(origin, get_cpix('O', FBLACK|BWHITE));
-		*/
 	}
 
-	void draw(sizef area, sizei atlas, bool hflip = false, bool vflip = false) {
-		draw(area.x, area.y, area.width, area.height, atlas.x, atlas.y, atlas.width, atlas.height, hflip, vflip);
-	}
-
-	void draw(sizef area) {
-		draw(area, atlasSpriteArea);
-	}
-
-	void draw(int scrX0, int scrY0, int scrW, int scrH) {
-		draw(sizei{scrX0, scrY0, scrW, scrH}, atlasSpriteArea);	
-	}	
-
-	void draw(int scrX0, int scrY0, int scrW, int scrH, int atl0, int atl1, int atl2, int atl3, bool hflip = false, bool vflip = false) {
-		draw(sizei{scrX0, scrY0, scrW, scrH}, sizei{atl0, atl1, atl2, atl3}, hflip, vflip);
+	void draw(sizei area, draw_target *target, bool hflip = false, bool vflip = false) {
+		draw(area, atlasSpriteArea, target, hflip, vflip);
 	}
 };
 
 struct sprite_overlay : sprite {
-	sprite_overlay(sprite *base):sprite(*base) {
-		_pixTW = base->getAtlW() * base->getPixT();
-		_pixTH = base->getAtlH() * base->getPixT();
-		//fprintf(stderr, "New overlay sprite: %i %i\n", _pixTW, _pixTH);
-		canvas = new pixel[_pixTW * _pixTH];
-		set(base);
-
+	sprite_overlay(sprite *base):sprite(*base) {		
 		
 	}
 
-	~sprite_overlay() {
-		//delete[] canvas;
+	pixel_image canvas;
+
+	cpix sampleComposed(float x, float y) override {
+		return canvas.sampleComposed(x, y);
 	}
-
-	pixel *canvas;
-	int _pixTW;
-	int _pixTH;
-
-	int getPixTW() override { return _pixTW; }
-	int getPixTH() override { return _pixTH; }
 
 	pixel sampleImage(float x, float y) override {
-		//return pixel(12,190,50);
-		int imX = x * _pixTW;
-		int imY = y * _pixTH;
-		return canvas[imY * _pixTW + imX];
-	}
-
-	cpix presampledImage(float x, float y) override {
-		int imX = x * _pixTW;
-		int imY = y * _pixTH;
-		cpix chco;
-		
-		float r = getPixT() / getPixTW();
-
-		pixel pix = sampleImage(x, y);
-
-		getDitherColored(pix.r, pix.g, pix.b, &chco.ch, &chco.co);
-		chco.a = pix.a;
-
-		return chco;
+		return canvas.sampleImage(x, y);
 	}
 
 	void set(sprite *sp) {
-		float spxf0 = (sp->getAtlX0() * sp->getPixT()) / float(sp->sourceAtlas->getWidth());
-		float spyf0 = (sp->getAtlY0() * sp->getPixT()) / float(sp->sourceAtlas->getHeight());
-		float spxf1 = (sp->getAtlX1() * sp->getPixT()) / float(sp->sourceAtlas->getWidth());
-		float spyf1 = (sp->getAtlY1() * sp->getPixT()) / float(sp->sourceAtlas->getHeight());
-
-		int cw = getPixTW();
-		int ch = getPixTH();
-
-		//fprintf(stderr, "Setting overlay sprite: %i %i\n", cw, ch);
-
-
-		return;
-		for (int x = 0; x < cw; x++) {
-			for (int y = 0; y < ch; y++) {
-				float xf = float(x) / cw;
-				float yf = float(y) / ch;
-
-				float sxf = (spxf0 + (xf * (spxf1 - spxf0)));
-				float syf = (spyf0 + (yf * (spyf1 - spyf0)));
-
-				//canvas[y * getPixTW() + x] = sampleImage(sxf, syf);
-				canvas[y * cw + x] = pixel(60,180,60);
-			}
-		}
+		canvas.blank(getDim());
+		add(sp);
 	}
 
 	void add(sprite *sp) {
-		float spxf0 = (sp->getAtlX0() * sp->getPixT() / float(sp->getPixTW()));
-		float spyf0 = (sp->getAtlX1() * sp->getPixT() / float(sp->getPixTH()));
-		float spxf1 = (sp->getAtlY0() * sp->getPixT() / float(sp->getPixTW()));
-		float spyf1 = (sp->getAtlY1() * sp->getPixT() / float(sp->getPixTH()));
-
-		for (int x = 0; x < getPixTW(); x++) {
-			for (int y = 0; y < getPixTH(); y++) {
-				float xf = float(x) / getPixTW();
-				float yf = float(y) / getPixTH();
-
-				float sxf = (spxf0 + (xf * (spxf1 - spxf0)));
-				float syf = (spyf0 + (yf * (spyf1 - spyf0)));
-
-				pixel pix = sp->sampleImage(sxf, syf); 
-				//pixel pix = sprite.sampleSprite(sp, sxf, syf);
-				
-				//sum pixel using alpha
-				pixel *can = &canvas[y * getPixTW() + x];
-
-				continue;
-
-				can->r = (can->r * (255 - pix.a) + pix.r * pix.a);
-				can->g = (can->g * (255 - pix.a) + pix.g * pix.a);
-				can->b = (can->b * (255 - pix.a) + pix.b * pix.a);
-				if (can->a + pix.a > 255)
-					can->a = 255;
-				else
-					can->a = can->a + pix.a;
-			}
-		}
+		canvas.overlay(sp);
 	}
 };
 
@@ -411,8 +460,6 @@ struct random_overlay : sprite_overlay {
 			set(base);
 
 			
-		for (int i = 0; i < getPixTW() * getPixTH(); i++)
-			canvas[i] = pixel(160, 120, 190);
 	}
 };
 
@@ -422,9 +469,9 @@ struct simple_connecting_sprite : sprite {
 	simple_connecting_sprite(sprite *base, sprite *over):sprite(*base), base(base), over(over) {}
 
 	//default sprite is tr
-	void draw_connections(int scrX0, int scrY0, int scrW, int scrH,
+	void draw_connections(sizei area, draw_target *target,
 						  bool tl, bool tr, bool bl, bool br) {
-		base->draw(scrX0, scrY0, scrW, scrH);
+		base->draw(area, base->atlasSpriteArea, target);
 		bool con[] = {tl,tr,bl,br};
 		bool args[] = {
 			false,true,
@@ -436,16 +483,29 @@ struct simple_connecting_sprite : sprite {
 
 		for (int i = 0; i < 4; i++) {
 			if (con[i])
-				over->draw(scrX0, scrY0, scrW, scrH, over->getAtlX0(), over->getAtlY0(), over->getAtlX1(), over->getAtlY1(), args[i * 2], args[i * 2 + 1]);
+				over->draw(area, over->atlasSpriteArea, target, args[i * 2], args[i * 2 + 1]);
 		}
 	}
 
-	void draw_connections(sizef area, bool *con) {
-		draw_connections(area.x, area.y, area.width, area.height, con[0], con[1], con[2], con[3]);
+	void draw_connections(sizei area, draw_target *target, bool *con) {
+		draw_connections(area, target, con[0], con[1], con[2], con[3]);
 	}
 
 	sprite *base, *over;
 };
+
+retained_target *make_or_get_retained_target(image *img, sizei XYWH, int state=0) {
+	for (retained_target *rt : retained_targets) {
+		if (rt->reference_image == img && 
+			rt->state == state && 
+			rt->size == XYWH)
+				return rt;
+	}
+
+	retained_target *rt = new retained_target(XYWH, img, state);
+	retained_targets.push_back(rt);
+	return rt;
+}
 
 sprite selector_sprite(1,2,1,1);
 
@@ -461,7 +521,7 @@ sprite dry_pool_con_sprite(7,3,1,1);
 
 sprite sand_sprite(4,2,1,1);
 sprite grass_sprite(1,1,1,1);
-sprite *grass_sprite_random;
+sprite_overlay grass_sprite_random(&grass_sprite);
 sprite dry_dirt_sprite(2,1,1,1);
 sprite wet_dirt_sprite(3,0,1,1);
 sprite dry_plop_sprite(1,4,1,1);

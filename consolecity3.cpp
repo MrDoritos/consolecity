@@ -128,6 +128,7 @@ bool infoMode;
 bool statsMode;
 bool queryMode;
 bool plopsOnly;
+bool graphicsUpdate;
 
 #pragma endregion
 
@@ -251,16 +252,36 @@ struct tilePartial {
 };
 
 /*
+Correct base with correct size
+*/
+struct piece {
+	piece() {}
+	piece(tileBase *parent, sizei size) :parent(parent),size(size) {}
+	tileBase *parent;
+	sizei size;
+	bool operator==(const piece &b) const {
+		return size == b.size && parent == b.parent;
+	}
+	bool operator<(const piece &b) const {
+		return size.x < b.size.x || size.y < b.size.y;
+	}
+	tileComplete with(tilePartial *partial, plop *pi);
+};
+
+/*
 Struct for the complete identity of a tile instance
 */
-struct tileComplete {
+struct tileComplete : public piece {
 	tileComplete() {}
 	tileComplete(tileBase *parent, tilePartial *partial, sizei size)
-		:size(size) {
+		:piece(parent, size) {
 		this->parent = parent;
 		this->partial = partial;
 		this->plop_instance = nullptr;
 	}
+	//tileComplete(piece p):piece(p) {
+	//	*this = getComplete(p.size);
+	//}
 
 	bool coordsEquals(tileComplete b) {
 		return this->size == b.size;
@@ -273,10 +294,35 @@ struct tileComplete {
 		return size.x < b.size.x || size.y < b.size.y;
 	}
 
-	tileBase *parent;
 	tilePartial *partial;
 	plop *plop_instance;
-	sizei size;
+};
+
+tileComplete piece::with(tilePartial *partial, plop *pi) {
+	tileComplete tc(parent, partial, size);
+	tc.plop_instance = pi;
+	return tc;
+}
+
+struct tileSelection {
+	static piece getPiece(tileBase *p, posi o);
+
+	static std::set<piece> getSelection(sizei size) {
+		std::set<piece> selection;
+		for (int x = 0; x < size.width; x++) {
+			for (int y = 0; y < size.height; y++) {
+				posi p(x,y);
+				tileComplete tc = getComplete(p);
+				if (tc.parent)
+					selection.insert(getPiece(tc.parent, p));
+				if (tc.plop_instance)
+					selection.insert(getPiece((tileBase*)tc.plop_instance, p));
+			}
+		}
+		return selection;
+	}
+
+	static std::set<piece> fitSelection(sizei size, tileBase *p);
 };
 
 struct tileEvent : public tileComplete {
@@ -370,6 +416,9 @@ struct _game {
 
 	void init(sizei size);
 	std::vector<tileComplete> getTiles(sizei size);
+	std::vector<tilePartial*> getPartials(sizei size);
+	std::vector<piece> getPieces(sizei size);
+
 	void destroy(sizei size);
 	void destroy(tileEvent e);
 	void place(sizei size, tileBase *base);
@@ -569,6 +618,7 @@ network_provider no_provider;
 
 struct tileBase : public tileEventHandler {
 	int id;
+	int typeId = 0;
 	virtual void render(tileEvent e) = 0;
 	/*
 	Return screenspace coordinates for the XYWH of size
@@ -576,29 +626,37 @@ struct tileBase : public tileEventHandler {
 	Includes XY transformation
 	Gives y from bottom now
 	*/
-	static sizef getRenderArea(sizei size) {
+	static sizei getRenderArea(sizei size) {
 		posf aspect = posf{getWidth(),getHeight()};
-		posf origin = getOffsetXY(posf{(float)size.x,(float)size.y});
-		posf length = posf{(float)size.width,(float)size.height};
+		//posf origin = getOffsetXY(posf{(float)size.x,(float)size.y});
+		//posf length = posf{(float)size.width,(float)size.height};
 		float ystart = getOffsetY(size.x - 1, size.y + size.height);
-		posf end = getOffsetXY(origin.add(length));
+		//posf end = getOffsetXY(origin.add(length));
 
-		sizef renderbox = {origin.x * aspect.x, //good
+		sizei renderbox;
+		
+		/*
+		renderbox		= {origin.x * aspect.x, //good
 						   origin.y * aspect.y, //top
 						   length.x * aspect.x, //good
 						   length.y * aspect.y};//just length
-		
+		*/
+
+		renderbox.x = getOffsetX(size.x, size.y) * aspect.x;
 		renderbox.y = ystart * aspect.y;
 		renderbox.width = aspect.x;
 		renderbox.height = aspect.y;
 
 		return renderbox;
 	}
-	virtual sizef getRenderArea(tileEvent e) {
+	virtual sizei getRenderArea(tileEvent e) {
 		return getRenderArea(e.size.with(1,1));
 	}
 	virtual sizei getSize(tileEvent e) {
 		return e.size;
+	}
+	virtual sizei getDefaultSize() {
+		return sizei(0,0,1,1);
 	}
 	/*
 		tiles do not need their size set,
@@ -642,9 +700,7 @@ struct tileBase : public tileEventHandler {
 		neighbors[2] = getComplete(e.size.south());//SOUTH
 		neighbors[3] = getComplete(e.size.west());//WEST
 	}
-	virtual void copyState(tilePartial *tile) {
-		*tile = getDefaultState();
-	}
+	virtual void copyState(tilePartial *tile) = 0;
 	virtual network_provider *getNetworkProvider(tileEvent e) {
 		return nullptr;
 	}
@@ -702,6 +758,27 @@ struct tileBase : public tileEventHandler {
 	}
 };
 
+piece tileSelection::getPiece(tileBase *p, posi o) {
+	piece newPiece;
+	newPiece.parent = p;
+	newPiece.size = o.with(p->getDefaultSize());
+	return newPiece;
+}
+
+std::set<piece> tileSelection::fitSelection(sizei size, tileBase *p) {
+	std::set<piece> selection;
+	sizei rule = p->getDefaultSize();
+	for (int x = 0; x < size.width; x++) {
+		for (int y = 0; y < size.height; y++) {
+			sizei pos = posi(x,y).add(size).with(rule.length());
+			if (x % rule.width == 0 && y % rule.height == 0) {
+				selection.insert(getPiece(p, pos));
+			}
+		}
+	}
+	return selection;
+}
+
 struct tile : public tileBase {
 	//int id;
 	sprite tex;
@@ -722,11 +799,13 @@ struct tile : public tileBase {
 	}
 	
 	void render(tileEvent e) override {
-		int v = (e.size.x << 2) | 134;
-		v |= (e.size.y << 16) | (v & 0xc0ffee);
+		unsigned int v = (e.size.x << 2 | e.size.x);
+		v = (e.size.x ^ e.size.y << 1) ^ 
+			(((e.size.x + e.size.y) ^ 0b11) >> 0b11) ^ 
+			(((e.size.x ^ e.size.y) ^ 0b11000000) >> 0b110);
 		bool hflip = false;
 		bool vflip = false;
-		switch (v % 3) {
+		switch (v % 4) {
 			case 0:
 				hflip = true;
 				break;
@@ -734,10 +813,38 @@ struct tile : public tileBase {
 				vflip = true;
 				break;
 			case 2:
+				vflip = true;
+				hflip = true;
+				break;
+			default:
 				break;
 		}
-		tex.draw(getRenderArea(e), sizei(), hflip, vflip);
 
+		sizei area = getRenderArea(e);
+		int state = (hflip << 1) | vflip;
+
+		if (mainTarget->is_retained_mode()) {
+			sizei retained_pos = {{0,0}, area.length()};
+			posi weird_offset = {0, area.height-1};
+			sizei weird_size = weird_offset.with(retained_pos.length().add(0, 0));
+			buffer_target *acceptor = (buffer_target*)mainTarget;
+			retained_target *retained = make_or_get_retained_target(&tex, retained_pos, state);
+
+			if (retained->shouldUpdate()) {
+				retained->clear();
+				tex.draw(weird_size, retained, hflip, vflip);
+				retained->stale = false;
+				acceptor->stale = true;
+			}
+
+			retained->render = true;
+
+			if (acceptor->shouldUpdate()) {
+				acceptor->draw(retained, area.start().sub(weird_offset));
+			}
+		} else {
+			tex.draw(area, mainTarget, hflip, vflip);
+		}
 	}
 
 	void copyState(tilePartial *tile) override {
@@ -786,7 +893,7 @@ struct tileable : public tile {
 	void render(tileEvent e) override {
 		bool con[4];
 		getConnections(e, &con[0]);
-		tex_connecting.draw_connections(getRenderArea(e), &con[0]);
+		tex_connecting.draw_connections(getRenderArea(e), mainTarget, &con[0]);
 	}
 
 	tileBase *clone() override {
@@ -818,10 +925,14 @@ struct plop : public tileBase {
 		registry.placeable.erase(std::remove(registry.placeable.begin(), registry.placeable.end(), this), registry.placeable.end());
 	}
 
-	sizef getRenderArea(tileEvent e) override {
+	sizei getRenderArea(tileEvent e) override {
 		if (e.plop_instance)
 			return tileBase::getRenderArea(e.plop_instance->size);
 		return tileBase::getRenderArea(e.size);
+	}
+
+	sizei getDefaultSize() override {
+		return size;
 	}
 
 	void render(tileEvent e) override {
@@ -836,7 +947,7 @@ struct plop : public tileBase {
 		if (!(rendererPos == renderingPos))
 			return;
 
-		tex->draw(tileBase::getRenderArea(size));
+		tex->draw(tileBase::getRenderArea(size), mainTarget);
 	}	
 
 	tilePartial getDefaultState() override {
@@ -934,7 +1045,35 @@ struct plop_connecting : public plop {
 	void render(tileEvent e) override {
 		bool con[4];
 		e.plop_instance->getConnections(e, &con[0]);
-		((simple_connecting_sprite*)tex)->draw_connections(getRenderArea(e), &con[0]);
+		((simple_connecting_sprite*)tex)->draw_connections(getRenderArea(e), mainTarget, &con[0]);
+	}
+};
+
+/*
+Uses connected textures
+Tracks users of this class
+*/
+struct traffic_plop : public plop {
+	traffic_plop(simple_connecting_sprite* tex, int basic_type, int plop_width = 1, int plop_height = 1, bool placeable=true):plop(tex,plop_width,plop_height,placeable) {
+		typeId = basic_type;
+	}
+
+	bool isSameType(tileComplete tc) override {
+		return (tc.plop_instance && tc.plop_instance->typeId == typeId);
+	}
+
+	void render(tileEvent e) override {
+		bool con[4];
+		e.plop_instance->getConnections(e, &con[0]);
+		((simple_connecting_sprite*)tex)->draw_connections(getRenderArea(e), mainTarget, &con[0]);
+	}
+
+	tileBase *clone() override {
+		return plop::clone<traffic_plop>(this);
+	}
+
+	void free() override {
+		delete this;
 	}
 };
 
@@ -984,8 +1123,8 @@ network_provider_plop water_tower_plop(&water_tower_sprite, 1200.0f, -100.0f, 1,
 network_provider_plop water_well_plop(&water_well_sprite, 500.0f, -50.0f, 1, 1, true);
 network_provider_plop water_pump_large_plop(&large_water_pump_sprite, 24000.0f, -400.0f, 2, 1, true);
 
-plop_connecting road_plop(&road_con_tex_sprite);
-plop_connecting street_plop(&street_con_tex_sprite);
+traffic_plop road_plop(&road_con_tex_sprite, 1);
+traffic_plop street_plop(&street_con_tex_sprite, 1);
 plop_connecting pool_plop(&pool_con_tex_sprite);
 
 network_provider_plop tall_building_plop(&tall_building_sprite, -800, -400, 1, 1, true);
@@ -1054,21 +1193,26 @@ struct selector : public tile {
 	}
 
 	void render() {
-		sizef area = getRenderArea(selected);
+		sizei area = getRenderArea(selected);
 
 		if (ticks++ % 20 > 9) {
-			selector_sprite.draw(area);
+			selector_sprite.draw(area, mainTarget);
 			game.tileAreaLoop(selected.size, [&](posi p) {
-				selector_sprite.draw(getRenderArea(getEvent(p.with(1,1))));
+				selector_sprite.draw(getRenderArea(getEvent(p.with(1,1))), mainTarget);
 			});
 		}
 
 		if (waterView) {
 			game.tileAreaLoop(selected.size, [&](posi p) {
-				water_pipe_sprite.draw(getRenderArea(getEvent(p.with(1,1))));
+				water_pipe_sprite.draw(getRenderArea(getEvent(p.with(1,1))), mainTarget);
 			});
 			//water_pipe_sprite.draw(area);
 		} else {
+			std::set<piece> selection = tileSelection::fitSelection(selected.size, selected.parent);
+			for (piece p : selection) {
+				p.parent->render(p.with(selected.partial, selected.plop_instance));
+			}
+			/*
 			sizei oldSize = selected.parent->getSize(selected);
 			if (selected.plop_instance != nullptr) {
 				oldSize = selected.plop_instance->size;
@@ -1085,6 +1229,7 @@ struct selector : public tile {
 			});
 			selected.parent->setSize(selected);
 			//selected.parent->render(selected);
+			*/
 		}		
 	}
 	
@@ -1122,19 +1267,19 @@ network_value *getNetwork(tileEvent e, int type) {
 
 struct _dirt_tile : public tile {
 	void render(tileEvent e) override {
-		sizef area = getRenderArea(e);
+		sizei area = getRenderArea(e);
 		if (e.plop_instance) {
 			network_value *water = getNetwork(e.with(0,SILENT), WATER);
 			if (water && water->isSupply())
-				wet_plop_sprite.draw(area);
+				wet_plop_sprite.draw(area, mainTarget);
 			else
-				dry_plop_sprite.draw(area);
+				dry_plop_sprite.draw(area, mainTarget);
 				
 		} else {
 			if (e.partial->hasWater())
-				wet_dirt_sprite.draw(area);
+				wet_dirt_sprite.draw(area, mainTarget);
 			else
-				dry_dirt_sprite.draw(area);
+				dry_dirt_sprite.draw(area, mainTarget);
 		}
 	}
 };
@@ -1389,6 +1534,23 @@ std::vector<tileComplete> _game::getTiles(sizei size) {
 	return tiles;
 }
 
+std::vector<tilePartial*> _game::getPartials(sizei size) {
+	std::vector<tilePartial*> tiles;
+
+	if (size.width == 1 && size.height == 1) {
+		tiles.push_back(getPartial(size));
+		return tiles;
+	}
+
+	for (int x = size.x; x < size.x + size.width; x++) {
+		for (int y = size.y; y < size.y + size.height; y++) {
+			tiles.push_back(getPartial(x,y));
+		}
+	}
+
+	return tiles;
+}
+
 void _game::fireEvent(sizei size, int events) {
 	fireEvent(getEvent(size), events);
 }
@@ -1463,9 +1625,17 @@ void _game::place(tileEvent e) {
 
 	e.plop_instance = nullptr;
 
-	for (tileComplete tc : getTiles(e.size)) {
-		e.parent->setSize(e);
-		e.parent->copyState(tc.partial);
+	//std::set<piece> pieces = tileSelection::getSelection(e.size);
+	//std::vector<tilePartial*> partials = getPartials(e.size);
+	std::set<piece> selection = tileSelection::fitSelection(e.size, e.parent);
+
+	for (piece p : selection) {
+		tileBase *c = p.parent->clone();
+		//p.parent->setSize(e);
+		for (tilePartial *tp : getPartials(p.size)) {
+			c->setSize(p.with(tp, c->getPlop()));
+			p.parent->copyState(tp);
+		}
 	}
 
 	fireEvent(e.with(PLACE));
@@ -1513,6 +1683,7 @@ void _game::init(sizei mapsize) {
 	infoMode = false;
 	statsMode = false;
 	plopsOnly = false;
+	graphicsUpdate = true;
 	
 	waterSupply = 0;
 	waterDemand = 0;
@@ -1601,18 +1772,28 @@ void displayTileMap() {
 	float width = getWidth();
 	float height = getHeight();
 
-	sizei screen = mainTarget.getSize();
+	sizei screen = mainTarget->getSize();
 	sizei map = game.getMapSize();
 
 	tileComplete tc;
 	tileEvent e;
 
+	buffer_target *bt = nullptr;
+	if (mainTarget->is_retained_mode()) {
+		bt = (buffer_target*)mainTarget;
+		if (graphicsUpdate) {
+			bt->clear();
+			bt->stale = true;
+		}
+	}
+
 	for (int x = map.width - 1; x > - 1; x--) {
 		for (int y = 0; y < map.height; y++) {			
-			sizef renderArea = tileBase::getRenderArea({x,y,1,1});
-			renderArea.height = renderArea.height - renderArea.y;
+			sizei renderArea = tileBase::getRenderArea({x,y,1,1});
+			//renderArea.height = renderArea.height - renderArea.y;
+			renderArea.y -= getHeight();
 
-			if (!screen.overlaps(sizei::cast(renderArea)))
+			if (!screen.overlaps(renderArea))
 				continue;
 			
 			tc = getComplete(x,y);
@@ -1622,46 +1803,23 @@ void displayTileMap() {
 			if (waterView) {
 				dirt_tile.render(e);
 				if (partial->hasUnderground(UNDERGROUND_WATER_PIPE))
-					water_pipe_tile.render(e);				
-				continue;
-			}			
-
-			if (tc.parent && !plopsOnly)
-				tc.parent->render(e);
-			if (tc.plop_instance) {
-				//if (plopsOnly && tc.parent)
-				//	tc.parent->render(e);
-				tc.plop_instance->render(e);
-			}
-			/*
-			if (tc.parent->waterConsumption(&tc) > 0 && !tc.partial->hasWater()) {
-				//nowater->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
-				no_water_sprite.draw(offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
-			}
-			else
-				if (tc.parent->needsRoadConnection(&tc) && !tc.parent->hasRoadConnection(&tc)) {
-					//noroad->draw(&tc, offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
-					no_road_sprite.draw(offsetx * width + (width * 0.1f), offsety * height - (height * 0.5f), width * 0.8f, height * 0.8f);
+					water_pipe_tile.render(e);
+			} else {
+				if (tc.parent && !plopsOnly)
+					tc.parent->render(e);
+				if (tc.plop_instance) {
+					tc.plop_instance->render(e);
 				}
-			*/
+			}
 		}
 	}
-	/*
-	std::vector<plop_instance*> z_sort = plops.instances;
 
-	std::sort(z_sort.begin(), z_sort.end(), [](plop_instance *a, plop_instance *b) {
-		return getOffsetY(b->originX, b->originY) > getOffsetY(a->originX, a->originY);
-	});
-
-	for (auto _pi : z_sort) {
-		if (waterView && !_pi->waterSupply())
-			continue;
-
-		_pi->render();
+	if (bt && mainTarget->is_retained_mode()) {
+		bt->stale = false;
+		immediateTarget->draw(bt);
 	}
-	*/
 }
-//0,0
+
 void displayXY() {
 	posf p = {getScreenOffsetX(0.2,0),getScreenOffsetY(0.5,0)};
 	//posf _x = {1,0}, _y = {0,1};
@@ -1792,7 +1950,7 @@ void displayInfo() {
 	int y = 0;
 	auto printVar = [&](const char* varname, float value) {
 		char buf[100];
-		int i = snprintf(&buf[0], 99, "%s: %f", varname, value);
+		int i = snprintf(&buf[0], 99, "%s: %.2f", varname, value);
 		adv::write(0,y++,&buf[0]);
 	};
 	auto printSize = [&](const char* varname, sizei value) {
@@ -1808,6 +1966,9 @@ void displayInfo() {
 	printVar("waterSupply", waterSupply);
 	printVar("waterDemand", waterDemand);
 	printVar("waterNetworks", waterNetworks);
+	printVar("retained_objects", retained_targets.size());
+	printSize("mainTarget", mainTarget->getSize());
+	printSize("immediateTarget", immediateTarget->getSize());
 	printVar("instanceCount", registry.instances.size());
 	printVar("placeableCount", registry.placeable.size());
 	printVar("placementMode", placementMode ? 1.0f : 0.0f);
@@ -1837,7 +1998,7 @@ void display() {
 	displayEdges();
 
 	displayTileMap();
-	
+
 	if (placementMode)
 		tileSelector.render();
 	
@@ -1874,18 +2035,22 @@ int wmain() {
 
 	mainAtlas.load("textures.png");
 	
+	grass_sprite_random.set(&grass_sprite);
+	grass_sprite_random.add(&water_pipe_sprite);
+
 	fprintf(logFile, "[%li] Loaded texture\n", time(0));
-
-	grass_sprite_random = new random_overlay(new sprite_overlay(&grass_sprite), &street_sprite);
-
-	fprintf(logFile, "[%li] Set advanced console up\n", time(0));
 
 	adv::setThreadState(false);
 	adv::setThreadSafety(false);
 
-	fprintf(logFile, "[%li] Game init\n", time(0));
+	immediateTarget = new adv_target();
+	mainTarget = new buffer_target(immediateTarget->getSize());
+
+	fprintf(logFile, "[%li] Set advanced console up\n", time(0));
 
 	game.init({0,0,tileMapWidth,tileMapHeight});
+
+	fprintf(logFile, "[%li] Game initialized\n", time(0));
 	
 	int key = 0;
 	
@@ -1902,6 +2067,7 @@ int wmain() {
 		}
 
 		adv::clear();
+		graphicsUpdate = true;
 		
 		if (placementMode) {
 			sizei area = tileSelector.selected.size;
@@ -1972,6 +2138,9 @@ int wmain() {
 			case '1':
 				tileSelector.prev();
 				break;
+			default:
+				graphicsUpdate = false;
+				break;
 			}			
 		}
 		
@@ -2041,6 +2210,9 @@ int wmain() {
 			case 'k':
 				month++;
 				day = 1;
+				break;
+			default:
+				graphicsUpdate = false;
 				break;
 		}
 		

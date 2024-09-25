@@ -30,6 +30,15 @@ struct _pos {
     bool operator==(_pos<T> &p) {
         return x == p.x && y == p.y;
     }
+    bool operator==(const _pos<T> &p) const {
+        return x == p.x && y == p.y;
+    }
+    bool operator!=(_pos<T> &p) {
+        return !operator==(p);
+    }
+    bool operator!=(_pos<T> &p) const {
+        return !operator==(p);
+    }
     _pos<T> operator+(_pos<T> &p) {
         return vecop(p, add);
     }
@@ -66,8 +75,17 @@ struct _pos {
         //return pow(p.x - x, 2) + pow(p.y - y, 2);
         return ((p.x - x) * (p.x - x)) + ((p.y - y) * (p.y - y));
     }
+    /*
+    Add length (width, height) to the position
+    */
     _size<T> with(T width, T height) {
         return {_pos<T>(x, y), width, height};
+    }
+    _size<T> with(_size<T> s) {
+        return {_pos<T>(x, y), s.width, s.height};
+    }
+    _size<T> with(_pos<T> p) {
+        return {_pos<T>(x, y), p.x, p.y};
     }
     T x, y;
 };
@@ -90,6 +108,10 @@ struct _size : public _pos<T> {
         width = 1;
         height = 1;
     }
+    _size(const _pos<T> &xy, const _pos<T> &wh): _pos<T>(xy) {
+        width = wh.x;
+        height = wh.y;
+    }
 
     _size(T x, T y):_pos<T>(x, y) {
         width = 1;
@@ -102,6 +124,15 @@ struct _size : public _pos<T> {
     }
     bool operator==(_size<T> &s) {
         return ((_pos<T>*)this)->operator==(s) && width == s.width && height == s.height;
+    }
+    bool operator==(const _size<T> &s) const {
+        return ((_pos<T>*)this)->operator==(s) && width == s.width && height == s.height;
+    }
+    bool operator!=(_size<T> &s) {
+        return !operator==(s);
+    }
+    bool operator!=(_size<T> &s) const {
+        return !operator==(s);
     }
     _size<T> operator+(_size<T> s) {
         return this->add(s);
@@ -162,6 +193,12 @@ struct _size : public _pos<T> {
     T area() {
         return width * height;
     }
+    T get(T relX, T relY) {
+        return (relY + this->y) * width + (relX + this->x);
+    }
+    T get(_pos<T> relXY) {
+        return get(relXY.x, relXY.y);
+    }
     T width, height;
 };
 
@@ -172,14 +209,6 @@ typedef _size<float> sizef;
 typedef _cc<wchar_t, color_t, color_t> cpix;
 typedef unsigned char ubyte;
 typedef _pixel<ubyte> pixel;
-
-float frametime = 33.333f;
-float xfact = 0.7071067812f; //0.5f;
-float yfact = 0.7071067812f; //0.5f;
-
-float scale = 4;
-float viewX;
-float viewY;
 
 template<typename character, typename color, typename alpha>
 struct _cc {
@@ -200,8 +229,33 @@ struct _pixel {
 	_bit r,g,b,a;
 };
 
+float xfact = 0.7071067812f; //0.5f;
+float yfact = 0.7071067812f; //0.5f;
+
+float scale = 4;
+float viewX;
+float viewY;
+
+cpix get_cpix(wchar_t ch, color_t co) {
+	cpix r;
+	r.ch = ch;
+	r.co = co;
+	return r;
+}
+
+cpix empty_cpix() {
+	return get_cpix('X', FMAGENTA|BBLACK);
+}
+
+cpix null_cpix() {
+    return get_cpix(0, 0);
+}
+
+//#define ROUND(x) int(x)
+#define ROUND(x) roundf(x)
+
 float getOffsetX(float x, float y) {
-	return round(((((y * yfact) + (x * xfact)) * xfact) + viewX) * 1000.0f) / 1000.0f;
+	return ROUND(((((y * yfact) + (x * xfact)) * xfact) + viewX) * 1000.0f) / 1000.0f;
 }
 
 float getOffsetX(posf p) {
@@ -209,7 +263,7 @@ float getOffsetX(posf p) {
 }
 
 float getOffsetY(float x, float y) {
-	return round(((((y * yfact) - (x * xfact)) * yfact) + viewY) * 1000.0f) / 1000.0f;
+	return ROUND(((((y * yfact) - (x * xfact)) * yfact) + viewY) * 1000.0f) / 1000.0f;
 }
 
 float getOffsetY(posf p) {
@@ -231,6 +285,7 @@ float getWidth() {
 float getHeight() {
 	return 1.0f * scale;
 }
+
 
 float getScreenOffset(float ratio, float length, int offset_length) {
     int center = offset_length * ratio;
