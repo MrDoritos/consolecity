@@ -1161,7 +1161,6 @@ struct selector : public tile {
 		selected.parent = registry.getPlaceable(selectedId)->clone();
 		selected.plop_instance = selected.parent->getPlop(selected);
 		setLength(selected.parent->getSize(selected));
-
 	}
 
 	void setLength(sizei p) {
@@ -1178,6 +1177,7 @@ struct selector : public tile {
 		selected.size = p;
 		selected.parent->setSize(selected);
 		selected.parent->copyState(selected.partial);
+		graphicsUpdate = true;
 	}
 
 	void setPos(posi p) {
