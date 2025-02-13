@@ -1,2 +1,6 @@
 log.txt
 .old
+.vscode
+callgrind*
+perf.data
+*.o
