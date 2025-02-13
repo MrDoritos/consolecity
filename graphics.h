@@ -1,6 +1,10 @@
 #pragma once
 #include "../console/advancedConsole.h"
-#include "../imgcat/colorMappingFast.h"
+#ifdef TEST_MAPPING
+#include "../imgcat/colorMappingPalette.h"
+#else
+#include "../imgcat/colorMappingDitherFast.h"
+#endif
 #define STB_IMAGE_IMPLEMENTATION
 #include "../imgcat/stb_image.h"
 
